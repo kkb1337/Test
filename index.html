@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+
+<!-- FTracker duplicate system rewritten as one canonical creation-time flow. -->
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>FTracker</title>
+<meta name="FTracker-Version" content="1.7.58"/>
+<meta name="app-version" content="1.7.58"/>
+<meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
+<meta content="no-cache" http-equiv="Pragma"/>
+<meta content="0" http-equiv="Expires"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="FTracker" name="apple-mobile-web-app-title"/>
+<meta content="#000000" name="theme-color"/>
+<link href="./manifest.json" rel="manifest"/>
+<link href="./icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
+<link href="./icon-192.png" rel="apple-touch-icon" sizes="192x192"/>
+</style>
+
+<link rel="stylesheet" href="./styles.css?v=1.7.80"/>
+<script src="./app.js?v=1.7.80" defer></script>
+</head>
+<body>
+<div class="safe-area"><div class="container" id="app">
+<!-- Экраны -->
+<div id="homeScreen">
+<div class="title home-title-clickable" onclick="openThemeModal()" onkeydown="if(event.key==='Enter'||event.key===' ')openThemeModal()" role="button" tabindex="0" title="Настройки FTracker">FTracker <span aria-hidden="true" class="home-title-gear">⚙︎</span></div>
+<div class="card hidden" id="draftBanner" onclick="resumeDraft()" style="background: var(--accent-gradient); color:#fff; text-align:center; cursor:pointer;">У вас есть незавершённая тренировка.<br/>Нажмите, чтобы продолжить.</div>
+<div class="card hidden" id="exportReminder" style="background: var(--accent-gradient); color:#fff; text-align:center;">
+            Прошло больше недели с последнего экспорта.<br/><button onclick="exportData(); closeExportReminder();" style="background:#fff; color:#000; margin-top:8px;">📥 Экспортировать сейчас</button>
+</div>
+<div id="programList"></div>
+<div aria-label="Открыть индекс динамики" class="fscore-widget" id="fscoreHomeWidget" onclick="if(!event.target.closest('.fscore-home-collapse'))showFScoreAnalytics()" onkeydown="if((event.key==='Enter'||event.key===' ')&amp;&amp;!event.target.closest('.fscore-home-collapse'))showFScoreAnalytics()" role="button" tabindex="0">
+<span class="fscore-home-top">
+<span class="fscore-home-title">Индекс динамики</span>
+<span class="fscore-home-action">Подробнее <span aria-hidden="true">›</span></span>
+</span>
+<span class="fscore-home-middle">
+<span class="fscore-home-number-wrap">
+<span class="fscore-home-number">0</span><span class="fscore-home-scale">/ 100</span>
+</span>
+<span class="fscore-home-status"><span aria-hidden="true" class="fscore-home-dot"></span><span class="fscore-home-status-text">Ниже желаемого</span></span>
+</span>
+<span aria-hidden="true" class="fscore-home-progress"><span class="fscore-home-progress-fill"></span></span>
+<span class="fscore-home-hint">Насколько данные соответствуют выбранной цели</span>
+</div>
+<div class="nav-buttons">
+<button class="outline" onclick="showProgress()">
+<svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                Прогресс
+            </button>
+<button class="outline" onclick="showBodyMeasurements()">
+<svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M12 3v7"></path><path d="M9 7h6"></path></svg>
+                Замеры
+            </button>
+<button class="outline" onclick="showExerciseDirectory()">
+<svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="16" rx="3" width="16" x="4" y="4"></rect><line x1="8" x2="16" y1="9" y2="9"></line><line x1="8" x2="16" y1="13" y2="13"></line><line x1="8" x2="13" y1="17" y2="17"></line></svg>
+                Справочник
+            </button>
+<button class="outline" onclick="showSettings()">
+<svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Программы
+            </button>
+<button class="outline" onclick="showHistory()">
+<svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                История
+            </button>
+<button class="outline" onclick="showFoodDiary()">
+<svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M4 20h16M4 12h16M4 4h16"></path><circle cx="7" cy="7" r="1"></circle><circle cx="7" cy="15" r="1"></circle><circle cx="17" cy="7" r="1"></circle><circle cx="17" cy="15" r="1"></circle></svg>
+                Питание
+            </button>
+</div>
+</div>
+<div class="hidden" id="progressScreen">
+<div class="screen-header"><button class="gray" onclick="goHome()">← Назад</button><div class="title section-title"><span class="section-title-icon">↗</span><span>Прогресс</span></div><span aria-hidden="true" class="screen-header-spacer"></span></div>
+<div id="progressContent"></div>
+</div>
+<div class="hidden" id="fscoreAnalyticsScreen">
+<div class="screen-header"><button aria-label="Назад" class="gray fscore-back-btn" onclick="goHome()">← Назад</button><div class="title section-title fscore-title"><span class="section-title-icon">◎</span><span>Индекс динамики</span></div></div>
+<div id="fscoreAnalyticsContent"></div>
+</div>
+<div class="hidden" id="bodyScreen">
+<div class="screen-header"><button class="gray" onclick="goHome()">← Назад</button><div class="title section-title"><span class="section-title-icon">⌁</span><span>Замеры</span></div><span aria-hidden="true" class="screen-header-spacer"></span></div>
+<div id="measurementForm"></div>
+</div>
+<div class="hidden" id="confirmScreen">
+<div class="card centered-card">
+<div id="confirmTitle" style="font-size:22px; font-weight:600; margin-bottom:12px;"></div>
+<div style="color:#8e8e93; margin-bottom:20px;">Начать тренировку?</div>
+<div class="row"><button id="confirmStartYes" onclick="startConfirmed(event)" type="button">Да</button><button class="gray" onclick="goHome()" type="button">Нет</button></div>
+</div>
+</div>
+<div class="hidden" id="workoutScreen">
+<div class="workout-topbar">
+<div class="workout-head">
+<button aria-label="Выйти из тренировки" class="workout-close" onclick="confirmExitWorkout()" title="Выйти из тренировки">‹</button>
+<div class="workout-title-wrap">
+<div class="title" id="workoutTitle"></div>
+<div class="workout-subline" id="workoutProgressText"></div>
+</div>
+<div class="workout-top-right"><span class="workout-time" id="totalTimer">00:00</span></div>
+</div>
+<div aria-hidden="true" class="workout-progress"><span id="workoutProgressBar" style="width:0%"></span></div>
+<div aria-hidden="true" class="workout-progress-caption"><span id="workoutProgressLeft"></span><span id="workoutProgressRight"></span></div>
+<div class="exercise-strip" id="exerciseStrip"></div>
+</div>
+<div id="exerciseContainer"></div>
+</div>
+<div class="hidden" id="settingsScreen">
+<div class="screen-header"><button class="gray" onclick="goHome()">← Назад</button><div class="title section-title"><span class="section-title-icon">ϟ</span><span>Настройки</span></div><span aria-hidden="true" class="screen-header-spacer"></span></div>
+<div id="programsEditor"></div>
+<button onclick="addProgram()" style="margin-top:12px;">➕ Новая программа</button>
+</div>
+<div class="hidden" id="exerciseDirectoryScreen">
+<div class="screen-header"><button class="gray" onclick="goHome()">← Назад</button><div class="title section-title"><span class="section-title-icon">▤</span><span>Справочник</span></div><span aria-hidden="true" class="screen-header-spacer"></span></div>
+<div class="directory-tabs">
+<button class="directory-tab active" id="directoryActiveTab" onclick="setDirectoryView('active')" type="button">Упражнения</button>
+<button class="directory-tab" id="directoryArchiveTab" onclick="setDirectoryView('archive')" type="button">Архив</button>
+</div>
+<div id="directoryActiveActions" style="display:flex;gap:8px;margin-bottom:10px;"><button onclick="openNewDirectoryExerciseModal()" type="button">＋ Новое упражнение</button></div>
+<div class="card" style="padding:12px;margin-bottom:12px;">
+<div class="directory-search-wrap"><span class="directory-search-icon">⌕</span><input autocomplete="off" class="directory-search" id="directorySearch" oninput="filterDirectorySearch(this.value)" placeholder="Поиск упражнения"/><button aria-label="Очистить поиск" class="directory-search-clear hidden" id="directorySearchClear" onclick="clearDirectorySearch()" type="button">×</button></div>
+</div>
+<div id="exerciseDirectoryContent"></div>
+</div>
+<div class="hidden" id="historyScreen">
+<div class="screen-header"><button class="gray" onclick="goHome()">← Назад</button><div class="title section-title"><span class="section-title-icon">◷</span><span>История</span></div><span aria-hidden="true" class="screen-header-spacer"></span></div>
+<button class="outline" onclick="openManualWorkoutModal()" style="margin-bottom:12px;">➕ Добавить тренировку</button>
+<div id="historyList"></div>
+</div>
+<div class="hidden" id="foodScreen">
+<div class="screen-header"><button class="gray" onclick="goHome()">← Назад</button><div class="title section-title"><span class="section-title-icon">▦</span><span>Питание</span></div><span aria-hidden="true" class="screen-header-spacer"></span></div>
+<div class="tabs food-main-tabs">
+<div class="tab active" data-tab="today" onclick="switchFoodTab('today')">Сегодня</div>
+<div class="tab" data-tab="stats" onclick="switchFoodTab('stats')">Статистика</div>
+<div class="tab" data-tab="history" onclick="switchFoodTab('history')">История</div>
+<div class="tab" data-tab="catalog" onclick="switchFoodTab('catalog')">Каталог</div>
+</div>
+<div class="tab-content active" id="foodTabToday">
+<div class="card">
+<div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
+<input id="foodDate" onchange="renderFoodDiary()" style="flex:1;" type="date"/>
+<button class="small-btn gray" onclick="setFoodLimit()" style="width:auto;">Лимиты</button>
+</div>
+<div id="foodSummary" style="margin-top:12px;"></div>
+<div class="day-copy-btns">
+<button onclick="copyYesterday()">📋 Вчера</button>
+<button onclick="openCopyDatePicker()">📅 Из даты…</button>
+</div>
+</div>
+<div class="card" id="foodEntries"></div>
+<button onclick="openAddFoodModal()" style="margin-top:12px;">➕ Добавить продукт</button>
+</div>
+<div class="tab-content" id="foodTabHistory">
+<div class="card" id="foodHistoryList"></div>
+</div>
+<div class="tab-content" id="foodTabStats">
+<div class="card">
+<div class="stats-tabs">
+<button class="stats-tab active" data-stats-period="7" onclick="setTextStatsPeriod('7')">7 дней</button>
+<button class="stats-tab" data-stats-period="30" onclick="setTextStatsPeriod('30')">30 дней</button>
+<button class="stats-tab" data-stats-period="all" onclick="setTextStatsPeriod('all')">Всё время</button>
+</div>
+<div id="textStatsContent"></div>
+<button onclick="openChartModal()" style="margin-top:12px;">📊 Показать график</button>
+</div>
+</div>
+<div class="tab-content" id="foodTabCatalog">
+<button onclick="openAddToCatalog()" style="margin-bottom:12px;">➕ Добавить продукт в каталог</button>
+<div class="food-catalog-search card" style="padding:12px;margin-bottom:12px;"><input autocomplete="off" id="catalogSearch" oninput="renderCatalogList()" placeholder="🔍 Поиск продукта или блюда" type="search"/></div>
+<div class="card" id="catalogContainer"></div>
+</div>
+</div>
+</div></div>
+<!-- Модальные окна -->
+<div class="theme-modal hidden" id="themeModal" onclick="if(event.target === this) closeThemeModal()">
+<div class="theme-modal-content">
+<div class="unified-surface-header ft-modal-header settings-sheet-header">
+<button class="surface-back-btn" type="button" onclick="closeThemeModal()">← Назад</button>
+<div class="surface-title">Настройки</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<div aria-label="Версия приложения" class="app-version-info">v1.7.80 от 12.09.26</div>
+<div style="font-size:20px; font-weight:600; margin-bottom:16px;">Выберите тему</div>
+<button onclick="setTheme('dark')">🌙 Тёмная</button>
+<button onclick="setTheme('light')" style="background: var(--accent-gradient);">☀️ Светлая</button>
+<div style="height:1px; background:var(--border); margin:16px 0;"></div>
+<div style="font-size:20px; font-weight:600; margin-bottom:16px;">Данные</div>
+<button onclick="exportData()">💾 Экспортировать</button>
+<label class="gray ftracker-import-trigger" for="importFile" id="importFileTrigger" style="margin-top:8px;min-height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;">📥 Импортировать</label>
+<input accept=".json,application/json,text/json" aria-label="Выбрать файл бэкапа FTracker" id="importFile" onchange="importData(event)" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;" type="file"/>
+<!-- iOS/PWA: input intentionally remains in the DOM (not display:none) so the native Files picker can open reliably. -->
+<div aria-live="polite" class="data-history-status">
+<div class="data-history-row" id="lastImportInfo"><span>Последний импорт</span><strong>Не выполнялся</strong></div>
+<div class="data-history-row" id="lastExportInfo"><span>Последний экспорт</span><strong>Не выполнялся</strong></div>
+</div>
+<div aria-live="polite" class="auto-backup-panel">
+<div class="auto-backup-panel-title">🛡️ Автоматические копии</div>
+<div class="auto-backup-status" id="autoBackupStatus">Проверяю состояние…</div>
+<div class="auto-backup-actions">
+<button class="gray" onclick="clearTemporaryFiles()" type="button">🧹 Очистить все данные приложения</button>
+</div>
+<div class="auto-backup-list" id="autoBackupList"></div>
+</div>
+</div>
+</div>
+<div class="confirm-modal hidden" id="autoBackupRestoreConfirmModal" onclick="if(event.target===this)closeAutoBackupRestoreConfirm()">
+<div class="confirm-modal-content auto-backup-restore-confirm-content">
+<div class="auto-backup-confirm-icon">↻</div>
+<div class="finish-confirm-title">Восстановить автокопию?</div>
+<div class="finish-confirm-text">Текущие данные FTracker будут заменены выбранной автоматической копией.</div>
+<div class="finish-confirm-actions">
+<button onclick="confirmAutoBackupRestore()" type="button">Восстановить</button>
+<button class="gray" onclick="closeAutoBackupRestoreConfirm()" type="button">Отмена</button>
+</div>
+</div>
+</div>
+<div class="catalog-modal hidden" id="renameExerciseModal" onclick="if(event.target===this)closeRenameExerciseModal()">
+<div class="catalog-modal-content" style="max-width:520px;">
+<div class="unified-surface-header ft-modal-header rename-exercise-header">
+<button class="surface-back-btn" type="button" onclick="closeRenameExerciseModal()" aria-label="Назад">← Назад</button>
+<div class="surface-title">Изменить название</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<input id="renameExerciseOld" type="hidden"/>
+<label class="field-label">Новое название</label>
+<input id="renameExerciseInput" maxlength="80" placeholder="Название упражнения"/>
+<button onclick="saveRenameExercise()">Сохранить</button>
+<button class="gray" onclick="closeRenameExerciseModal()">Отмена</button>
+</div>
+</div>
+<div class="catalog-modal hidden" id="directoryNewExerciseModal" onclick="if(event.target===this)closeNewDirectoryExerciseModal()">
+<div class="catalog-modal-content" style="max-width:520px;">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" onclick="closeNewDirectoryExerciseModal()" type="button">← Назад</button>
+<div class="surface-title">Новое упражнение</div>
+<span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<label class="field-label">Название</label><input id="directoryNewName" maxlength="80" placeholder="Например, Жим в тренажёре"/>
+<label class="field-label">Группа мышц</label><select id="directoryNewGroup"><option>Грудь</option><option>Бицепс</option><option>Спина</option><option>Трицепс</option><option>Плечи</option><option>Ноги</option><option>Пресс</option><option>Кардио</option><option>Другое</option></select>
+<label class="field-label">Тип</label><select id="directoryNewType"><option value="strength">Сила</option><option value="bodyweight">Повторы</option><option value="cardio">Кардио</option></select>
+<button onclick="window.saveNewDirectoryExercise()">Добавить в справочник</button><button class="gray" onclick="closeNewDirectoryExerciseModal()">Отмена</button>
+</div>
+</div>
+<div class="exercise-modal hidden" id="workoutNewExerciseModal" onclick="if(event.target===this)closeWorkoutNewExerciseModal()">
+<div class="exercise-modal-content workout-new-exercise-sheet">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" onclick="closeWorkoutNewExerciseModal()" type="button">← Назад</button>
+<div class="surface-title">Новое упражнение</div>
+<span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div class="workout-new-sub">Создаётся пустая карточка. Технику, мышцы и советы можно заполнить позже в справочнике.</div>
+<label class="field-label">Название</label>
+<input id="workoutNewExerciseName" maxlength="80" placeholder="Название упражнения"/>
+<label class="field-label">Группа мышц</label>
+<select id="workoutNewExerciseGroup"><option>Грудь</option><option>Бицепс</option><option>Спина</option><option>Трицепс</option><option>Плечи</option><option>Ноги</option><option>Пресс</option><option>Кардио</option><option>Другое</option></select>
+<label class="field-label">Тип</label>
+<select id="workoutNewExerciseType"><option value="strength">Силовое</option><option value="bodyweight">Повторы</option><option value="cardio">Кардио</option></select>
+<button onclick="window.saveWorkoutNewExercise()" type="button">Сохранить и добавить</button>
+<button class="gray" onclick="closeWorkoutNewExerciseModal()" type="button">Отмена</button>
+</div>
+</div>
+<div class="exercise-modal hidden" id="replaceExerciseModal" onclick="if(event.target === this) closeReplaceExerciseModal()">
+<div class="exercise-modal-content replace-exercise-sheet">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" onclick="closeReplaceExerciseModal()" type="button">← Назад</button>
+<div class="surface-title">Заменить упражнение</div>
+<span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div class="replace-sheet-current" id="replaceExerciseCurrent"></div>
+<div class="replace-search-wrap">
+<span class="replace-search-icon">⌕</span>
+<input autocomplete="off" id="replaceExerciseSearch" oninput="filterReplaceExerciseList(this.value)" placeholder="Поиск упражнения" type="search"/>
+<button class="replace-search-clear hidden" id="replaceSearchClear" onclick="clearReplaceExerciseSearch()" type="button">×</button>
+</div>
+<div class="replace-sheet-actions-top">
+<button class="replace-confirm-btn" onclick="confirmReplaceExercise()" type="button">Заменить упражнение</button>
+<button class="replace-create-exercise-btn" onclick="openWorkoutNewExerciseFromReplace()" type="button">＋ Создать новое упражнение</button>
+</div>
+<div class="replace-sheet-note">Замена действует только в текущей тренировке. Программы сплитов не изменяются.</div>
+<div class="replace-exercise-list" id="replaceExerciseList"></div>
+</div>
+</div>
+<div class="exercise-modal hidden" id="exerciseModal" onclick="if(event.target === this) closeExerciseModal()">
+<div class="exercise-modal-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" onclick="closeExerciseModal()" type="button">← Назад</button>
+<div class="surface-title">Карточка</div>
+<span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div class="exercise-card-exercise-name" id="exerciseModalExerciseName"></div>
+<div class="tabs">
+<div class="tab active" data-tab="history" onclick="switchExerciseModalTab('history')">История</div>
+<div class="tab" data-tab="records" onclick="switchExerciseModalTab('records')">Рекорд</div>
+<div class="tab" data-tab="graph" onclick="switchExerciseModalTab('graph')">График</div>
+</div>
+<div class="tab-content active" id="tabHistory"></div>
+<div class="tab-content" id="tabRecords"></div>
+<div class="tab-content" id="tabGraph"><div class="exercise-graph-metrics" id="exerciseGraphControls"></div><div class="graph-container"><canvas id="progressGraph"></canvas></div></div>
+</div>
+</div>
+<div class="date-modal hidden" id="dateModal" onclick="if(event.target === this) closeDateModal()">
+<div class="date-modal-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" onclick="closeDateModal()" type="button">← Назад</button>
+<div class="surface-title">Изменить дату</div>
+<span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<input id="newDateInput" type="date"/>
+<button onclick="saveDateChange()" style="margin-top:12px;">Сохранить</button>
+<button class="gray" onclick="closeDateModal()">Отмена</button>
+</div>
+</div>
+<div class="confirm-modal hidden" id="confirmExitModal" onclick="if(event.target === this) closeConfirmExit()">
+<div class="confirm-modal-content">
+<div style="font-size:20px; font-weight:600; margin-bottom:16px;">Завершить тренировку?</div>
+<button onclick="finishWorkout()">💾 Сохранить</button>
+<button class="gray" onclick="exitWorkoutWithoutSaving()">🚫 Выйти без сохранения</button>
+<button class="gray" onclick="closeConfirmExit()">Отмена</button>
+</div>
+</div>
+<div class="confirm-modal hidden" id="finishWorkoutConfirmModal" onclick="if(event.target === this) closeFinishWorkoutConfirm()">
+<div class="confirm-modal-content finish-workout-confirm-content">
+<div class="finish-confirm-icon">✓</div>
+<div class="finish-confirm-title">Завершить тренировку?</div>
+<div class="finish-confirm-text">Сохранить выполненные подходы и перейти к результатам тренировки?</div>
+<div class="finish-confirm-actions"><button onclick="finishWorkout()" type="button">Да, завершить</button><button class="gray" onclick="closeFinishWorkoutConfirm()" type="button">Нет</button></div>
+</div>
+</div>
+<div class="confirm-modal hidden" id="deleteConfirmModal" onclick="if(event.target === this) closeDeleteConfirm()">
+<div class="confirm-modal-content" id="deleteConfirmContent"></div>
+</div>
+<div class="confirm-modal hidden" id="importConfirmModal" onclick="if(event.target === this) closeImportConfirm()">
+<div class="confirm-modal-content">
+<div style="font-size:20px; font-weight:600; margin-bottom:16px;">Импортировать данные?</div>
+<div class="import-confirm-copy">Данные из бэкапа будут объединены с текущими. Ничего не удаляется.</div>
+<button onclick="confirmImport()">✅ Импортировать</button>
+<button class="gray" onclick="closeImportConfirm()">Отмена</button>
+</div>
+</div>
+<div class="workout-detail-modal hidden" id="workoutDetailModal" onclick="if(event.target === this) closeWorkoutDetail()">
+<div class="workout-detail-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" onclick="closeWorkoutDetail()" type="button">← Назад</button>
+<div class="surface-title">Тренировка</div>
+<span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div class="workout-detail-meta" id="workoutDetailTitle"></div>
+<div id="workoutDetailContent"></div>
+</div>
+</div>
+<div class="achievements-modal hidden" id="achievementsModal" onclick="if(event.target === this) closeAchievements()">
+<div class="achievements-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" type="button" onclick="closeAchievements()" aria-label="Назад">← Назад</button>
+<div class="surface-title">🏆 Достижения тренировки</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<div id="achievementsList"></div>
+</div>
+</div>
+<div class="manual-workout-modal hidden" id="manualWorkoutModal" onclick="if(event.target === this) closeManualWorkout()">
+<div class="manual-workout-content">
+<div class="unified-surface-header ft-modal-header manual-workout-header">
+<button class="surface-back-btn" type="button" onclick="closeManualWorkout()" aria-label="Назад">← Назад</button>
+<div class="surface-title">Добавить тренировку</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<div style="margin-bottom:12px;"><label style="font-weight:600;">Сплит</label><select id="manualSplitSelect"></select></div>
+<div style="margin-bottom:12px;"><label style="font-weight:600;">Дата</label><input id="manualDate" type="date"/></div>
+<div id="manualExercises"></div>
+<button onclick="saveManualWorkout()" style="margin-top:12px;">💾 Сохранить тренировку</button>
+<button class="gray" onclick="closeManualWorkout()">Отмена</button>
+</div>
+</div>
+<div class="food-modal hidden" id="addFoodModal" onclick="if(event.target === this) closeAddFoodModal()">
+<div class="food-modal-content">
+<div class="unified-surface-header">
+<button class="surface-back-btn" onclick="closeAddFoodModal()" type="button">← Назад</button>
+<div class="surface-title">Добавить продукт</div><span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div style="position: relative;">
+<label class="field-label">Название продукта</label>
+<input autocomplete="off" id="foodName" onfocus="filterFoodPresets()" oninput="filterFoodPresets()" placeholder="Начните вводить..." type="text"/>
+<div class="food-preset-list hidden" id="foodPresetList"></div>
+</div>
+<div style="margin:8px 0;">
+<label class="field-label">Тип продукта</label>
+<select id="foodType" onchange="switchFoodMode(this.value === 'per100' ? '100' : 'portion')">
+<option value="per100">На 100 грамм</option>
+<option value="dish">Готовое блюдо (на порцию)</option>
+</select>
+</div>
+<div id="portionFields">
+<label class="field-label">Порция</label>
+<input id="foodPortion" placeholder="Например, 100 г, 1 шт" type="text"/>
+<label class="field-label">Калории (ккал)</label>
+<input id="foodCalories" placeholder="0" type="number"/>
+<label class="field-label">Белки (г)</label>
+<input id="foodProtein" placeholder="0" type="number"/>
+<label class="field-label">Жиры (г)</label>
+<input id="foodFat" placeholder="0" type="number"/>
+<label class="field-label">Углеводы (г)</label>
+<input id="foodCarbs" placeholder="0" type="number"/>
+</div>
+<div class="hidden" id="per100Fields">
+<label class="field-label">Вес порции (г)</label>
+<input id="foodWeight" oninput="calcFrom100()" placeholder="0" type="number"/>
+<label class="field-label">Калории на 100 г (ккал)</label>
+<input id="foodCal100" oninput="calcFrom100()" placeholder="0" type="number"/>
+<label class="field-label">Белки на 100 г (г)</label>
+<input id="foodProtein100" oninput="calcFrom100()" placeholder="0" type="number"/>
+<label class="field-label">Жиры на 100 г (г)</label>
+<input id="foodFat100" oninput="calcFrom100()" placeholder="0" type="number"/>
+<label class="field-label">Углеводы на 100 г (г)</label>
+<input id="foodCarbs100" oninput="calcFrom100()" placeholder="0" type="number"/>
+<div id="calcResult" style="margin-top:8px; color:var(--subtext); font-size:14px;"></div>
+</div>
+<button onclick="addFoodEntry()" style="margin-top:12px;">✅ Добавить</button>
+<button class="gray" onclick="closeAddFoodModal()">Отмена</button>
+</div>
+</div>
+<div class="food-modal hidden" id="foodLimitModal" onclick="if(event.target === this) closeFoodLimitModal()">
+<div class="food-modal-content">
+<div class="unified-surface-header">
+<button class="surface-back-btn" onclick="closeFoodLimitModal()" type="button">← Назад</button>
+<div class="surface-title">Лимиты КБЖУ</div><span aria-hidden="true" class="surface-header-spacer"></span>
+</div><div style="font-size:12px;color:var(--subtext);margin-bottom:16px;">Автоматически рассчитываются по выбранной цели. Ручное сохранение переопределяет лимиты только для этого дня.</div>
+<label class="field-label">Калории (ккал)</label>
+<input id="foodLimitCal" placeholder="0" type="number"/>
+<label class="field-label">Белки (г)</label>
+<input id="foodLimitProtein" placeholder="0" type="number"/>
+<label class="field-label">Жиры (г)</label>
+<input id="foodLimitFat" placeholder="0" type="number"/>
+<label class="field-label">Углеводы (г)</label>
+<input id="foodLimitCarbs" placeholder="0" type="number"/>
+<button onclick="saveFoodLimit()" style="margin-top:12px;">💾 Сохранить</button>
+<button class="gray" onclick="clearFoodLimit()" style="margin-top:8px;">🗑️ Сбросить лимиты</button>
+<button class="gray" onclick="closeFoodLimitModal()">Отмена</button>
+</div>
+</div>
+<div class="food-modal hidden" id="copyDatePickerModal" onclick="if(event.target === this) closeCopyDatePicker()">
+<div class="food-modal-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" type="button" onclick="closeCopyDatePicker()" aria-label="Назад">← Назад</button>
+<div class="surface-title">Копировать из даты</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<label class="field-label">Дата</label>
+<input id="copyDateInput" type="date"/>
+<div id="copyDayOfWeek" style="margin-top:8px; color:var(--subtext);"></div>
+<button onclick="copyFromDate()" style="margin-top:12px;">📋 Копировать</button>
+<button class="gray" onclick="closeCopyDatePicker()">Отмена</button>
+</div>
+</div>
+<div class="catalog-modal hidden" id="catalogEditModal" onclick="if(event.target === this) closeCatalogEdit()">
+<div class="catalog-modal-content">
+<div class="unified-surface-header">
+<button class="surface-back-btn" onclick="closeCatalogEdit()" type="button">← Назад</button>
+<div class="surface-title" id="catalogEditTitle">Продукт</div><span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div style="margin-bottom:8px;">
+<label class="field-label">Тип продукта</label>
+<select id="catalogType" onchange="toggleCatalogTypeFields()">
+<option value="per100">На 100 грамм</option>
+<option value="dish">Готовое блюдо (на порцию)</option>
+</select>
+</div>
+<label class="field-label">Название</label>
+<input id="catalogName" placeholder="Название" type="text"/>
+<div id="catalogPer100Fields">
+<label class="field-label">Калории на 100 г (ккал)</label>
+<input id="catalogCal100" placeholder="0" type="number"/>
+<label class="field-label">Белки на 100 г (г)</label>
+<input id="catalogProtein100" placeholder="0" type="number"/>
+<label class="field-label">Жиры на 100 г (г)</label>
+<input id="catalogFat100" placeholder="0" type="number"/>
+<label class="field-label">Углеводы на 100 г (г)</label>
+<input id="catalogCarbs100" placeholder="0" type="number"/>
+</div>
+<div class="hidden" id="catalogDishFields">
+<label class="field-label">Калории на блюдо (ккал)</label>
+<input id="catalogDishCalories" placeholder="0" type="number"/>
+<label class="field-label">Белки на блюдо (г)</label>
+<input id="catalogDishProtein" placeholder="0" type="number"/>
+<label class="field-label">Жиры на блюдо (г)</label>
+<input id="catalogDishFat" placeholder="0" type="number"/>
+<label class="field-label">Углеводы на блюдо (г)</label>
+<input id="catalogDishCarbs" placeholder="0" type="number"/>
+</div>
+<button onclick="saveCatalogProduct()" style="margin-top:12px;">💾 Сохранить</button>
+<button class="gray" onclick="closeCatalogEdit()">Отмена</button>
+</div>
+</div>
+<div class="achievements-modal hidden" id="workoutSummaryModal" onclick="if(event.target===this) closeWorkoutSummary()">
+<div class="achievements-content workout-summary-content">
+<div class="unified-surface-header ft-modal-header workout-summary-header">
+<button class="surface-back-btn" type="button" onclick="closeWorkoutSummary()">← Назад</button>
+<div class="surface-title" id="workoutSummaryTitle">Тренировка завершена</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<div id="workoutSummaryContent"></div>
+<button onclick="closeWorkoutSummary()">Готово</button>
+</div>
+</div>
+<div class="catalog-modal hidden" id="bodyGraphModal" onclick="if(event.target===this) closeBodyGraph()">
+<div class="catalog-modal-content body-graph-modal-content">
+<div class="unified-surface-header">
+<button class="surface-back-btn" onclick="closeBodyGraph()" type="button">← Назад</button>
+<div class="surface-title">Динамика</div><span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<label class="field-label" style="margin-top:14px;">Параметр</label>
+<select id="bodyGraphField" onchange="renderBodyGraph()"></select>
+<div id="bodyGraphSummary" style="margin-top:10px;"></div>
+<div class="body-graph-chart"><canvas id="bodyGraphCanvas"></canvas></div>
+</div>
+</div>
+<div class="confirm-modal hidden" id="foodCopyConfirmModal" onclick="if(event.target===this) closeFoodCopyConfirm()">
+<div class="confirm-modal-content">
+<div style="font-size:20px;font-weight:700;margin-bottom:8px;">Скопировать данные дня?</div>
+<div id="foodCopyConfirmText" style="color:var(--subtext);margin-bottom:16px;"></div>
+<button onclick="confirmFoodCopy()">📋 Скопировать</button>
+<button class="gray" onclick="closeFoodCopyConfirm()">Отмена</button>
+</div>
+</div>
+<div class="confirm-modal hidden" id="measurementSaveConfirmModal" onclick="if(event.target===this) closeMeasurementSaveConfirm()">
+<div class="confirm-modal-content">
+<div style="font-size:20px;font-weight:700;margin-bottom:8px;">Сохранить замер?</div>
+<div id="measurementSaveConfirmText" style="color:var(--subtext);margin-bottom:16px;"></div>
+<button onclick="confirmSaveMeasurements()">💾 Сохранить</button>
+<button class="gray" onclick="closeMeasurementSaveConfirm()">Отмена</button>
+</div>
+</div>
+<div class="catalog-modal hidden" id="chartModal" onclick="if(event.target === this) closeChartModal()">
+<div class="catalog-modal-content chart-modal-content">
+<div class="chart-modal-header unified-surface-header">
+<button class="surface-back-btn" onclick="closeChartModal()" type="button">← Назад</button>
+<div class="chart-modal-title">График</div><span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div class="chart-section-label">Период</div>
+<div class="period-selector">
+<button class="active" data-period="week" type="button">7 дней</button>
+<button data-period="month" type="button">30 дней</button>
+<button data-period="year" type="button">Год</button>
+<button data-period="custom" type="button">Свой</button>
+</div>
+<div class="custom-date-range hidden" id="chartCustomDateRange">
+<div class="date-field"><label>НАЧАЛО</label><input id="chartStartDate" type="date"/></div>
+<div class="date-field"><label>КОНЕЦ</label><input id="chartEndDate" type="date"/></div>
+<button class="apply-period-btn" type="button">Применить период</button>
+</div>
+<div class="chart-section-label">Показатель</div>
+<div class="data-type-selector">
+<button class="active" data-type="calories" type="button">Калории</button>
+<button data-type="protein" type="button">Белки</button>
+<button data-type="fat" type="button">Жиры</button>
+<button data-type="carbs" type="button">Углеводы</button>
+<button data-type="all" type="button">Все показатели</button>
+</div>
+<div class="chart-container"><canvas id="chartCanvas"></canvas></div>
+<div class="legend" id="chartLegend"></div>
+</div>
+</div>
+<div class="catalog-modal hidden" id="measurementManagerModal" onclick="if(event.target === this) closeMeasurementManager()">
+<div class="catalog-modal-content measurement-manager-modal-content">
+<div class="unified-surface-header">
+<button class="surface-back-btn" onclick="closeMeasurementManager()" type="button">← Назад</button>
+<div class="surface-title">Параметры</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<div class="measurement-modal-note">Здесь можно менять список параметров. История уже сохранённых замеров останется на месте.</div>
+<div class="measurement-manager-list" id="measurementManagerList"></div>
+<button onclick="openMeasurementFieldEditor()">➕ Добавить параметр</button>
+<button class="gray" onclick="closeMeasurementManager()">Готово</button>
+</div>
+</div>
+<div class="catalog-modal hidden" id="measurementFieldModal" onclick="if(event.target === this) closeMeasurementFieldEditor()">
+<div class="catalog-modal-content measurement-manager-modal-content">
+<div class="unified-surface-header">
+<button class="surface-back-btn" onclick="closeMeasurementFieldEditor()" type="button">← Назад</button>
+<div class="surface-title" id="measurementFieldModalTitle">Новый параметр</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<label class="field-label">Название параметра</label>
+<input id="measurementFieldNameInput" maxlength="40" placeholder="Например, Икры" type="text"/>
+<button onclick="saveMeasurementFieldEditor()">💾 Сохранить</button>
+<button class="gray" onclick="closeMeasurementFieldEditor()">Отмена</button>
+</div>
+</div>
+<div class="date-modal hidden" id="exercisePickerModal" onclick="if(event.target===this)closeExercisePicker()">
+<div class="date-modal-content picker-window-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" type="button" aria-label="Назад" onclick="closeExercisePicker()">← Назад</button>
+<div class="surface-title" id="exercisePickerTitle">Добавить упражнение</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<input autocomplete="off" id="exercisePickerSearch" oninput="renderExercisePicker()" placeholder="🔎 Поиск упражнения"/>
+<div class="catalog-modal-list" id="exercisePickerList"></div>
+</div>
+</div>
+<div class="date-modal hidden" id="progressExercisePickerModal" onclick="if(event.target===this)closeProgressExercisePicker()">
+<div class="date-modal-content picker-window-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" type="button" aria-label="Назад" onclick="closeProgressExercisePicker()">← Назад</button>
+<div class="surface-title">Упражнения</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<input autocomplete="off" id="progressExercisePickerSearch" oninput="renderProgressExercisePicker()" placeholder="🔎 Поиск упражнения"/>
+<div class="progress-picker-list" id="progressPickerList"></div>
+</div>
+</div>
+<div class="date-modal hidden" id="exerciseOrderModal" onclick="if(event.target===this)closeExerciseOrderModal()">
+<div class="date-modal-content picker-window-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" type="button" aria-label="Назад" onclick="closeExerciseOrderModal()">← Назад</button>
+<div class="surface-title" id="exerciseOrderTitle">Порядок</div>
+<span class="surface-header-spacer" aria-hidden="true"></span>
+</div>
+<div class="order-position-list" id="exerciseOrderList"></div>
+<button onclick="saveExerciseOrder()" style="margin-top:12px;" type="button">Сохранить порядок</button>
+<button class="gray" onclick="closeExerciseOrderModal()" type="button">Отмена</button>
+</div>
+</div>
+<!-- Единая система проверки дублей упражнений. Используется только из двух функций создания выше. -->
+<!-- FTracker v69 — final exercise-card/media editor rules -->
+<!-- FINAL DIRECTORY CLICK/EDIT REPAIR: single direct path, independent of legacy patches -->
+<!-- V81 FINAL: preserve built-in media, stronger duplicate warnings, clean directory actions -->
+<!-- V82 FINAL: media coexistence, removable built-in illustration, compact directory rows, balanced workout carousel -->
+<!-- V83 FINAL: hard-remove carousel truncation after every render -->
+<!-- FTracker v112 — final QA hardening layer. Keeps the existing UI/business logic intact while closing data-integrity and date-range edge cases. -->
+<!-- FTracker Canonical Full Backup: data snapshot + verified IndexedDB media -->
+<!-- FTRACKER_DEBUG_AUDIT_1.6.29 -->
+</body>
+
+</html>
+
