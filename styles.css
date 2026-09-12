@@ -12159,7 +12159,7 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
 .progress-ex-history-value small{display:block!important;margin-top:2px!important;color:var(--subtext)!important;font-size:9px!important;font-weight:600!important;}
 
 
-/* ===== FTracker v1.7.80 — Index visual refinement ===== */
+/* ===== FTracker v1.7.81 — Index visual refinement ===== */
 #fscoreAnalyticsScreen #fscoreAnalyticsContent{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));}
 #fscoreAnalyticsScreen .fscore-panel{
   position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.085)!important;
@@ -12223,7 +12223,7 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
 
 
 /* =========================================================
-   FTracker v1.7.80 — Dynamics Index / Custom Goal polish
+   FTracker v1.7.81 — Dynamics Index / Custom Goal polish
    Mobile-first, iOS/PWA friendly. This block is intentionally
    authoritative and comes after the historical F-Score cascade.
    ========================================================= */
@@ -12649,3 +12649,33 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
     text-align:left!important;
   }
 }
+
+/* ===== FTracker v1.7.81 — custom goal controls + compact bottom safe area ===== */
+#fscoreAnalyticsScreen .fscore-evaluation-field{padding:14px 12px!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:16px!important;background:rgba(255,255,255,.025)!important;}
+#fscoreAnalyticsScreen .fscore-period-presets{display:grid!important;grid-template-columns:repeat(4,1fr) auto!important;gap:6px!important;margin-top:10px!important;}
+#fscoreAnalyticsScreen .fscore-period-presets button{min-height:42px!important;border-radius:12px!important;font-weight:850!important;}
+#fscoreAnalyticsScreen .fscore-period-presets button.active{border-color:rgba(212,255,79,.55)!important;background:rgba(212,255,79,.12)!important;color:var(--text)!important;}
+#fscoreAnalyticsScreen #fscoreCustomPeriodInputWrap{display:flex!important;align-items:center!important;gap:8px!important;margin-top:9px!important;}
+#fscoreAnalyticsScreen #fscoreCustomPeriodInputWrap.hidden{display:none!important;}
+#fscoreAnalyticsScreen #fscoreCustomEvaluationDays{width:110px!important;min-height:42px!important;}
+#fscoreAnalyticsScreen .fscore-targets-section>summary{padding:14px 12px!important;}
+#fscoreAnalyticsScreen .fscore-target-card{border-radius:15px!important;background:rgba(255,255,255,.035)!important;border:1px solid rgba(255,255,255,.065)!important;margin:7px 0!important;padding:11px!important;}
+#fscoreAnalyticsScreen .fscore-target-card[hidden]{display:none!important;}
+#fscoreAnalyticsScreen .fscore-target-title{min-width:0!important;}
+#fscoreAnalyticsScreen .fscore-target-title b{font-size:13px!important;}
+#fscoreAnalyticsScreen .fscore-target-title small{font-size:10px!important;}
+#fscoreAnalyticsScreen .fscore-custom-section{margin:9px 0!important;}
+#fscoreAnalyticsScreen .fscore-custom-section>summary{min-height:48px!important;padding:11px 12px!important;border-radius:14px!important;}
+#fscoreAnalyticsScreen .fscore-custom-kbju{grid-template-columns:1fr 1fr!important;gap:8px!important;}
+#fscoreAnalyticsScreen .fscore-nutrition-default-note{margin:0 0 9px!important;padding:9px 10px!important;border-radius:11px!important;background:rgba(212,255,79,.06)!important;color:var(--subtext)!important;font-size:10px!important;line-height:1.35!important;}
+#fscoreAnalyticsScreen .fscore-weight-editor-head{display:flex!important;justify-content:space-between!important;align-items:center!important;padding:10px 12px 0!important;color:var(--subtext)!important;font-size:10px!important;}
+#fscoreAnalyticsScreen .fscore-weight-editor-head b{font-size:13px!important;color:var(--text)!important;}
+#fscoreAnalyticsScreen .fscore-custom-weights{grid-template-columns:repeat(3,1fr)!important;gap:7px!important;padding:10px 12px 12px!important;}
+#fscoreAnalyticsScreen .fscore-custom-weights label{font-size:10px!important;}
+#fscoreAnalyticsScreen .fscore-custom-weights input{width:100%!important;box-sizing:border-box!important;text-align:center!important;}
+/* Keep iOS bottom breathing room functional but visually minimal across app windows. */
+:root{--ft-safe-bottom-compact:max(6px,calc(env(safe-area-inset-bottom,0px) - 28px));--ft-window-safe-bottom-compact:max(6px,calc(env(safe-area-inset-bottom,0px) - 28px));}
+.screen, #homeScreen, #progressScreen, #fscoreAnalyticsScreen, #bodyScreen, #settingsScreen, #exerciseDirectoryScreen, #historyScreen, #foodScreen{padding-bottom:var(--ft-safe-bottom-compact)!important;}
+.screen-content, .screen-body, .window-content, .section-content{padding-bottom:var(--ft-safe-bottom-compact)!important;}
+#fscoreAnalyticsScreen #fscoreAnalyticsContent{padding-bottom:var(--ft-safe-bottom-compact)!important;}
+div[id$="Screen"]{padding-bottom:var(--ft-safe-bottom-compact)!important;}

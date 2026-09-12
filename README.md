@@ -1,4 +1,4 @@
-# FTracker v1.7.80 — Index restore + visual refinement
+# FTracker v1.7.81 — Index restore + visual refinement
 
 - Base: `FTracker_v1.7.60_FULL_CLEANUP.zip` (stable application).
 - Donor: `FTracker_v1.7.76_GLOBAL_INDEX_HEADER_FIXED.zip`.
@@ -12,7 +12,7 @@
 
 ## Verification
 - `app.js` passes Node syntax validation.
-- Version synchronized to `1.7.80` in the application shell, `manifest.json` and `sw.js`.
+- Version synchronized to `1.7.81` in the application shell, `manifest.json` and `sw.js`.
 
 ## Base and donor
 - Base: `FTracker_v1.7.60_FULL_CLEANUP.zip` (stable application).
