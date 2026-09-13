@@ -1,4 +1,4 @@
-/* FTracker v1.7.95 — single application runtime.
+/* FTracker v1.7.96 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -6084,7 +6084,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.7.95', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.7.96', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -6221,6 +6221,11 @@ function renderProgressDashboard(){
 
     let metrics='';
     if(record) metrics=record.metrics.map(m=>`<div class="progress-ex-metric"><div class="progress-ex-metric-label">${escapeHtml(m[0])}</div><div class="progress-ex-metric-value">${escapeHtml(m[1])}</div></div>`).join('');
+    // Resolve the active metric BEFORE calculating the trend.  The previous
+    // order referenced activeMetric before its const declaration, which threw
+    // a ReferenceError after selecting an exercise: the picker closed, then
+    // the dashboard render aborted and appeared to return to exercise choice.
+    const activeMetric=cfg.find(c=>c.key===metricKey) || cfg[0];
     const progressTrend = (first&&last&&activeMetric&&Number.isFinite(Number(first[activeMetric.key]))&&Number.isFinite(Number(last[activeMetric.key]))&&Number(first[activeMetric.key])!==0)
       ? ((Number(last[activeMetric.key])-Number(first[activeMetric.key]))/Math.abs(Number(first[activeMetric.key]))*100) : null;
     const progressTrendHtml = selected && progressTrend!==null
@@ -6232,7 +6237,6 @@ function renderProgressDashboard(){
     }
 
     const metricButtons=cfg.map(c=>`<button type="button" class="progress-chart-metric ${metricKey===c.key?'active':''}" onclick="setProgressMetric('${c.key}')">${escapeHtml(c.label)}</button>`).join('');
-    const activeMetric=cfg.find(c=>c.key===metricKey) || cfg[0];
 
     const chartBlock=(selected&&rows.length&&activeMetric)?`
         <div class="progress-ex-section progress-chart-section">
@@ -10993,7 +10997,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.7.95&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.7.96&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
