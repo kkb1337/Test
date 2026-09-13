@@ -13221,7 +13221,7 @@ html,body{
   margin-bottom:0!important;
 }
 
-/* ===== v1.7.90 — Dynamic Index home card: compact Apple-like trend presentation ===== */
+/* ===== v1.7.89 — Dynamic Index home card: compact Apple-like trend presentation ===== */
 #fscoreHomeWidget.fscore-widget{
   --fscore-ring-color:var(--accent);
   position:relative!important;
@@ -13433,7 +13433,7 @@ html,body{
 }
 
 
-/* v1.7.90 — compact home vertical rhythm without changing the grid width. */
+/* v1.7.89 — compact home vertical rhythm without changing the grid width. */
 #homeScreen .nav-buttons button{
   aspect-ratio:auto!important;
   height:82px!important;
@@ -13465,55 +13465,84 @@ html,body{
   #programList.program-grid-many .centered-card{height:86px!important;min-height:86px!important;}
 }
 
-/* v1.7.90 — home section tiles: remove spacing between adjacent tiles. */
+/* v1.7.89 — home section tiles: remove spacing between adjacent tiles. */
 #homeScreen .nav-buttons{gap:0!important;}
 @media(max-width:430px){#homeScreen .nav-buttons{gap:0!important;}}
 
-
-/* ===== FTracker v1.7.90 — compact Index Dynamics target controls ===== */
+/* v1.7.90 — Индекс динамики: компактные карточки параметров тела.
+   ВАЖНО: стили ограничены только экраном аналитики и не затрагивают главную. */
+#fscoreAnalyticsScreen .fscore-target-intro{
+  padding:8px 0 5px!important;
+}
 #fscoreAnalyticsScreen .fscore-target-legend{
-  display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:5px!important;
-  margin-top:8px!important;
+  gap:4px!important;
+  margin-top:6px!important;
 }
 #fscoreAnalyticsScreen .fscore-target-legend>span{
-  min-width:0!important;
-  min-height:34px!important;
   padding:6px 7px!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:4px!important;
+  min-height:0!important;
   border-radius:9px!important;
-  background:var(--input-bg)!important;
-  font-size:11px!important;
-  line-height:1!important;
-  white-space:nowrap!important;
 }
-#fscoreAnalyticsScreen .fscore-target-legend b{font-size:11px!important;}
-#fscoreAnalyticsScreen .fscore-target-legend small{display:none!important;}
-#fscoreAnalyticsScreen .fscore-target-intro{padding:9px 0 6px!important;}
-#fscoreAnalyticsScreen .fscore-target-intro>div:first-child span{font-size:10px!important;}
-#fscoreAnalyticsScreen .fscore-custom-targets{padding:7px 0 8px!important;gap:7px!important;}
-#fscoreAnalyticsScreen .fscore-target-card[hidden]{display:none!important;}
+#fscoreAnalyticsScreen .fscore-target-legend b{font-size:10px!important;}
+#fscoreAnalyticsScreen .fscore-target-legend small{font-size:8px!important;margin-top:2px!important;}
+#fscoreAnalyticsScreen .fscore-custom-targets{
+  gap:6px!important;
+  padding:7px 0 7px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-card{
+  padding:0!important;
+  border-radius:13px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-main{
+  grid-template-columns:26px minmax(0,1fr) minmax(105px,auto)!important;
+  gap:7px!important;
+  padding:8px 10px!important;
+  min-height:45px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-check{width:24px!important;height:24px!important;}
+#fscoreAnalyticsScreen .fscore-target-checkmark{width:19px!important;height:19px!important;border-radius:6px!important;}
+#fscoreAnalyticsScreen .fscore-target-title b{font-size:14px!important;}
+#fscoreAnalyticsScreen .fscore-target-title small{font-size:9px!important;margin-top:1px!important;}
+#fscoreAnalyticsScreen .fscore-target-direction-inline select{
+  min-height:32px!important;
+  height:32px!important;
+  border-radius:9px!important;
+  font-size:10px!important;
+  padding:0 5px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-settings{
+  margin:0 10px 8px 43px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-goal-wrap>span,
+#fscoreAnalyticsScreen .fscore-target-corridor-editor label>span{
+  font-size:9px!important;
+  margin-bottom:3px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-goal-wrap input,
+#fscoreAnalyticsScreen .fscore-target-corridor-editor input{
+  min-height:34px!important;
+  height:34px!important;
+  border-radius:9px!important;
+  font-size:12px!important;
+  padding:6px 8px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-goal-wrap em,
+#fscoreAnalyticsScreen .fscore-target-corridor-editor em{font-size:12px!important;}
+#fscoreAnalyticsScreen .fscore-target-corridor-editor{gap:7px 10px!important;}
+#fscoreAnalyticsScreen .fscore-target-corridor{
+  padding:5px 7px!important;
+  font-size:9px!important;
+  border-radius:8px!important;
+}
 #fscoreAnalyticsScreen .fscore-inactive-toggle{
-  min-height:40px!important;
+  min-height:34px!important;
   margin:0 0 2px!important;
-  padding:7px 10px!important;
-  border:1px solid var(--border)!important;
-  border-radius:11px!important;
-  background:var(--input-bg)!important;
-  color:var(--text)!important;
-  font-size:11px!important;
-  font-weight:800!important;
+  padding:5px 8px!important;
+  border-radius:10px!important;
+  font-size:10px!important;
 }
-#fscoreAnalyticsScreen .fscore-inactive-toggle.is-disabled,
-#fscoreAnalyticsScreen .fscore-inactive-toggle:disabled{
-  opacity:.55!important;
-  cursor:default!important;
-}
-@media(max-width:390px){
-  #fscoreAnalyticsScreen .fscore-target-legend>span{font-size:10px!important;padding:6px 4px!important;}
-  #fscoreAnalyticsScreen .fscore-target-legend b{font-size:10px!important;}
+@media(max-width:370px){
+  #fscoreAnalyticsScreen .fscore-target-main{grid-template-columns:24px minmax(0,1fr)!important;}
+  #fscoreAnalyticsScreen .fscore-target-direction-inline{grid-column:2!important;}
+  #fscoreAnalyticsScreen .fscore-target-settings{margin-left:39px!important;}
 }
