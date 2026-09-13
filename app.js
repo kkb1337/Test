@@ -1,4 +1,4 @@
-/* FTracker v1.7.81 — single application runtime.
+/* FTracker v1.7.82 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -8314,8 +8314,6 @@ function renderExerciseCard(name,type,mode='view'){
         <span class="surface-header-spacer" aria-hidden="true"></span>
       </div>
 
-      <div class="exercise-card-exercise-name">${esc(e.name)}</div>
-
       <div class="tabs technique-tabs exercise-card-tabs">
         <div class="tab active" data-tab="exerciseViewExec" onclick="switchTechniqueTab('exerciseViewExec')">Выполнение</div>
         <div class="tab" data-tab="exerciseViewMuscles" onclick="switchTechniqueTab('exerciseViewMuscles')">Мышцы</div>
@@ -8405,7 +8403,6 @@ function editorMarkup(d){
         <div class="surface-title">${esc(d.name)}</div>
         <span class="surface-header-spacer" aria-hidden="true"></span>
       </div>
-      <div class="exercise-editor-exercise-name">${esc(d.name)}</div>
       <div class="technique-group">${esc(d.group)}</div>
 
       <div class="tabs technique-tabs">
@@ -9017,8 +9014,11 @@ window.showFoodDuplicateModal=function(name,matches,exact,onAllow){
     modal.id='foodDuplicateModal';
     modal.className='hidden';
     modal.innerHTML=`<div class="exercise-dup-sheet">
-      <button type="button" class="exercise-dup-close" id="foodDupClose">×</button>
-      <div id="foodDupTitle" class="exercise-dup-title"></div>
+      <div class="unified-surface-header ft-modal-header exercise-dup-header">
+        <button type="button" class="surface-back-btn" id="foodDupBack" aria-label="Назад">← Назад</button>
+        <div id="foodDupTitle" class="surface-title"></div>
+        <span class="surface-header-spacer" aria-hidden="true"></span>
+      </div>
       <div id="foodDupSub" class="exercise-dup-sub"></div>
       <div id="foodDupList" class="exercise-dup-list"></div>
       <div id="foodDupNote" class="exercise-dup-note"></div>
@@ -9044,7 +9044,9 @@ window.showFoodDuplicateModal=function(name,matches,exact,onAllow){
   add.style.display=exact?'none':'';
   cancel.textContent=exact?'Закрыть':'Нет, отменить';
   const close=()=>{modal.classList.add('hidden');modal._onAllow=null;};
-  modal.querySelector('#foodDupClose').onclick=close;
+  modal.querySelector('#foodDupBack').onclick=close;
+  /* Remove any stale legacy close button from a DOM instance created by an older runtime. */
+  modal.querySelector('#foodDupClose,.exercise-dup-close')?.remove();
   cancel.onclick=close;
   modal.onclick=e=>{if(e.target===modal)close();};
   if(!exact){
@@ -10761,7 +10763,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.7.81&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.7.82&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

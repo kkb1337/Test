@@ -12159,7 +12159,7 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
 .progress-ex-history-value small{display:block!important;margin-top:2px!important;color:var(--subtext)!important;font-size:9px!important;font-weight:600!important;}
 
 
-/* ===== FTracker v1.7.81 — Index visual refinement ===== */
+/* ===== FTracker v1.7.82 — Index visual refinement ===== */
 #fscoreAnalyticsScreen #fscoreAnalyticsContent{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));}
 #fscoreAnalyticsScreen .fscore-panel{
   position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.085)!important;
@@ -12223,7 +12223,7 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
 
 
 /* =========================================================
-   FTracker v1.7.81 — Dynamics Index / Custom Goal polish
+   FTracker v1.7.82 — Dynamics Index / Custom Goal polish
    Mobile-first, iOS/PWA friendly. This block is intentionally
    authoritative and comes after the historical F-Score cascade.
    ========================================================= */
@@ -12650,7 +12650,7 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
   }
 }
 
-/* ===== FTracker v1.7.81 — custom goal controls + compact bottom safe area ===== */
+/* ===== FTracker v1.7.82 — custom goal controls + compact bottom safe area ===== */
 #fscoreAnalyticsScreen .fscore-evaluation-field{padding:14px 12px!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:16px!important;background:rgba(255,255,255,.025)!important;}
 #fscoreAnalyticsScreen .fscore-period-presets{display:grid!important;grid-template-columns:repeat(4,1fr) auto!important;gap:6px!important;margin-top:10px!important;}
 #fscoreAnalyticsScreen .fscore-period-presets button{min-height:42px!important;border-radius:12px!important;font-weight:850!important;}
@@ -12679,3 +12679,63 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
 .screen-content, .screen-body, .window-content, .section-content{padding-bottom:var(--ft-safe-bottom-compact)!important;}
 #fscoreAnalyticsScreen #fscoreAnalyticsContent{padding-bottom:var(--ft-safe-bottom-compact)!important;}
 div[id$="Screen"]{padding-bottom:var(--ft-safe-bottom-compact)!important;}
+
+
+/* FTracker v1.7.82 — exercise-name duplication + food duplicate header.
+   Secondary exercise windows show the exercise name only in the fixed header.
+   Duplicate-product warnings use the same navigation rule as other windows:
+   sticky header, Back on the left, centered title, no close X. */
+#techniqueModal.technique-modal .exercise-card-unified > .exercise-card-exercise-name,
+#techniqueModal.technique-modal .exercise-editor-unified > .exercise-editor-exercise-name{
+  display:none!important;
+}
+#foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header{
+  position:sticky!important;
+  top:0!important;
+  z-index:100!important;
+  margin:0 0 12px!important;
+  background:var(--bg)!important;
+  display:grid!important;
+  grid-template-columns:76px minmax(0,1fr) 76px!important;
+  align-items:center!important;
+  gap:8px!important;
+  min-height:var(--ft-window-header,52px)!important;
+  padding:4px 0!important;
+  box-sizing:border-box!important;
+}
+#foodDuplicateModal .exercise-dup-header .surface-back-btn{
+  grid-column:1!important;
+  grid-row:1!important;
+  justify-self:start!important;
+  position:static!important;
+  width:76px!important;
+  min-width:76px!important;
+  margin:0!important;
+}
+#foodDuplicateModal .exercise-dup-header .surface-title{
+  grid-column:2!important;
+  grid-row:1!important;
+  min-width:0!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  text-align:center!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:21px!important;
+  font-weight:800!important;
+}
+#foodDuplicateModal .exercise-dup-header .surface-header-spacer{
+  grid-column:3!important;
+  grid-row:1!important;
+  width:76px!important;
+  min-width:76px!important;
+}
+#foodDuplicateModal .exercise-dup-sheet > .exercise-dup-title,
+#foodDuplicateModal .exercise-dup-close{display:none!important;}
+@media(max-width:430px){
+  #foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header{
+    grid-template-columns:76px minmax(0,1fr) 76px!important;
+  }
+}
