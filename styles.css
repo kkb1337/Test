@@ -13469,85 +13469,32 @@ html,body{
 #homeScreen .nav-buttons{gap:0!important;}
 @media(max-width:430px){#homeScreen .nav-buttons{gap:0!important;}}
 
-/* v1.7.90 — Индекс динамики: компактные карточки параметров тела.
-   ВАЖНО: стили ограничены только экраном аналитики и не затрагивают главную. */
-#fscoreAnalyticsScreen .fscore-target-intro{
-  padding:8px 0 5px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-legend{
-  gap:4px!important;
-  margin-top:6px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-legend>span{
-  padding:6px 7px!important;
-  min-height:0!important;
-  border-radius:9px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-legend b{font-size:10px!important;}
-#fscoreAnalyticsScreen .fscore-target-legend small{font-size:8px!important;margin-top:2px!important;}
-#fscoreAnalyticsScreen .fscore-custom-targets{
-  gap:6px!important;
-  padding:7px 0 7px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-card{
-  padding:0!important;
-  border-radius:13px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-main{
-  grid-template-columns:26px minmax(0,1fr) minmax(105px,auto)!important;
-  gap:7px!important;
-  padding:8px 10px!important;
-  min-height:45px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-check{width:24px!important;height:24px!important;}
-#fscoreAnalyticsScreen .fscore-target-checkmark{width:19px!important;height:19px!important;border-radius:6px!important;}
-#fscoreAnalyticsScreen .fscore-target-title b{font-size:14px!important;}
-#fscoreAnalyticsScreen .fscore-target-title small{font-size:9px!important;margin-top:1px!important;}
-#fscoreAnalyticsScreen .fscore-target-direction-inline select{
-  min-height:32px!important;
-  height:32px!important;
-  border-radius:9px!important;
-  font-size:10px!important;
-  padding:0 5px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-settings{
-  margin:0 10px 8px 43px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-goal-wrap>span,
-#fscoreAnalyticsScreen .fscore-target-corridor-editor label>span{
-  font-size:9px!important;
-  margin-bottom:3px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-goal-wrap input,
-#fscoreAnalyticsScreen .fscore-target-corridor-editor input{
-  min-height:34px!important;
-  height:34px!important;
-  border-radius:9px!important;
-  font-size:12px!important;
-  padding:6px 8px!important;
-}
-#fscoreAnalyticsScreen .fscore-target-goal-wrap em,
-#fscoreAnalyticsScreen .fscore-target-corridor-editor em{font-size:12px!important;}
-#fscoreAnalyticsScreen .fscore-target-corridor-editor{gap:7px 10px!important;}
-#fscoreAnalyticsScreen .fscore-target-corridor{
-  padding:5px 7px!important;
-  font-size:9px!important;
-  border-radius:8px!important;
-}
-#fscoreAnalyticsScreen .fscore-inactive-toggle{
-  min-height:34px!important;
-  margin:0 0 2px!important;
-  padding:5px 8px!important;
-  border-radius:10px!important;
-  font-size:10px!important;
-}
-@media(max-width:370px){
-  #fscoreAnalyticsScreen .fscore-target-main{grid-template-columns:24px minmax(0,1fr)!important;}
-  #fscoreAnalyticsScreen .fscore-target-direction-inline{grid-column:2!important;}
-  #fscoreAnalyticsScreen .fscore-target-settings{margin-left:39px!important;}
-}
 
-/* v1.7.90 — force zero spacing between home section tiles. */
-#homeScreen .nav-buttons{gap:0!important;row-gap:0!important;column-gap:0!important;margin-top:10px!important;margin-bottom:0!important;padding:0!important;}
-#homeScreen .nav-buttons button{margin:0!important;}
-#homeScreen .nav-buttons button + button{margin-top:0!important;}
+/* FTracker v1.7.91 — HOME SECTION TILES: grid rows exactly match tile height.
+   Prevent empty vertical space caused by older grid-auto-rows rules. */
+#homeScreen .nav-buttons{
+  grid-auto-rows:82px!important;
+  row-gap:0!important;
+  column-gap:0!important;
+  gap:0!important;
+}
+#homeScreen .nav-buttons button{
+  height:82px!important;
+  min-height:82px!important;
+  max-height:82px!important;
+  margin:0!important;
+}
+@media(max-width:430px){
+  #homeScreen .nav-buttons{
+    grid-auto-rows:76px!important;
+    row-gap:0!important;
+    column-gap:0!important;
+    gap:0!important;
+  }
+  #homeScreen .nav-buttons button{
+    height:76px!important;
+    min-height:76px!important;
+    max-height:76px!important;
+    margin:0!important;
+  }
+}

@@ -972,6 +972,9 @@ function toggleFScoreInactiveTargets(btn){
     const showing=root.dataset.showInactive==='1';
     const next=!showing;
     root.dataset.showInactive=next?'1':'0';
+    // `next=true` means inactive rows are visible. When false, explicitly hide
+    // unchecked rows. The previous code toggled a class that had no corresponding
+    // CSS/row logic, so the button changed its label but not the list.
     root.classList.toggle('fscore-show-inactive',next);
     root.classList.toggle('fscore-hide-inactive',!next);
     root.querySelectorAll('.fscore-target-card').forEach(row=>{
@@ -1012,29 +1015,6 @@ function updateFScoreTargetRow(el){
     row.classList.toggle('fscore-inactive-hidden',hiddenInactive);
     row.hidden=hiddenInactive;
     row.classList.toggle('is-maintain',direction==='maintain');
-
-    // Keep the editor state and the visible counter synchronized immediately.
-    // Previously the checkbox only changed the row visually; the summary used the
-    // saved config, so it could remain at e.g. "8 из 8" until the whole goal was saved.
-    const draft=getFScoreCustomConfig();
-    if(draft){
-      draft.targets=draft.targets||{};
-      draft.targets[key]=draft.targets[key]||{direction,target:'',tolerance:1};
-      draft.targets[key].enabled=enabled;
-      draft.targets[key].direction=direction;
-      const visibleTarget=row.querySelector('.fscore-target-goal-wrap:not(.hidden) .fscore-target-value, .fscore-target-corridor-editor:not(.hidden) .fscore-target-value');
-      if(visibleTarget) draft.targets[key].target=visibleTarget.value;
-      const tol=row.querySelector('.fscore-target-tolerance');
-      if(tol) draft.targets[key].tolerance=Number(tol.value)||0;
-    }
-    const section=row.closest('.fscore-targets-section');
-    const summaryCount=section?.querySelector(':scope > summary em');
-    if(summaryCount){
-      const cards=[...(targetsRoot?.querySelectorAll('.fscore-target-card')||[])];
-      const active=cards.filter(r=>!!r.querySelector('.fscore-target-enabled')?.checked).length;
-      summaryCount.textContent=`${active} из ${cards.length} учитываются`;
-    }
-
     const fixed=row.querySelector('.fscore-target-goal-wrap');
     const corridorEditor=row.querySelector('.fscore-target-corridor-editor');
     fixed?.classList.toggle('hidden',direction==='maintain');
@@ -1050,7 +1030,6 @@ function updateFScoreTargetRow(el){
         else corridor.textContent='Фиксированная цель — допуск не используется';
     }
 }
-
 function initFScoreTargetRows(){
     document.querySelectorAll('#fscoreCustomTargets .fscore-target-card').forEach(r=>updateFScoreTargetRow(r.querySelector('.fscore-target-enabled')));
     updateFScoreCustomModeInfo();toggleFScoreNutritionMode();updateFScorePeriodUI();updateFScoreWeightTotal();
