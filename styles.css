@@ -13221,7 +13221,7 @@ html,body{
   margin-bottom:0!important;
 }
 
-/* ===== v1.7.89 — Dynamic Index home card: compact Apple-like trend presentation ===== */
+/* ===== v1.7.90 — Dynamic Index home card: compact Apple-like trend presentation ===== */
 #fscoreHomeWidget.fscore-widget{
   --fscore-ring-color:var(--accent);
   position:relative!important;
@@ -13433,7 +13433,7 @@ html,body{
 }
 
 
-/* v1.7.89 — compact home vertical rhythm without changing the grid width. */
+/* v1.7.90 — compact home vertical rhythm without changing the grid width. */
 #homeScreen .nav-buttons button{
   aspect-ratio:auto!important;
   height:82px!important;
@@ -13465,20 +13465,55 @@ html,body{
   #programList.program-grid-many .centered-card{height:86px!important;min-height:86px!important;}
 }
 
-/* v1.7.89 — home section tiles: remove spacing between adjacent tiles. */
+/* v1.7.90 — home section tiles: remove spacing between adjacent tiles. */
 #homeScreen .nav-buttons{gap:0!important;}
 @media(max-width:430px){#homeScreen .nav-buttons{gap:0!important;}}
 
-/* v1.7.89 FINAL — home tiles touch vertically: grid rows match tile height. */
-#homeScreen .nav-buttons{
-  grid-auto-rows:76px!important;
-  row-gap:0!important;
-  column-gap:0!important;
-}
-#homeScreen .nav-buttons button{
-  height:76px!important;
-  min-height:76px!important;
-  max-height:76px!important;
-  margin:0!important;
-}
 
+/* ===== FTracker v1.7.90 — compact Index Dynamics target controls ===== */
+#fscoreAnalyticsScreen .fscore-target-legend{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:5px!important;
+  margin-top:8px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-legend>span{
+  min-width:0!important;
+  min-height:34px!important;
+  padding:6px 7px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  border-radius:9px!important;
+  background:var(--input-bg)!important;
+  font-size:11px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+#fscoreAnalyticsScreen .fscore-target-legend b{font-size:11px!important;}
+#fscoreAnalyticsScreen .fscore-target-legend small{display:none!important;}
+#fscoreAnalyticsScreen .fscore-target-intro{padding:9px 0 6px!important;}
+#fscoreAnalyticsScreen .fscore-target-intro>div:first-child span{font-size:10px!important;}
+#fscoreAnalyticsScreen .fscore-custom-targets{padding:7px 0 8px!important;gap:7px!important;}
+#fscoreAnalyticsScreen .fscore-target-card[hidden]{display:none!important;}
+#fscoreAnalyticsScreen .fscore-inactive-toggle{
+  min-height:40px!important;
+  margin:0 0 2px!important;
+  padding:7px 10px!important;
+  border:1px solid var(--border)!important;
+  border-radius:11px!important;
+  background:var(--input-bg)!important;
+  color:var(--text)!important;
+  font-size:11px!important;
+  font-weight:800!important;
+}
+#fscoreAnalyticsScreen .fscore-inactive-toggle.is-disabled,
+#fscoreAnalyticsScreen .fscore-inactive-toggle:disabled{
+  opacity:.55!important;
+  cursor:default!important;
+}
+@media(max-width:390px){
+  #fscoreAnalyticsScreen .fscore-target-legend>span{font-size:10px!important;padding:6px 4px!important;}
+  #fscoreAnalyticsScreen .fscore-target-legend b{font-size:10px!important;}
+}
