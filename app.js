@@ -1,4 +1,4 @@
-/* FTracker v1.7.86 — single application runtime.
+/* FTracker v1.7.93 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -326,7 +326,7 @@ function closeThemeModal() { document.getElementById('themeModal').classList.add
 function setTheme(theme) { applyTheme(theme); closeThemeModal(); }
 
 
-const FTRACKER_DATA_SCHEMA_VERSION = 2;
+const FTRACKER_DATA_SCHEMA_VERSION = 3;
 
 function ftStableHash(value){
     const s=String(value ?? '');
@@ -391,6 +391,19 @@ function migrateFTrackerState(state){
     }
     if(!state.fscoreActiveCustomGoalId && state.fscoreCustomGoal?.id) state.fscoreActiveCustomGoalId=state.fscoreCustomGoal.id;
     if(!state.fscoreCustomGoal && Array.isArray(state.fscoreCustomGoals) && state.fscoreCustomGoals.length){state.fscoreCustomGoal=state.fscoreCustomGoals[0];state.fscoreActiveCustomGoalId=state.fscoreCustomGoals[0].id;}
+    // F-Score trend is durable app data, not a UI-only localStorage artifact.
+    // Migrate legacy per-goal trend keys into the main state once, preserving
+    // history across full backup/restore and device migration.
+    if(!state.fscoreTrend || typeof state.fscoreTrend!=='object' || Array.isArray(state.fscoreTrend)) state.fscoreTrend={};
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        if(!k || !k.startsWith('ftracker_fscore_trend_v1_')) continue;
+        const goalKey=k.slice('ftracker_fscore_trend_v1_'.length);
+        let rows=null; try{rows=JSON.parse(localStorage.getItem(k)||'null');}catch(e){}
+        if(Array.isArray(rows) && !Array.isArray(state.fscoreTrend[goalKey])) state.fscoreTrend[goalKey]=rows;
+      }
+    }catch(e){}
     if(!state.foodDiary) state.foodDiary={limits:{},entries:[]};
     if(!state.foodDiary.goalNutrition || typeof state.foodDiary.goalNutrition!=='object') state.foodDiary.goalNutrition={auto:true,baseMaintenance:0};
     if(state.foodDiary.goalNutrition.auto===undefined) state.foodDiary.goalNutrition.auto=true;
@@ -626,16 +639,20 @@ async function readAutoBackups(){
   });
 }
 
+let lastAutoBackupFingerprint=null;
 async function createAutoBackup(reason='Изменение данных'){
   try{
-    const db = await openAutoBackupDB();
     const snapshot = JSON.parse(JSON.stringify(data));
+    const fingerprint=ftStableHash(JSON.stringify(snapshot));
+    if(lastAutoBackupFingerprint===fingerprint) return;
+    const db = await openAutoBackupDB();
     await new Promise((resolve,reject)=>{
       const tx = db.transaction(AUTO_BACKUP_STORE,'readwrite');
       tx.objectStore(AUTO_BACKUP_STORE).add({
         createdAt:Date.now(),
         reason:String(reason||'Изменение данных'),
-        schemaVersion:Number(data?.exerciseKnowledgeVersion||0),
+        schemaVersion:Number(data?.schemaVersion||FTRACKER_DATA_SCHEMA_VERSION),
+        exerciseKnowledgeVersion:Number(data?.exerciseKnowledgeVersion||0),
         data:snapshot
       });
       tx.oncomplete=resolve;
@@ -653,6 +670,7 @@ async function createAutoBackup(reason='Изменение данных'){
         tx.onerror=()=>reject(tx.error);
       });
     }
+    lastAutoBackupFingerprint=fingerprint;
     localStorage.setItem('ftracker_auto_backup_last',JSON.stringify({createdAt:Date.now(),reason:String(reason||'Изменение данных')}));
     if(document.getElementById('themeModal') && !document.getElementById('themeModal').classList.contains('hidden')) refreshAutoBackupPanel();
   }catch(e){
@@ -741,6 +759,24 @@ async function confirmAutoBackupRestore(){
   }
 }
 
+function renderAll(){
+  // One safe refresh entry point used after restore/import. Each renderer is
+  // isolated so one optional section cannot prevent the others from updating.
+  const calls=[
+    ['renderHome',renderHome],
+    ['renderSettings',renderSettings],
+    ['renderHistory',renderHistory],
+    ['renderMeasurementScreen',renderMeasurementScreen],
+    ['renderExerciseDirectory',renderExerciseDirectory],
+    ['renderFoodDiary',renderFoodDiary],
+    ['renderFoodHistory',renderFoodHistory],
+    ['renderProgressDashboard',renderProgressDashboard],
+    ['renderFScoreHomeWidget',renderFScoreHomeWidget],
+    ['renderFScoreAnalytics',renderFScoreAnalytics],
+    ['renderDataHistoryStatus',renderDataHistoryStatus]
+  ];
+  calls.forEach(([name,fn])=>{try{if(typeof fn==='function')fn();}catch(e){console.warn('FTracker renderAll: '+name+' failed',e);}});
+}
 function saveData(showError=true, autoBackupReason='Изменение данных') {
   try {
     try { data = migrateFTrackerState(data); } catch(migrationError) { console.warn('FTracker save migration skipped',migrationError); }
@@ -843,9 +879,13 @@ function getFScoreCustomGoals(){
             list=legacy&&typeof legacy==='object'?[legacy]:[];
         }
         list=(list||[]).filter(x=>x&&typeof x==='object'&&!x.__draft).map((c,i)=>{
-            const targets={...fallbackTargets};
-            if(c.targets&&typeof c.targets==='object') Object.keys(c.targets).forEach(k=>{const t=c.targets[k]||{};if(fields.some(f=>f.key===k))targets[k]={direction:['gain','cut','maintain'].includes(t.direction)?t.direction:'maintain',target:Number(t.target)||latest(k)||0,tolerance:Math.max(0,Number.isFinite(Number(t.tolerance))?Number(t.tolerance):1),enabled:t.enabled!==false};});
-            if(!c.targets&&Array.isArray(c.metrics))Object.keys(targets).forEach(k=>{if(!c.metrics.includes(k))delete targets[k];});
+            const targets={};
+            if(c.targets&&typeof c.targets==='object'){
+                Object.keys(c.targets).forEach(k=>{const t=c.targets[k]||{};if(fields.some(f=>f.key===k))targets[k]={direction:['gain','cut','maintain'].includes(t.direction)?t.direction:'maintain',target:Number(t.target)||latest(k)||0,tolerance:Math.max(0,Number.isFinite(Number(t.tolerance))?Number(t.tolerance):1),enabled:t.enabled!==false};});
+            }else{
+                Object.assign(targets,fallbackTargets);
+                if(Array.isArray(c.metrics))Object.keys(targets).forEach(k=>{if(!c.metrics.includes(k))delete targets[k];});
+            }
             const bw=c.blockWeights&&typeof c.blockWeights==='object'?c.blockWeights:{};
             const nums={body:Number(bw.body),training:Number(bw.training),nutrition:Number(bw.nutrition)};
             const valid=Object.values(nums).every(Number.isFinite)&&Object.values(nums).every(v=>v>=0)&&Object.values(nums).some(v=>v>0);
@@ -1603,7 +1643,10 @@ function fScoreData(){
     const score=totalWeight?Math.round(available.reduce((a,b)=>a+b.score*b.weight,0)/totalWeight):0;
     const measurements=(data.measurements||[]).slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
     const measureCount=measurements.length, first=measurements[0], last=measurements[measurements.length-1], days=first&&last?(new Date(last.date)-new Date(first.date))/86400000:0;
-    const bodyDataCount=getFScoreBodyDisplayItems(measurements).filter(i=>i.has).length;
+    const bodyItems=getFScoreBodyDisplayItems(measurements);
+    const bodyDataCount=bodyItems.filter(i=>i.has).length;
+    const bodySelectedCount=custom ? Object.entries(custom.targets||{}).filter(([k,t])=>t?.enabled!==false && bodyItems.some(i=>i.key===k)).length : bodyItems.length;
+    const bodySelectedWithData=custom ? Object.entries(custom.targets||{}).filter(([k,t])=>t?.enabled!==false && bodyItems.some(i=>i.key===k&&i.has)).length : bodyDataCount;
     const confidenceParts=[];
     if(body.available) confidenceParts.push(Math.min(100,35+bodyDataCount*10+(measureCount>=2?25:0)+(measureCount>=4?20:0)));
     if(training.available) confidenceParts.push(Math.min(100,35+recent.length*4+(training.performance?.available?25:0)));
@@ -1613,7 +1656,7 @@ function fScoreData(){
     const confidenceLabel=confidence>=85?'Высокая':confidence>=65?'Хорошая':confidence>=45?'Средняя':'Низкая';
     const statusLevel=!available.length?'attention':score>=80?'good':score>=55?'attention':'bad';
     const status=!available.length?'Пока нет данных':(phase==='calibration'?'Собираем данные':statusLevel==='good'?'Динамика в норме':statusLevel==='attention'?'Есть что улучшить':'Динамика требует внимания');
-    return {score,status,statusLevel,goal,history:h,measures:data.measurements||[],recent,prev,body,training,nutrition,blocks,availableCount:available.length,phase,confidence,confidenceLabel,evaluationDays,consistencyDays,measureCount,bodyDataCount,weights,totalWeight};
+    return {score,status,statusLevel,goal,history:h,measures:data.measurements||[],recent,prev,body,training,nutrition,blocks,availableCount:available.length,phase,confidence,confidenceLabel,evaluationDays,consistencyDays,measureCount,bodyDataCount,bodySelectedCount,bodySelectedWithData,weights,totalWeight};
 }
 function fScoreTrackScoreChange(x){
     const custom=x.goal==='custom'?getFScoreCustomConfig():null;
@@ -1668,22 +1711,28 @@ function fScoreBuildExplanation(x){
 }
 function fScoreTrendStore(x){
     const custom=x.goal==='custom'?getFScoreCustomConfig():null;
-    const key='ftracker_fscore_trend_v1_'+(custom?.id||x.goal);
-    const today=new Date();
-    const day=today.toISOString().slice(0,10);
-    let rows=[];
-    try{rows=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){rows=[];}
-    if(!Array.isArray(rows)) rows=[];
+    const goalKey=String(custom?.id||x.goal);
+    const legacyKey='ftracker_fscore_trend_v1_'+goalKey;
+    data.fscoreTrend=data.fscoreTrend&&typeof data.fscoreTrend==='object'&&!Array.isArray(data.fscoreTrend)?data.fscoreTrend:{};
+    let rows=Array.isArray(data.fscoreTrend[goalKey])?data.fscoreTrend[goalKey]:[];
+    if(!rows.length){try{const legacy=JSON.parse(localStorage.getItem(legacyKey)||'[]');if(Array.isArray(legacy))rows=legacy;}catch(e){}}
+    const today=new Date(),day=today.toISOString().slice(0,10);
     const score=Number.isFinite(Number(x.score))?Math.max(0,Math.min(100,Number(x.score))):null;
+    let changed=false;
     if(score!=null){
-        const existing=rows.find(r=>r&&r.date===day);
-        if(existing) existing.score=score;
-        else rows.push({date:day,score});
+      const existing=rows.find(r=>r&&r.date===day);
+      if(existing){if(Number(existing.score)!==score){existing.score=score;changed=true;}}
+      else{rows.push({date:day,score});changed=true;}
     }
     const cutoff=new Date(today.getTime()-120*86400000).toISOString().slice(0,10);
-    rows=rows.filter(r=>r&&r.date>=cutoff&&Number.isFinite(Number(r.score))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-    try{localStorage.setItem(key,JSON.stringify(rows));}catch(e){}
-    return rows;
+    const filtered=rows.filter(r=>r&&r.date>=cutoff&&Number.isFinite(Number(r.score))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    if(filtered.length!==rows.length)changed=true;
+    data.fscoreTrend[goalKey]=filtered;
+    try{localStorage.setItem(legacyKey,JSON.stringify(filtered));}catch(e){}
+    // Persist only when the durable trend actually changed; do not create a
+    // backup on every render of the same screen.
+    if(changed) saveData(false,'Обновление истории Индекса');
+    return filtered;
 }
 function fScoreTrendDelta(rows){
     if(!rows||rows.length<2)return null;
@@ -1820,7 +1869,7 @@ function renderFScoreAnalytics(){
 
     const weights=x.weights||{body:40,training:30,nutrition:30};
     const blockMeta={
-        body:x.body?.available?`${x.bodyDataCount||0} показ.`:'Нет данных',
+        body:x.body?.available?(x.goal==='custom'?`${x.bodySelectedWithData||0} из ${x.bodySelectedCount||0} с данными`:`${x.bodyDataCount||0} показ.`):'Нет данных',
         training:x.training?.available?`${x.recent.length} трен.`:'Нет данных',
         nutrition:x.nutrition?.available?`${x.nutrition.days||0} дн.`:'Нет данных'
     };
@@ -1867,7 +1916,7 @@ function renderFScoreAnalytics(){
 
       <section class="fscore-panel fscore-score-panel ${x.statusLevel}">
         <div class="fscore-score-top"><div><span>ТЕКУЩИЙ ИНДЕКС</span><strong>${scoreText}<small>/100</small></strong></div><em>${x.phase==='calibration'?'Сбор данных':x.status}</em></div>
-        <div class="fscore-score-meta"><span>🎯 ${escapeHtml(goalName)}</span><span>Надёжность ${x.confidence}%</span><span>${x.evaluationDays} дн.</span></div>
+        <div class="fscore-score-meta"><span>🎯 ${escapeHtml(goalName)}</span><span>Заполненность данных ${x.confidence}%</span><span>${x.evaluationDays} дн.</span></div>
         <div class="fscore-score-bar"><i style="width:${x.availableCount?x.score:0}%"></i></div>
       </section>
 
@@ -1885,7 +1934,7 @@ function renderFScoreAnalytics(){
       <details class="fscore-panel fscore-method-panel">
         <summary><span>🧮 Методика</span><b>⌄</b></summary>
         <div class="fscore-method-grid"><div><span>Тело</span><b>${weights.body}%</b></div><div><span>Тренировки</span><b>${weights.training}%</b></div><div><span>Питание</span><b>${weights.nutrition}%</b></div></div>
-        <div class="fscore-method-note">Пустой блок не штрафует индекс. Надёжность показывает полноту истории и не добавляется к самому баллу.</div>
+        <div class="fscore-method-note">Пустой блок не штрафует индекс. Заполненность данных показывает объём доступной истории и не добавляется к самому баллу.</div>
       </details>
 
       <section class="fscore-next"><span>Следующий шаг</span><b>${escapeHtml(getFScoreNextStep(x,getFScoreBodyDisplayItems(x.measures||[])))}</b></section>
@@ -1958,15 +2007,17 @@ function getBestWorkoutForProgram(currentEntry) {
             if (ex && (ex.sets || []).length) entries.push({ entry, ex });
         });
         if (!entries.length) return;
-        const type = getExerciseTypeByName(name);
+        const currentType = getExerciseTypeByName(name);
+        const compatible=entries.filter(item=>(item.ex.type||currentType)===currentType);
+        const pool=compatible.length?compatible:entries;
         const score = item => {
-            const sets = item.ex.sets || [];
+            const sets = item.ex.sets || [], type=item.ex.type||currentType;
             if (type === 'strength') return calculateWorkoutVolume({exercises:[item.ex]});
             if (type === 'cardio') return Math.max(0,...sets.map(s => (parseFloat(s.time)||0) * (parseFloat(s.intensity)||1)));
             return Math.max(0,...sets.map(s => parseInt(s.reps)||0));
         };
-        entries.sort((a,b) => score(b)-score(a));
-        best.exercises.push({ name, sets: entries[0].ex.sets || [] });
+        pool.sort((a,b) => score(b)-score(a));
+        best.exercises.push({ name, type:pool[0].ex.type||currentType, sets: pool[0].ex.sets || [] });
     });
     return best.exercises.length ? best : null;
 }
@@ -1995,14 +2046,16 @@ function getBestExerciseHistory(name, currentEntry) {
     const type = getExerciseTypeByName(name);
     const items = [];
 
+    // История хранит собственный тип упражнения. Сравниваем только совместимые
+    // записи, чтобы переименование типа в текущей программе не переписывало прошлое.
     // Индивидуальный лучший результат упражнения ищется ЗА ВСЮ ИСТОРИЮ,
     // независимо от сплита/программы. Количество подходов не учитывается.
     (data.history || []).forEach(entry => {
         if (entry === currentEntry) return;
         const ex = (entry.exercises || []).find(x => x.name === name);
-        if (!ex || !(ex.sets || []).length) return;
+        if (!ex || !(ex.sets || []).length || (ex.type&&ex.type!==type)) return;
 
-        const bestSet = getBestSetForExercise(ex, type);
+        const bestSet = getBestSetForExercise(ex, ex.type||type);
         if (bestSet) items.push({ entry, ex, bestSet });
     });
 
@@ -2038,7 +2091,7 @@ function compareWorkoutEntries(currentEntry, bestEntry) {
         const best = (bestEntry.exercises || []).find(x => x.name === ex.name);
         if (!best) return;
         const curSets = ex.sets || [], bestSets = best.sets || [];
-        const type = getExerciseTypeByName(ex.name);
+        const type = ex.type || getExerciseTypeByName(ex.name);
 
         if(type === 'strength'){
             const curBest = getBestStrengthSet(curSets);
@@ -2111,9 +2164,10 @@ function getExerciseTypeByName(name){
     return 'strength';
 }
 function getExerciseSeries(name, history){
-    const type=getExerciseTypeByName(name), rows=[];
+    const fallbackType=getExerciseTypeByName(name), rows=[];
     (history||[]).slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(entry=>{
         const ex=(entry.exercises||[]).find(x=>x.name===name); if(!ex) return;
+        const type=ex.type||fallbackType;
         const sets=ex.sets||[]; if(!sets.length) return;
         let maxWeight=0,maxReps=0,volume=0,maxTime=0,maxIntensity=0,e1rm=0;
         sets.forEach(set=>{
@@ -4065,9 +4119,20 @@ function finishWorkout() {
         const sets=workoutSets[realIdx]||[];
         return sets.some(s=>isWorkoutSetFilledForResult(s,type));
     });
-    const strengthIndices=completedExerciseIndices.filter(realIdx=>getWorkoutExercise(realIdx)?.type==='strength');
-    const completionTotal=strengthIndices.length*3;
-    const completionDone=strengthIndices.reduce((sum,realIdx)=>sum+Math.min(3,(workoutSets[realIdx]||[]).filter(s=>isWorkoutSetFilledForResult(s,'strength')).length),0);
+    const completionRequirements={strength:3,cardio:1,bodyweight:1};
+    const completionTargets=completedExerciseIndices.map(realIdx=>{
+        const type=getWorkoutExercise(realIdx)?.type||'strength';
+        return {realIdx,type,required:completionRequirements[type]||1};
+    });
+    const allPlannedWorkoutIndices=Array.isArray(sessionIndices)?sessionIndices:[];
+    const completionUnits=allPlannedWorkoutIndices.map(realIdx=>{
+        const type=getWorkoutExercise(realIdx)?.type||'strength';
+        const required=completionRequirements[type]||1;
+        const done=(workoutSets[realIdx]||[]).filter(s=>isWorkoutSetFilledForResult(s,type)).length;
+        return {realIdx,type,required,done:Math.min(required,done)};
+    });
+    const completionTotal=completionUnits.reduce((sum,x)=>sum+x.required,0);
+    const completionDone=completionUnits.reduce((sum,x)=>sum+x.done,0);
     const completionPercent=completionTotal?Math.round(completionDone/completionTotal*100):0;
     const plannedSnapshot=Array.isArray(workoutPlanSnapshot)?workoutPlanSnapshot:[];
     const plannedExercises=plannedSnapshot.map((p,i)=>{
@@ -4076,9 +4141,13 @@ function finishWorkout() {
         const actualType=meta?.type||'strength';
         const doneSets=(workoutSets[ref]||[]).filter(s=>isWorkoutSetFilledForResult(s,actualType));
         let status=p?.status||'pending', score=0;
-        if(status!=='replaced') status=doneSets.length?'completed':'skipped';
-        if(status==='completed') score=100;
-        else if(status==='replaced'){
+        const required=actualType==='strength'?3:1;
+        if(status!=='replaced'){
+            if(doneSets.length>=required){status='completed';score=100;}
+            else if(doneSets.length){status='partial';score=Math.round(doneSets.length/required*100);}
+            else status='skipped';
+        }
+        if(status==='replaced'){
             const pg=fScoreNormName(p.plannedGroup), ag=fScoreNormName(p.actualGroup);
             score=(pg&&ag&&pg===ag)?100:50;
         }
@@ -4168,7 +4237,7 @@ function showWorkoutSummary(entry) {
     title.textContent = '🏁 Тренировка завершена';
     content.innerHTML = `
         <div class="summary-program-name">${escapeHtml(entry.program)}</div>
-        ${entry.completion && entry.completion.total ? `<div class="analysis-card completion-summary-card"><div class="analysis-title">🏁 Выполнение тренировки</div><div class="completion-summary-main"><b>${entry.completion.completed}/${entry.completion.total}</b><span>силовых подходов выполнено</span></div><div class="completion-summary-message">${entry.completion.completed===entry.completion.total?'Отличный результат — тренировка выполнена полностью.':entry.completion.completed>=entry.completion.total*0.75?'Тренировка выполнена хорошо, но несколько подходов остались.':'Тренировка выполнена не на полную катушку — часть силовой работы пропущена.'}</div></div>` : ''}
+        ${entry.completion && entry.completion.total ? `<div class="analysis-card completion-summary-card"><div class="analysis-title">🏁 Выполнение тренировки</div><div class="completion-summary-main"><b>${entry.completion.completed}/${entry.completion.total}</b><span>единиц выполнения</span></div><div class="completion-summary-message">${entry.completion.completed===entry.completion.total?'Отличный результат — тренировка выполнена полностью.':entry.completion.completed>=entry.completion.total*0.75?'Тренировка выполнена хорошо, но часть запланированной работы осталась.':'Тренировка выполнена не полностью — часть запланированной работы пропущена.'}</div></div>` : ''}
         <div class="smart-summary-grid">
             <div class="smart-stat"><div class="smart-stat-value">${formatTime(duration)}</div><div class="smart-stat-label">ВРЕМЯ</div></div>
             <div class="smart-stat"><div class="smart-stat-value">${entry.exercises.length}</div><div class="smart-stat-label">УПРАЖНЕНИЙ</div></div>
@@ -4682,7 +4751,9 @@ function restoreDirectoryExercise(name){
 function purgeDirectoryExercise(name){
     const key=normalizeExerciseKey(name); if(!key)return;
     pendingDeleteType='purgeDirectoryExercise'; pendingDeleteDate=key;
-    showDeleteConfirm(`Удалить «${escapeHtml(name)}» полностью? Удалятся справочник, программы и история/прогресс упражнения. Отменить это действие нельзя.`);
+    const refs=(data.programs||[]).reduce((n,p)=>n+(p.exercises||[]).filter(x=>normalizeExerciseKey(x)===key).length,0);
+    const historyRows=(data.history||[]).reduce((n,h)=>n+(h.exercises||[]).filter(ex=>normalizeExerciseKey(ex.name)===key).length,0);
+    showDeleteConfirm(`Удалить «${escapeHtml(name)}» полностью? Будут удалены справочник, ${refs} вхожд. в программах и ${historyRows} историч. записей/результатов. Это необратимо — перед удалением рекомендуется экспортировать бэкап.`);
 }
 function renameExerciseGlobal(oldName) { openRenameExerciseModal(oldName); }
 function openNewDirectoryExerciseModal(){
@@ -5833,10 +5904,10 @@ function addFoodEntry() {
         carbs100 = parseFloat(document.getElementById('foodCarbs100').value) || 0;
         if (!weight || !cal100) { showToast('Введите вес порции и калории на 100 г'); return; }
         portion = weight + ' г';
-        calories = Math.round(cal100 * weight / 100);
-        protein = Math.round(protein100 * weight / 100);
-        fat = Math.round(fat100 * weight / 100);
-        carbs = Math.round(carbs100 * weight / 100);
+        calories = cal100 * weight / 100;
+        protein = protein100 * weight / 100;
+        fat = fat100 * weight / 100;
+        carbs = carbs100 * weight / 100;
     }
 
     const entryData = {
@@ -5975,7 +6046,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.6.13', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.7.93', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -10880,7 +10951,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.7.86&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.7.93&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
