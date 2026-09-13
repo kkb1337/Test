@@ -13221,7 +13221,7 @@ html,body{
   margin-bottom:0!important;
 }
 
-/* ===== v1.7.88 — Dynamic Index home card: compact Apple-like trend presentation ===== */
+/* ===== v1.7.89 — Dynamic Index home card: compact Apple-like trend presentation ===== */
 #fscoreHomeWidget.fscore-widget{
   --fscore-ring-color:var(--accent);
   position:relative!important;
@@ -13433,7 +13433,7 @@ html,body{
 }
 
 
-/* v1.7.88 — compact home vertical rhythm without changing the grid width. */
+/* v1.7.89 — compact home vertical rhythm without changing the grid width. */
 #homeScreen .nav-buttons button{
   aspect-ratio:auto!important;
   height:82px!important;
@@ -13464,3 +13464,7 @@ html,body{
   #homeScreen .nav-buttons .nav-icon{width:22px!important;height:22px!important;}
   #programList.program-grid-many .centered-card{height:86px!important;min-height:86px!important;}
 }
+
+/* v1.7.89 — home section tiles: remove spacing between adjacent tiles. */
+#homeScreen .nav-buttons{gap:0!important;}
+@media(max-width:430px){#homeScreen .nav-buttons{gap:0!important;}}
