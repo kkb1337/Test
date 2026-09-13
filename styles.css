@@ -12739,3 +12739,179 @@ div[id$="Screen"]{padding-bottom:var(--ft-safe-bottom-compact)!important;}
     grid-template-columns:76px minmax(0,1fr) 76px!important;
   }
 }
+
+
+/* ============================================================
+   FTracker v1.7.83 — final food-duplicate window + zero bottom safe area
+   The duplicate-food warning is a normal full-screen secondary window:
+   fixed viewport, header at the very top, Back on the left, no X.
+   Bottom safe-area is intentionally ZERO across the application as requested.
+   ============================================================ */
+
+/* Food duplicate modal: do not inherit the old centered-dialog geometry. */
+#foodDuplicateModal.ft-window-root.ft-window-workspace{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  min-width:100vw!important;
+  min-height:100dvh!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  display:block!important;
+  align-items:initial!important;
+  justify-content:initial!important;
+  background:var(--bg)!important;
+  overflow:hidden!important;
+  z-index:2147483647!important;
+  box-sizing:border-box!important;
+}
+#foodDuplicateModal.ft-window-root.ft-window-workspace.hidden{display:none!important;}
+#foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet{
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  height:100dvh!important;
+  min-height:100dvh!important;
+  max-height:none!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0 12px 0!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:var(--bg)!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:contain!important;
+}
+#foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header{
+  position:sticky!important;
+  top:0!important;
+  z-index:100!important;
+  width:100%!important;
+  height:56px!important;
+  min-height:56px!important;
+  max-height:56px!important;
+  margin:0 0 12px!important;
+  padding:4px 0!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:76px minmax(0,1fr) 76px!important;
+  grid-template-rows:48px!important;
+  align-items:center!important;
+  gap:8px!important;
+  background:var(--bg)!important;
+  border:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+#foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header > .surface-back-btn{
+  grid-column:1!important;
+  grid-row:1!important;
+  justify-self:start!important;
+  align-self:center!important;
+  position:static!important;
+  width:76px!important;
+  min-width:76px!important;
+  max-width:76px!important;
+  height:44px!important;
+  min-height:44px!important;
+  margin:0!important;
+  padding:0 8px!important;
+  box-sizing:border-box!important;
+}
+#foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header > .surface-title{
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-self:center!important;
+  align-self:center!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  font-size:18px!important;
+  line-height:1.05!important;
+  font-weight:850!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header > .surface-header-spacer{
+  grid-column:3!important;
+  grid-row:1!important;
+  width:76px!important;
+  min-width:76px!important;
+  max-width:76px!important;
+  height:44px!important;
+  margin:0!important;
+  padding:0!important;
+}
+#foodDuplicateModal .exercise-dup-sub,
+#foodDuplicateModal .exercise-dup-list,
+#foodDuplicateModal .exercise-dup-note,
+#foodDuplicateModal .exercise-dup-actions{
+  position:relative!important;
+  z-index:1!important;
+}
+#foodDuplicateModal .exercise-dup-close,
+#foodDuplicateModal #foodDupClose{display:none!important;}
+
+/* Force zero bottom safe-area everywhere. Top safe-area remains the sole iPhone notch owner. */
+:root{
+  --ft-safe-bottom:0px!important;
+  --ft-window-safe-bottom:0px!important;
+  --ft-safe-bottom-compact:0px!important;
+  --ft-window-safe-bottom-compact:0px!important;
+}
+html,body,.safe-area,
+.safe-area>#app,
+#app>[id$="Screen"],
+#app>[id$="Screen"] .screen-content,
+#app>[id$="Screen"] .screen-body,
+.screen,.screen-content,.screen-body,.window-content,.section-content{
+  padding-bottom:0!important;
+}
+body{padding-bottom:0!important;}
+.safe-area>#app{padding-bottom:0!important;}
+#app>[id$="Screen"]{padding-bottom:0!important;min-height:calc(100dvh - var(--ft-safe-top))!important;}
+/* Secondary full-screen windows and their scroll owners also get zero bottom inset. */
+.ft-window-root.ft-window-workspace,
+.ft-window-root.ft-window-dialog,
+.technique-modal,
+.ft-window-root.ft-window-workspace > *,
+.technique-modal > *{
+  padding-bottom:0!important;
+}
+.ft-window-root.ft-window-workspace > .date-modal-content,
+.ft-window-root.ft-window-workspace > .exercise-modal-content,
+.ft-window-root.ft-window-workspace > .catalog-modal-content,
+.ft-window-root.ft-window-workspace > .food-modal-content,
+.ft-window-root.ft-window-workspace > .manual-workout-content,
+.ft-window-root.ft-window-workspace > .achievements-content,
+.ft-window-root.ft-window-workspace > .workout-detail-content,
+.ft-window-root.ft-window-workspace > .theme-modal-content,
+.ft-window-root.ft-window-workspace > .chart-modal-content,
+.ft-window-root.ft-window-workspace > .measurement-manager-modal-content,
+.ft-window-root.ft-window-workspace > .body-graph-modal-content,
+.ft-window-root.ft-window-workspace > .body-history-modal-content,
+.ft-window-root.ft-window-workspace > .exercise-editor-unified,
+.ft-window-root.ft-window-workspace > .exercise-dup-sheet,
+.ft-window-root.ft-window-workspace > .modal-stack-content,
+.ft-window-root.ft-window-workspace > .ft-window-content,
+.technique-modal > .technique-modal-content,
+.technique-modal > .exercise-editor-unified{
+  padding-bottom:0!important;
+}
+/* Dialog shell: no bottom inset either; this is deliberate and applies to every screen/window. */
+.ft-window-root.ft-window-dialog{padding-bottom:0!important;}
