@@ -13221,7 +13221,7 @@ html,body{
   margin-bottom:0!important;
 }
 
-/* ===== v1.7.87 — Dynamic Index home card: compact Apple-like trend presentation ===== */
+/* ===== v1.7.88 — Dynamic Index home card: compact Apple-like trend presentation ===== */
 #fscoreHomeWidget.fscore-widget{
   --fscore-ring-color:var(--accent);
   position:relative!important;
@@ -13430,4 +13430,37 @@ html,body{
   #programList .program-icon{font-size:23px!important}
   #programList .split-title{font-size:14px!important}
   #programList .centered-card>div:last-child{font-size:10px!important}
+}
+
+
+/* v1.7.88 — compact home vertical rhythm without changing the grid width. */
+#homeScreen .nav-buttons button{
+  aspect-ratio:auto!important;
+  height:82px!important;
+  min-height:82px!important;
+  padding:8px 6px!important;
+  gap:5px!important;
+}
+#homeScreen .nav-buttons .nav-icon{width:24px!important;height:24px!important;}
+#programList.program-grid-many .centered-card{
+  aspect-ratio:auto!important;
+  height:92px!important;
+  min-height:92px!important;
+  padding:8px!important;
+}
+#programList.program-grid-many .program-icon{font-size:26px!important;margin-bottom:4px!important;}
+#programList.program-grid-many .split-title{font-size:15px!important;}
+#programList.program-grid-many .centered-card>div:last-child{margin-top:3px!important;font-size:10.5px!important;}
+#fscoreHomeWidget .fscore-home-actions{gap:7px!important;}
+#fscoreHomeWidget .fscore-home-collapse{
+  width:28px!important;height:28px!important;min-width:28px!important;
+  margin:0!important;padding:0!important;border-radius:9px!important;
+  border:1px solid var(--border)!important;background:var(--input-bg)!important;
+  color:var(--subtext)!important;font-size:17px!important;line-height:1!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+}
+@media(max-width:430px){
+  #homeScreen .nav-buttons button{height:76px!important;min-height:76px!important;padding:7px 5px!important;}
+  #homeScreen .nav-buttons .nav-icon{width:22px!important;height:22px!important;}
+  #programList.program-grid-many .centered-card{height:86px!important;min-height:86px!important;}
 }
