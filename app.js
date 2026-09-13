@@ -1,4 +1,4 @@
-/* FTracker v1.7.93 — single application runtime.
+/* FTracker v1.7.95 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -1243,7 +1243,21 @@ function fScoreCustomBody(cfg){
             status=zone<=tolerance?'В пределах коридора':hasComparison?'Вне коридора — учитывается текущая динамика':'Вне коридора';
         }else{
             const reached=direction==='gain'?current>=target:current<=target;
-            if(reached){score=100;progress=100;status='Цель достигнута';}
+            if(reached){
+                // Reaching the target is excellent, but overshooting it indefinitely
+                // must not remain a permanent 100. Once the target is passed by more
+                // than the configured tolerance, the score gradually falls.
+                const overshoot=direction==='gain'?current-target:target-current;
+                const buffer=Math.max(tolerance,Math.abs(target)*0.005);
+                if(overshoot<=buffer){
+                    score=100; progress=100; status='Цель достигнута';
+                }else{
+                    const excessRatio=(overshoot-buffer)/Math.max(buffer,0.01);
+                    score=fScoreClamp(100-excessRatio*28,55,100);
+                    progress=100;
+                    status='Цель достигнута · контролируйте отклонение';
+                }
+            }
             else if(hasComparison){
                 const prevGap=Math.abs(target-previousValue), currGap=Math.abs(target-current);
                 const improvement=(prevGap-currGap)/Math.max(prevGap,tolerance);
@@ -1489,7 +1503,7 @@ function fScorePerformanceSignals(history, periodDays=90){
                 const w=Number(s.weight), r=Number(s.reps);
                 if(!(w>0&&r>0)) return;
                 volume+=w*r;
-                best1rm=Math.max(best1rm,w*(1+Math.min(15,r)/30));
+                if(r<=12) best1rm=Math.max(best1rm,w*(1+r/30));
             });
             if(best1rm<=0&&volume<=0) return;
             const row={date:t,e1rm:best1rm,volume};
@@ -1519,9 +1533,9 @@ function fScorePerformanceGoalScore(goal,change){
 }
 function getFScoreGoalDefinition(goal){
     const defs={
-      gain:{icon:'💪',name:'Набор',lead:'Рост веса и мышечных показателей с контролем талии.',body:'Вес · талия · замеры',bodyMeta:'30% · 10% · 60%',training:'Системность · нагрузка · сила · объём',trainingMeta:'35% · 25% · 15% · 15% · 10%',nutrition:'Профицит + белок',nutritionMeta:'+7% от поддержания · белок 1,8 г/кг · жиры 0,9 г/кг',period:'90 дней'},
-      cut:{icon:'🔥',name:'Сушка',lead:'Снижение веса и талии с сохранением тренировочной формы.',body:'Вес · талия · замеры',bodyMeta:'25% · 35% · 40%',training:'Системность · нагрузка · сила · объём',trainingMeta:'35% · 25% · 15% · 15% · 10%',nutrition:'Дефицит + белок',nutritionMeta:'−15% от поддержания · белок 2,0 г/кг · жиры 0,8 г/кг',period:'90 дней'},
-      maintain:{icon:'⚖️',name:'Поддержание',lead:'Стабильный вес и сохранение тренировочной формы.',body:'Вес · талия · замеры',bodyMeta:'35% · 25% · 40%',training:'Системность · нагрузка · сила · объём',trainingMeta:'35% · 25% · 15% · 15% · 10%',nutrition:'Около поддержания',nutritionMeta:'≈ поддержание · белок 1,7 г/кг · жиры 0,9 г/кг',period:'90 дней'}
+      gain:{icon:'💪',name:'Набор',lead:'Рост веса и мышечных показателей с контролем талии.',body:'Вес · талия · замеры',bodyMeta:'30% · 10% · 60%',training:'Системность · нагрузка · сила · объём',trainingMeta:'40% · 25% · 20% · 15%',nutrition:'Профицит + белок',nutritionMeta:'+7% от поддержания · белок 1,8 г/кг · жиры 0,9 г/кг',period:'90 дней'},
+      cut:{icon:'🔥',name:'Сушка',lead:'Снижение веса и талии с сохранением тренировочной формы.',body:'Вес · талия · замеры',bodyMeta:'25% · 35% · 40%',training:'Системность · нагрузка · сила · объём',trainingMeta:'40% · 25% · 20% · 15%',nutrition:'Дефицит + белок',nutritionMeta:'−15% от поддержания · белок 2,0 г/кг · жиры 0,8 г/кг',period:'90 дней'},
+      maintain:{icon:'⚖️',name:'Поддержание',lead:'Стабильный вес и сохранение тренировочной формы.',body:'Вес · талия · замеры',bodyMeta:'35% · 25% · 40%',training:'Системность · нагрузка · сила · объём',trainingMeta:'40% · 25% · 20% · 15%',nutrition:'Около поддержания',nutritionMeta:'≈ поддержание · белок 1,7 г/кг · жиры 0,9 г/кг',period:'90 дней'}
     }; return defs[goal]||defs.maintain;
 }
 function renderFScoreCustomEditorMarkup(){
@@ -1566,7 +1580,7 @@ function renderFScoreCustomEditorMarkup(){
       <div class="fscore-custom-grid"><label><span>Название цели</span><input id="fscoreCustomName" value="${escapeHtml(c.name||'')}" maxlength="40" placeholder="Например: Рекомпозиция"></label><label><span>Основная стратегия</span><select id="fscoreCustomMode" onchange="updateFScoreCustomModeInfo()"><option value="gain" ${c.mode==='gain'?'selected':''}>💪 Набор</option><option value="cut" ${c.mode==='cut'?'selected':''}>🔥 Снижение</option><option value="maintain" ${c.mode==='maintain'?'selected':''}>⚖️ Стабильность</option></select></label></div>
       <div id="fscoreCustomModeInfo" class="fscore-mode-info"></div>
       <div class="fscore-evaluation-field"><div class="fscore-field-heading"><b>Период оценки</b><small>За этот период индекс анализирует изменения</small></div><div class="fscore-period-presets"><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===30?'active':''}" data-days="30" onclick="setFScorePeriodPreset(30)">30</button><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===60?'active':''}" data-days="60" onclick="setFScorePeriodPreset(60)">60</button><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===90?'active':''}" data-days="90" onclick="setFScorePeriodPreset(90)">90</button><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===180?'active':''}" data-days="180" onclick="setFScorePeriodPreset(180)">180</button><button type="button" class="fscore-period-custom-btn" onclick="setFScoreCustomPeriodMode('custom')">Свой</button></div><input id="fscoreCustomPeriodMode" type="hidden" value="preset"><div id="fscoreCustomPeriodInputWrap" class="hidden"><input id="fscoreCustomEvaluationDays" type="number" min="7" max="365" value="${c.evaluationDays}" oninput="updateFScoreEvaluationDaysFromUI()"><small>дней</small></div></div>
-      <details class="fscore-custom-section fscore-targets-section" open><summary><span>📏 Параметры тела</span><em>${activeTargetCount} из ${fields.length} учитываются</em></summary><div class="fscore-target-intro"><div><b>Как работает цель</b><span>Выберите направление для каждого замера.</span></div><div class="fscore-target-legend"><span class="gain">↑ <b>Рост</b><small>значение вверх</small></span><span class="cut">↓ <b>Снижение</b><small>значение вниз</small></span><span class="maintain">→ <b>Стабильно</b><small>коридор</small></span></div></div><div id="fscoreCustomTargets" class="fscore-custom-targets">${rows}</div><button type="button" class="fscore-inactive-toggle" aria-expanded="true" onclick="toggleFScoreInactiveTargets(this)">Скрыть неактивные параметры${inactiveTargetCount?` · ${inactiveTargetCount}`:''}</button></details>
+      <details class="fscore-custom-section fscore-targets-section" open><summary><span>📏 Параметры тела</span><em>${activeTargetCount} из ${fields.length} учитываются</em></summary><div class="fscore-target-intro"><div><b>Как работает цель</b><span>Рост и снижение — фиксированная цель. Стабильно — целевое значение с допустимым коридором.</span></div><div class="fscore-target-legend"><span class="gain">↑ <b>Рост</b><small>фиксированное значение</small></span><span class="cut">↓ <b>Снижение</b><small>фиксированное значение</small></span><span class="maintain">→ <b>Стабильно</b><small>допустимый коридор</small></span></div></div><div id="fscoreCustomTargets" class="fscore-custom-targets">${rows}</div><button type="button" class="fscore-inactive-toggle" aria-expanded="true" onclick="toggleFScoreInactiveTargets(this)">Скрыть неактивные параметры${inactiveTargetCount?` · ${inactiveTargetCount}`:''}</button></details>
       <details class="fscore-custom-section"><summary>🏋️ Тренировки</summary><div class="fscore-custom-training"><label>Тренировок<input id="fscoreCustomTrainingTarget" type="number" min="1" max="100" value="${c.training?.target||15}"></label><label>Период, дней<input id="fscoreCustomTrainingPeriod" type="number" min="7" max="365" value="${c.training?.period||30}"></label></div></details>
       <details class="fscore-custom-section"><summary>🍽️ Питание</summary><select id="fscoreCustomNutritionAuto" onchange="toggleFScoreNutritionMode()"><option value="auto" ${c.nutrition?.auto!==false?'selected':''}>Автоматически</option><option value="manual" ${c.nutrition?.auto===false?'selected':''}>Вручную</option></select><div class="fscore-manual-nutrition ${c.nutrition?.auto===false?'':'hidden'}"><div class="fscore-nutrition-default-note">Стартовые значения рассчитаны по текущему весу и стратегии — их можно изменить.</div><div class="fscore-custom-kbju"><label>Ккал<input id="fscoreCustomCalories" type="number" value="${c.nutrition?.calories||getGoalNutritionProfile(c.mode||'maintain').calories}"></label><label>Белок<input id="fscoreCustomProtein" type="number" value="${c.nutrition?.protein||getGoalNutritionProfile(c.mode||'maintain').protein}"></label><label>Жиры<input id="fscoreCustomFat" type="number" value="${c.nutrition?.fat||getGoalNutritionProfile(c.mode||'maintain').fat}"></label><label>Углеводы<input id="fscoreCustomCarbs" type="number" value="${c.nutrition?.carbs||getGoalNutritionProfile(c.mode||'maintain').carbs}"></label></div></div></details>
       <details class="fscore-custom-section"><summary>⚖️ Вес факторов</summary><div class="fscore-weight-editor-head"><span>Общий вес всегда равен 100%</span><b id="fscoreCustomWeightTotal">${(Number(c.blockWeights?.body)||40)+(Number(c.blockWeights?.training)||30)+(Number(c.blockWeights?.nutrition)||30)}%</b></div><div class="fscore-custom-weights"><label>Тело<input id="fscoreCustomBodyWeight" type="number" min="0" max="100" value="${c.blockWeights?.body??40}" oninput="rebalanceFScoreWeights('body')"></label><label>Тренировки<input id="fscoreCustomTrainingWeight" type="number" min="0" max="100" value="${c.blockWeights?.training??30}" oninput="rebalanceFScoreWeights('training')"></label><label>Питание<input id="fscoreCustomNutritionWeight" type="number" min="0" max="100" value="${c.blockWeights?.nutrition??30}" oninput="rebalanceFScoreWeights('nutrition')"></label></div></details>
@@ -1582,12 +1596,15 @@ function fScoreTraining(recent,prev,history,goal,customCfg=null){
     const performance=fScorePerformanceSignals(history,periodDays);
     const e1rmScore=performance.available?fScorePerformanceGoalScore(goal,performance.e1rm):null;
     const volumeScore=performance.available?fScorePerformanceGoalScore(goal,performance.volume):null;
+    // Do not count the same performance signal three times. Working weight,
+    // reps and e1RM are correlated; reps is therefore descriptive rather than
+    // an independent weighted component. Strength is represented by the more
+    // robust e1RM trend, while volume remains its own signal.
     const parts=[
-        {score:consistency.score,weight:35,name:'Системность'},
+        {score:consistency.score,weight:40,name:'Системность'},
         {score:workingScore,weight:25,name:'Нагрузка'},
-        {score:reps,weight:15,name:'Повторения'},
-        {score:e1rmScore,weight:15,name:'Сила (Расчётный 1ПМ)'},
-        {score:volumeScore,weight:10,name:'Объём'}
+        {score:e1rmScore,weight:20,name:'Сила (Расчётный 1ПМ)'},
+        {score:volumeScore,weight:15,name:'Объём'}
     ].filter(p=>Number.isFinite(p.score));
     if(!parts.length)return {score:null,available:false,consistency,working,reps,performance,periodDays,parts:[]};
     const tw=parts.reduce((a,p)=>a+p.weight,0);
@@ -1916,7 +1933,7 @@ function renderFScoreAnalytics(){
 
       <section class="fscore-panel fscore-score-panel ${x.statusLevel}">
         <div class="fscore-score-top"><div><span>ТЕКУЩИЙ ИНДЕКС</span><strong>${scoreText}<small>/100</small></strong></div><em>${x.phase==='calibration'?'Сбор данных':x.status}</em></div>
-        <div class="fscore-score-meta"><span>🎯 ${escapeHtml(goalName)}</span><span>Заполненность данных ${x.confidence}%</span><span>${x.evaluationDays} дн.</span></div>
+        <div class="fscore-score-meta"><span>🎯 ${escapeHtml(goalName)}</span><span>Доверие ${x.confidence}% · ${x.confidenceLabel}</span><span>${x.evaluationDays} дн.</span></div>
         <div class="fscore-score-bar"><i style="width:${x.availableCount?x.score:0}%"></i></div>
       </section>
 
@@ -2173,7 +2190,10 @@ function getExerciseSeries(name, history){
         sets.forEach(set=>{
             const w=parseFloat(set.weight)||0, r=parseInt(set.reps)||0, t=parseFloat(set.time)||0, intensity=parseFloat(set.intensity)||0;
             maxWeight=Math.max(maxWeight,w); maxReps=Math.max(maxReps,r); volume+=w*r;
-            if(w>0&&r>0) e1rm=Math.max(e1rm,w*(1+Math.min(15,r)/30));
+            // Conservative e1RM signal: use the reliable 1–12 rep range.
+            // Higher-rep sets remain useful for volume, but are not allowed to
+            // dominate the strength trend with a noisy 1RM extrapolation.
+            if(w>0&&r>0&&r<=12) e1rm=Math.max(e1rm,w*(1+r/30));
             maxTime=Math.max(maxTime,t); maxIntensity=Math.max(maxIntensity,intensity);
         });
         rows.push({date:new Date(entry.date),weight:maxWeight,reps:maxReps,volume,e1rm,maxTime,maxIntensity,type});
@@ -2192,8 +2212,11 @@ function getExerciseRecordData(name){
         let bestRepsWeight=Math.max(...sets.filter(x=>x.reps===bestReps).map(x=>x.weight));
         const working=[]; entries.forEach(entry=>{const r=getWorkingResultFromEntry(entry,name);if(r)working.push(r);});
         const work=working.length?working.reduce((a,b)=>b.weight>a.weight?b:a):null;
+        let bestE1rm=0;
+        sets.forEach(x=>{if(x.weight>0&&x.reps>0&&x.reps<=12) bestE1rm=Math.max(bestE1rm,x.weight*(1+x.reps/30));});
         return {type,metrics:[
             ['Лучший вес',`${formatNum(bestWeight)} кг × ${formatNum(bestWeightReps)}`],
+            ['Расчётный 1ПМ',bestE1rm?`${formatNum(bestE1rm)} кг`:'—'],
             ['Лучшие повторы',`${formatNum(bestRepsWeight)} кг × ${formatNum(bestReps)}`],
             ['Рабочий вес',work?`${formatNum(work.weight)} кг × ${formatNum(work.reps)} × ${work.sets}`:'—'],
             ['Тренировок',String(entries.filter(e=>getStrengthSetsForExerciseInEntry(e,name).length).length)]
@@ -3729,6 +3752,14 @@ function resetWorkoutRecommendationAutoCollapse(){
     },10000);
 }
 
+function buildWorkoutSetRowHtml(realIdx,type,s,i){
+    let inputFields='';
+    if(type==='strength') inputFields=`<div class="workout-set-inputs horizontal"><input type="text" inputmode="decimal" placeholder="Вес, кг" value="${escapeHtml(s.weight||'')}" onchange="updateSet(${realIdx},${i},'weight',this.value)"><input type="text" inputmode="numeric" placeholder="Повторы" value="${escapeHtml(s.reps||'')}" onchange="updateSet(${realIdx},${i},'reps',this.value)"></div>`;
+    else if(type==='cardio') inputFields=`<div class="workout-set-inputs horizontal"><input type="text" inputmode="decimal" placeholder="Минуты" value="${escapeHtml(s.time||'')}" onchange="updateSet(${realIdx},${i},'time',this.value)"><input type="text" inputmode="decimal" placeholder="Инт. 1–10" value="${escapeHtml(s.intensity||'')}" onchange="updateSet(${realIdx},${i},'intensity',this.value)"></div>`;
+    else inputFields=`<div class="workout-set-inputs horizontal single"><input class="workout-bodyweight-input" type="text" inputmode="numeric" placeholder="Повторы" value="${escapeHtml(s.reps||'')}" onchange="updateSet(${realIdx},${i},'reps',this.value)"></div>`;
+    return `<div class="set-row workout-set-row"><span class="set-num">${i+1}</span>${inputFields}<button type="button" class="set-done-btn ${s.done?'done':''}" onclick="markSetDone(${realIdx},${i})" title="${s.done?'Подход выполнен':'Отметить выполненным'}" aria-label="${s.done?'Подход выполнен':'Отметить выполненным'}">${s.done?'✓':'○'}</button><button type="button" class="set-delete-btn" onclick="deleteSet(${realIdx},${i})" title="Удалить подход" aria-label="Удалить подход">🗑️</button></div>`;
+}
+
 function renderExerciseBase() {
     const program=data.programs[currentProgram];
     const activeEx=getActiveExercises();
@@ -3758,13 +3789,7 @@ function renderExerciseBase() {
     const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>💡 Рабочие показатели</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-main">${recommendationMain}</div><div class="recommendation-note">${escapeHtml(recommendation.reason)}</div></div>`;
 
     let setsHTML='';
-    sets.forEach((s,i)=>{
-        let inputFields='';
-        if(type==='strength') inputFields=`<div class="workout-set-inputs horizontal"><input type="text" inputmode="decimal" placeholder="Вес, кг" value="${escapeHtml(s.weight||'')}" onchange="updateSet(${realIdx},${i},'weight',this.value)"><input type="text" inputmode="numeric" placeholder="Повторы" value="${escapeHtml(s.reps||'')}" onchange="updateSet(${realIdx},${i},'reps',this.value)"></div>`;
-        else if(type==='cardio') inputFields=`<div class="workout-set-inputs horizontal"><input type="text" inputmode="decimal" placeholder="Минуты" value="${escapeHtml(s.time||'')}" onchange="updateSet(${realIdx},${i},'time',this.value)"><input type="text" inputmode="decimal" placeholder="Инт. 1–10" value="${escapeHtml(s.intensity||'')}" onchange="updateSet(${realIdx},${i},'intensity',this.value)"></div>`;
-        else inputFields=`<div class="workout-set-inputs horizontal single"><input class="workout-bodyweight-input" type="text" inputmode="numeric" placeholder="Повторы" value="${escapeHtml(s.reps||'')}" onchange="updateSet(${realIdx},${i},'reps',this.value)"></div>`;
-        setsHTML+=`<div class="set-row workout-set-row"><span class="set-num">${i+1}</span>${inputFields}<button type="button" class="set-done-btn ${s.done?'done':''}" onclick="markSetDone(${realIdx},${i})" title="${s.done?'Подход выполнен':'Отметить выполненным'}" aria-label="${s.done?'Подход выполнен':'Отметить выполненным'}">${s.done?'✓':'○'}</button><button type="button" class="set-delete-btn" onclick="deleteSet(${realIdx},${i})" title="Удалить подход" aria-label="Удалить подход">🗑️</button></div>`;
-    });
+    sets.forEach((s,i)=>{ setsHTML += buildWorkoutSetRowHtml(realIdx,type,s,i); });
 
     const bars=Array.from({length:target},(_,i)=>`<span class="completion-segment ${i<Math.min(completedSets,target)?'filled':''}"></span>`).join('');
     const directoryItem=(data.exerciseDirectory||[]).find(e=>normalizeExerciseKey(e.name)===normalizeExerciseKey(exerciseName));
@@ -3835,6 +3860,21 @@ function restoreWorkoutAnchor(anchor){
         screen.scrollTop=anchor.scroll;
     });
 }
+function updateWorkoutCompletionUI(){
+    const realIdx=getRealExerciseIndex();
+    const meta=realIdx!==undefined?getWorkoutExercise(realIdx):null;
+    if(!meta) return;
+    const sets=workoutSets[realIdx]||[];
+    const target=meta.type==='strength'?3:1;
+    const completed=sets.filter(s=>s.done).length;
+    const card=document.querySelector('#exerciseContainer .workout-exercise-card');
+    if(!card) return;
+    const count=card.querySelector('.workout-completion-head strong');
+    if(count) count.textContent=`${completed}/${target}`;
+    card.querySelectorAll('.completion-segment').forEach((el,i)=>el.classList.toggle('filled',i<Math.min(completed,target)));
+    updateWorkoutProgressUI();
+}
+
 function addSet() {
     const screen = document.getElementById('workoutScreen');
     const realIdx = getRealExerciseIndex();
@@ -3857,26 +3897,24 @@ function addSet() {
     }else{
         newSet.reps = lastSet ? lastSet.reps : (prev.reps || '');
     }
+    const setIndex=workoutSets[realIdx].length;
     workoutSets[realIdx].push(newSet);
     saveDraft();
 
-    // Keep the workout viewport stable. Do not move the user after adding a set.
-    // The previous version rebuilt the workout and then tried to compensate with
-    // window.scrollBy(), which caused iOS Safari/PWA to jump.
-    const workoutScreen = document.getElementById('exerciseContainer');
-    const savedScroll = workoutScreen ? workoutScreen.scrollTop : null;
-    const activeElement = document.activeElement;
-
-    renderExercise();
-
-    requestAnimationFrame(() => {
-        if (workoutScreen && savedScroll !== null) {
-            workoutScreen.scrollTop = savedScroll;
-        }
-        if (activeElement && activeElement.tagName === 'INPUT') {
-            try { activeElement.focus({preventScroll:true}); } catch(e) {}
-        }
-    });
+    // Fast path: append only the new row. Rebuilding the complete exercise card
+    // on every added set caused avoidable layout/paint work in iOS PWA.
+    const list=document.getElementById('setsList');
+    if(list){
+        list.insertAdjacentHTML('beforeend',buildWorkoutSetRowHtml(realIdx,type,newSet,setIndex));
+        updateWorkoutCompletionUI();
+        requestAnimationFrame(()=>{
+            const row=list.lastElementChild;
+            const input=row?.querySelector('input');
+            if(input){ try{input.focus({preventScroll:true});}catch(e){input.focus();} }
+        });
+    }else{
+        renderExercise();
+    }
 }
 function deleteSet(exIdx, setIdx) { if (!workoutSets[exIdx]?.[setIdx]) return; pendingDeleteType='workoutSet'; pendingDeleteIndex=exIdx; pendingDeleteDate=String(setIdx); showDeleteConfirm('Удалить этот подход?'); }
 function updateSet(exIdx, setIdx, field, value) { if (!workoutSets[exIdx] || !workoutSets[exIdx][setIdx]) return; workoutSets[exIdx][setIdx][field] = value; saveDraft(); }
@@ -4043,7 +4081,7 @@ function checkPersonalRecord(exIdx, setIdx) {
 function startRestTimer(seconds) {
     stopRestTimer(); restEndTime=Date.now()+seconds*1000; updateRestTimerDisplay();
     const container=document.getElementById('restTimerContainer'); if(container) container.classList.remove('hidden');
-    restTimerInterval=setInterval(updateRestTimerDisplay,200);
+    restTimerInterval=setInterval(updateRestTimerDisplay,1000);
 }
 function setRestDuration(seconds){ lastRestDuration = seconds; try { localStorage.setItem('ftracker_rest_duration', String(seconds)); } catch(e) {} startRestTimer(seconds); }
 function updateRestTimerDisplay(){
@@ -6046,7 +6084,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.7.93', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.7.95', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -6183,6 +6221,10 @@ function renderProgressDashboard(){
 
     let metrics='';
     if(record) metrics=record.metrics.map(m=>`<div class="progress-ex-metric"><div class="progress-ex-metric-label">${escapeHtml(m[0])}</div><div class="progress-ex-metric-value">${escapeHtml(m[1])}</div></div>`).join('');
+    const progressTrend = (first&&last&&activeMetric&&Number.isFinite(Number(first[activeMetric.key]))&&Number.isFinite(Number(last[activeMetric.key]))&&Number(first[activeMetric.key])!==0)
+      ? ((Number(last[activeMetric.key])-Number(first[activeMetric.key]))/Math.abs(Number(first[activeMetric.key]))*100) : null;
+    const progressTrendHtml = selected && progressTrend!==null
+      ? `<div class="progress-trend-summary"><span>Тренд за ${escapeHtml(periodLabel)}</span><b class="${progressTrend>0?'up':progressTrend<0?'down':'flat'}">${progressTrend>0?'+':''}${progressTrend.toFixed(1)}%</b></div>` : '';
 
     let changes='';
     if(first&&last){
@@ -6226,7 +6268,7 @@ function renderProgressDashboard(){
             <div class="progress-ex-picker-label">Упражнение</div>
             ${pickerButton}
         </div>
-        ${selected?`<div class="progress-ex-section"><div class="progress-ex-section-title">Сводка</div><div class="progress-ex-section-sub">${progressEsc(periodLabel)} · рекорды считаются за всё время.</div><div class="progress-ex-metrics">${metrics}</div>${changes?`<div class="progress-ex-change">${changes}</div>`:''}</div>`:''}
+        ${selected?`<div class="progress-ex-section"><div class="progress-ex-section-title">Сводка</div><div class="progress-ex-section-sub">${progressEsc(periodLabel)} · рекорды считаются за всё время.</div><div class="progress-ex-metrics">${metrics}</div>${progressTrendHtml}${changes?`<div class="progress-ex-change">${changes}</div>`:''}</div>`:''}
         ${chartBlock}
         ${selected?`<div class="progress-ex-section progress-history-section"><div class="progress-ex-section-head"><div><div class="progress-ex-section-title">История</div><div class="progress-ex-section-sub">Результаты по тренировкам за выбранный период.</div></div><span class="progress-section-chevron">⌄</span></div><div class="progress-ex-history">${historyHtml}</div></div>`:''}
     </div>`;
@@ -10951,7 +10993,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.7.93&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.7.95&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

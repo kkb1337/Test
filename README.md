@@ -1,42 +1,18 @@
-# FTracker v1.7.89 — Index restore + visual refinement
+# FTracker v1.7.95 — Dynamic Index refinement + UI consistency
 
-- Base: `FTracker_v1.7.60_FULL_CLEANUP.zip` (stable application).
-- Donor: `FTracker_v1.7.76_GLOBAL_INDEX_HEADER_FIXED.zip`.
-- This release keeps the stable window/screen architecture and only refines the integrated Progress / Dynamic Index functionality.
+This release keeps the stable window/screen architecture. Workout behavior is preserved, with only targeted rendering/performance reductions in the set-entry path.
 
-## Fixed
-- Full backup import after a complete application reset now restores `fscoreGoal`, saved custom goals, the active custom-goal ID and the legacy F-Score preference mirrors.
-- Dynamic Index no longer silently loses its configuration because the import normalizer previously discarded F-Score fields from the backup payload.
-- Added a compact visual refinement pass for the Dynamic Index: clearer hierarchy, tighter cards, goal tabs, score hero, signal grid, reason blocks, methodology and next-step callout.
-- No global screen/window architecture or unrelated sections were intentionally replaced.
+## Changes
+- Refined Dynamic Index scoring so training performance is not counted multiple times through separate repetition, 1RM and volume weights.
+- Training score now uses Systemity 40%, Load 25%, Strength/e1RM 20%, Volume 15%.
+- e1RM analysis uses a conservative 1–12 rep range for trend scoring.
+- Custom body goals now handle reaching a target and drifting beyond it as two different states.
+- Custom goal editor made more compact; inactive parameters can be shown/hidden repeatedly.
+- Goal instructions now clearly distinguish fixed targets from stability corridors.
+- Dynamic Index now presents confidence as a confidence indicator rather than implying false precision.
+- Progress summary is clearer about the selected period and trend metrics.
+- Application, manifest and service-worker versions synchronized to 1.7.95.
 
-## Verification
-- `app.js` passes Node syntax validation.
-- Version synchronized to `1.7.89` in the application shell, `manifest.json` and `sw.js`.
-
-## Base and donor
-- Base: `FTracker_v1.7.60_FULL_CLEANUP.zip` (stable application).
-- Donor: `FTracker_v1.7.76_GLOBAL_INDEX_HEADER_FIXED.zip`.
-
-## Approved integration
-Integrated only the two requested sections from the donor into the stable base:
-1. **Прогресс** — donor exercise-progress enhancements, including estimated 1RM as an additional strength metric, while retaining the stable screen/window rendering architecture.
-2. **Индекс динамики** — donor calculation engine, goal presentation, custom-goal editor behavior, block composition, confidence/data coverage, performance signals, and the compact card-based UI.
-
-## Strictly preserved
-- Screen/window architecture of v1.7.60.
-- Navigation and existing screen opening/closing logic outside the two requested sections.
-- Existing workout/program/history/measurements/food functionality outside the integrated index/progress logic.
-- No donor global safe-area/header contract was copied.
-- No donor global viewport/scroll/header rules were copied.
-
-## Versioning
-All app/manifest/service-worker version identifiers were synchronized to `1.7.77`.
-
-## QA notes
-- Donor typo `Расчётный Расчётный 1ПМ` was normalized to `Расчётный 1ПМ`.
-- JavaScript syntax is checked before packaging.
-- The archive is rebuilt from the stable base, not from the donor.
-
-## Next steps
-If further changes are requested, continue from this archive and preserve the separation: section functionality/design may evolve, but the stable window architecture remains protected unless explicitly authorized.
+## Intentionally unchanged
+- Stable workout rendering/performance path is intentionally left untouched in this release.
+- Window/screen architecture is intentionally left untouched.
