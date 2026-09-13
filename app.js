@@ -1616,19 +1616,74 @@ function fScoreBuildExplanation(x){
     if(x.phase==='calibration') add('attention','Точность','Данных пока недостаточно для полной оценки, поэтому результат предварительный.');
     return reasons.slice(0,6);
 }
+function fScoreTrendStore(x){
+    const custom=x.goal==='custom'?getFScoreCustomConfig():null;
+    const key='ftracker_fscore_trend_v1_'+(custom?.id||x.goal);
+    const today=new Date();
+    const day=today.toISOString().slice(0,10);
+    let rows=[];
+    try{rows=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){rows=[];}
+    if(!Array.isArray(rows)) rows=[];
+    const score=Number.isFinite(Number(x.score))?Math.max(0,Math.min(100,Number(x.score))):null;
+    if(score!=null){
+        const existing=rows.find(r=>r&&r.date===day);
+        if(existing) existing.score=score;
+        else rows.push({date:day,score});
+    }
+    const cutoff=new Date(today.getTime()-120*86400000).toISOString().slice(0,10);
+    rows=rows.filter(r=>r&&r.date>=cutoff&&Number.isFinite(Number(r.score))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    try{localStorage.setItem(key,JSON.stringify(rows));}catch(e){}
+    return rows;
+}
+function fScoreTrendDelta(rows){
+    if(!rows||rows.length<2)return null;
+    const now=rows[rows.length-1];
+    const cutoff=new Date(new Date(now.date+'T12:00:00').getTime()-30*86400000).toISOString().slice(0,10);
+    const candidates=rows.filter(r=>r.date<=cutoff);
+    const base=candidates.length?candidates[candidates.length-1]:rows[Math.max(0,rows.length-2)];
+    return {delta:Number(now.score)-Number(base.score),previous:Number(base.score),date:base.date};
+}
+function fScoreSparkline(rows,current){
+    const values=[];
+    const recent=(rows||[]).filter(r=>r&&Number.isFinite(Number(r.score))).slice(-7);
+    recent.forEach(r=>values.push(Math.max(0,Math.min(100,Number(r.score)))));
+    if(!values.length && Number.isFinite(Number(current))) values.push(Number(current));
+    if(values.length===1) values.unshift(values[0]);
+    const w=120,h=34,p=3,min=Math.min(...values),max=Math.max(...values),range=Math.max(1,max-min);
+    const pts=values.map((v,i)=>{
+        const x=p+(i*Math.max(0,w-p*2))/Math.max(1,values.length-1);
+        const y=h-p-((v-min)/range)*(h-p*2);
+        return [x,y];
+    });
+    const line=pts.map((pt,i)=>(i?'L':'M')+pt[0].toFixed(1)+' '+pt[1].toFixed(1)).join(' ');
+    const last=pts[pts.length-1];
+    return `<svg class="fscore-home-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path class="fscore-home-spark-track" d="M3 17 H117"></path><path class="fscore-home-spark-line" d="${line}"></path><circle class="fscore-home-spark-dot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.8"></circle></svg>`;
+}
 function renderFScoreHomeWidget(){
     const el=document.getElementById('fscoreHomeWidget'); if(!el)return;
     try{
         const x=fScoreData();
-        el.className=`fscore-widget fscore-widget-${x.statusLevel}`;
+        const rows=fScoreTrendStore(x);
+        const delta=fScoreTrendDelta(rows);
         const activeCustomGoal=getFScoreCustomConfig();
-    const goalName=x.goal==='custom'?(activeCustomGoal?.name||'Своя цель'):({cut:'Сушка',gain:'Набор',maintain:'Поддержание'}[x.goal]||'Поддержание');
+        const goalName=x.goal==='custom'?(activeCustomGoal?.name||'Своя цель'):({cut:'Сушка',gain:'Набор',maintain:'Поддержание'}[x.goal]||'Поддержание');
         const displayStatus=x.phase==='calibration'?'Собираем данные':x.status;
-        el.innerHTML=`<span class="fscore-home-top"><span><span class="fscore-home-title">Индекс динамики</span><span class="fscore-home-goal">Цель: ${escapeHtml(goalName)}</span></span><span class="fscore-home-actions"><span class="fscore-home-action">Подробнее <span aria-hidden="true">›</span></span><button type="button" class="fscore-home-collapse" onclick="event.stopPropagation();toggleHomeFScoreCollapse(this)" aria-expanded="true" aria-label="Свернуть индекс">⌃</button></span></span><span class="fscore-home-middle"><span class="fscore-home-number-wrap"><span class="fscore-home-number">${x.availableCount?x.score:'—'}</span><span class="fscore-home-scale">/ 100</span></span><span class="fscore-home-status"><span class="fscore-home-dot" aria-hidden="true"></span><span class="fscore-home-status-text">${escapeHtml(displayStatus)}</span></span></span><span class="fscore-home-progress" aria-hidden="true"><span class="fscore-home-progress-fill" style="width:${x.availableCount?Math.max(0,Math.min(100,x.score)):0}%"></span></span><span class="fscore-home-hint">${x.phase==='calibration'?'Индекс использует доступные данные и будет уточняться по мере накопления истории.':x.availableCount?'Результат рассчитан только по доступным данным.':'Добавьте любые данные для начала анализа'}</span>`;
+        const score=x.availableCount?Math.max(0,Math.min(100,Math.round(x.score))):0;
+        const deltaText=delta&&Number.isFinite(delta.delta)?`${delta.delta>0?'+':''}${Math.round(delta.delta)}`:'—';
+        const deltaClass=delta&&delta.delta>0?'up':delta&&delta.delta<0?'down':'flat';
+        const ringStyle=`--fscore-value:${score}%;`;
+        const blockNames={body:'Тело',training:'Тренировки',nutrition:'Питание'};
+        const blockMarkup=x.blocks.map(b=>{
+            const value=Number.isFinite(Number(b.score))?Math.round(b.score):null;
+            const width=value==null?0:value;
+            return `<span class="fscore-home-breakdown-item"><span class="fscore-home-breakdown-label">${blockNames[b.key]}</span><span class="fscore-home-breakdown-value">${value==null?'—':value}</span><span class="fscore-home-breakdown-bar"><i style="width:${width}%"></i></span></span>`;
+        }).join('');
+        el.className=`fscore-widget fscore-widget-${x.statusLevel}`;
+        el.innerHTML=`<span class="fscore-home-top"><span><span class="fscore-home-title">Индекс динамики</span><span class="fscore-home-goal">${escapeHtml(goalName)}</span></span><span class="fscore-home-actions"><span class="fscore-home-action">Подробнее <span aria-hidden="true">›</span></span></span></span><span class="fscore-home-hero"><span class="fscore-home-ring" style="${ringStyle}" aria-label="${score} из 100"><span class="fscore-home-ring-inner"><b>${x.availableCount?score:'—'}</b><small>/ 100</small></span></span><span class="fscore-home-trend"><span class="fscore-home-delta ${deltaClass}">${deltaText} <small>за 30 дней</small></span>${fScoreSparkline(rows,score)}<span class="fscore-home-status"><i aria-hidden="true"></i><b>${escapeHtml(displayStatus)}</b></span></span></span><span class="fscore-home-breakdown">${blockMarkup}</span>`;
     }catch(err){
         console.error('FScore render failed',err);
         el.className='fscore-widget fscore-widget-attention';
-        el.innerHTML='<span class="fscore-home-top"><span class="fscore-home-title">Индекс динамики</span></span><span class="fscore-home-middle"><span class="fscore-home-number-wrap"><span class="fscore-home-number">0</span><span class="fscore-home-scale">/ 100</span></span></span><span class="fscore-home-hint">Не удалось обновить индекс. Откройте раздел после обновления приложения.</span>';
+        el.innerHTML='<span class="fscore-home-top"><span><span class="fscore-home-title">Индекс динамики</span></span><span class="fscore-home-action">Подробнее <span aria-hidden="true">›</span></span></span><span class="fscore-home-fallback">Не удалось обновить индекс</span>';
     }
 }
 
