@@ -1,5 +1,5 @@
-const APP_VERSION='1.7.97';
-const CACHE_NAME='ftracker-v1.7.97-clean-architecture';
+const APP_VERSION='1.7.98';
+const CACHE_NAME='ftracker-v1.7.98-clean-architecture';
 const ASSETS=[
 './?v='+APP_VERSION,
 './index.html?v='+APP_VERSION,
