@@ -985,6 +985,7 @@ function toggleFScoreInactiveTargets(btn){
     });
     btn.textContent=next?'Скрыть неактивные параметры':'Показать неактивные параметры';
     btn.setAttribute('aria-expanded',next?'true':'false');
+    updateFScoreTargetSummaryUI();
 }
 
 function addFScoreTargetFromPicker(key){
@@ -1004,6 +1005,47 @@ function addFScoreTargetFromPicker(key){
     setTimeout(initFScoreTargetRows,0);
 }
 
+function updateFScoreTargetSummaryUI(){
+    const root=document.getElementById('fscoreCustomTargets');
+    if(!root)return;
+    const rows=[...root.querySelectorAll('.fscore-target-card')];
+    const active=rows.filter(row=>!!row.querySelector('.fscore-target-enabled')?.checked).length;
+    const total=rows.length;
+    const inactive=Math.max(0,total-active);
+    const summary=root.closest('.fscore-targets-section')?.querySelector('summary em');
+    if(summary) summary.textContent=`${active} из ${total} учитываются`;
+    const btn=root.closest('.fscore-targets-section')?.querySelector('.fscore-inactive-toggle');
+    if(btn){
+        const showing=root.dataset.showInactive==='1';
+        btn.textContent=showing?'Скрыть неактивные параметры':`Показать неактивные параметры${inactive?' · '+inactive:''}`;
+        btn.setAttribute('aria-expanded',showing?'true':'false');
+    }
+}
+function updateFScoreLiveIndexUI(){
+    // While editing a custom goal, the draft is the source of truth. Recalculate
+    // the visible Index immediately after a parameter is enabled/disabled without
+    // re-rendering the editor or disturbing its scroll/open state.
+    try{
+        const x=fScoreData();
+        const scoreText=x.availableCount?String(x.score):'—';
+        const scoreStrong=document.querySelector('.fscore-score-panel .fscore-score-top strong');
+        if(scoreStrong) scoreStrong.innerHTML=`${scoreText}<small>/100</small>`;
+        const status=document.querySelector('.fscore-score-panel .fscore-score-top em');
+        if(status) status.textContent=x.phase==='calibration'?'Сбор данных':x.status;
+        const bar=document.querySelector('.fscore-score-panel .fscore-score-bar i');
+        if(bar) bar.style.width=`${x.availableCount?x.score:0}%`;
+        const bodyBlock=document.querySelector('.fscore-composition-panel .fscore-block');
+        if(bodyBlock){
+            const body=x.blocks.find(v=>v.key==='body')||{};
+            bodyBlock.classList.toggle('is-ready',Number.isFinite(body.score));
+            bodyBlock.classList.toggle('is-empty',!Number.isFinite(body.score));
+            const value=bodyBlock.querySelector('.fscore-block-score');
+            if(value) value.innerHTML=`${Number.isFinite(body.score)?Math.round(body.score):'—'}<small>/100</small>`;
+            const meta=bodyBlock.querySelector('.fscore-block-meta');
+            if(meta) meta.textContent=Number.isFinite(body.score)?`${x.bodyDataCount||0} показ.`:'Нет данных';
+        }
+    }catch(e){}
+}
 function updateFScoreTargetRow(el){
     const row=el?.closest('.fscore-target-card'); if(!row)return;
     const enabled=!!row.querySelector('.fscore-target-enabled')?.checked;
@@ -1015,6 +1057,12 @@ function updateFScoreTargetRow(el){
     row.classList.toggle('fscore-inactive-hidden',hiddenInactive);
     row.hidden=hiddenInactive;
     row.classList.toggle('is-maintain',direction==='maintain');
+    // Keep the live draft synchronized with the checkbox. This makes the editor
+    // count and the Index use the same selection before Save is pressed.
+    if(window.__fscoreCustomDraft?.targets?.[key]){
+        window.__fscoreCustomDraft.targets[key].enabled=enabled;
+        window.__fscoreCustomDraft.targets[key].direction=direction;
+    }
     const fixed=row.querySelector('.fscore-target-goal-wrap');
     const corridorEditor=row.querySelector('.fscore-target-corridor-editor');
     fixed?.classList.toggle('hidden',direction==='maintain');
@@ -1029,6 +1077,8 @@ function updateFScoreTargetRow(el){
         else if(direction==='maintain') corridor.textContent='Задайте центр и допуск';
         else corridor.textContent='Фиксированная цель — допуск не используется';
     }
+    updateFScoreTargetSummaryUI();
+    updateFScoreLiveIndexUI();
 }
 function initFScoreTargetRows(){
     document.querySelectorAll('#fscoreCustomTargets .fscore-target-card').forEach(r=>updateFScoreTargetRow(r.querySelector('.fscore-target-enabled')));
