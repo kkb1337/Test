@@ -13546,3 +13546,8 @@ html,body{
   #fscoreAnalyticsScreen .fscore-target-direction-inline{grid-column:2!important;}
   #fscoreAnalyticsScreen .fscore-target-settings{margin-left:39px!important;}
 }
+
+/* v1.7.90 — force zero spacing between home section tiles. */
+#homeScreen .nav-buttons{gap:0!important;row-gap:0!important;column-gap:0!important;margin-top:10px!important;margin-bottom:0!important;padding:0!important;}
+#homeScreen .nav-buttons button{margin:0!important;}
+#homeScreen .nav-buttons button + button{margin-top:0!important;}
