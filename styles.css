@@ -13468,3 +13468,17 @@ html,body{
 /* v1.7.89 — home section tiles: remove spacing between adjacent tiles. */
 #homeScreen .nav-buttons{gap:0!important;}
 @media(max-width:430px){#homeScreen .nav-buttons{gap:0!important;}}
+
+/* v1.7.89 FINAL — home tiles touch vertically: grid rows match tile height. */
+#homeScreen .nav-buttons{
+  grid-auto-rows:76px!important;
+  row-gap:0!important;
+  column-gap:0!important;
+}
+#homeScreen .nav-buttons button{
+  height:76px!important;
+  min-height:76px!important;
+  max-height:76px!important;
+  margin:0!important;
+}
+
