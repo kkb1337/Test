@@ -12917,7 +12917,7 @@ body{padding-bottom:0!important;}
 .ft-window-root.ft-window-dialog{padding-bottom:0!important;}
 
 /* ============================================================
-   FTracker v1.7.85 — home square navigation + adaptive programs
+   FTracker v1.7.86 — home square navigation + adaptive programs
    ============================================================ */
 /* Main navigation: six equal square tiles, always 2 columns. */
 #homeScreen .nav-buttons{
@@ -12997,7 +12997,7 @@ body{padding-bottom:0!important;}
 
 
 /* ============================================================
-   FTracker v1.7.85 — compact home tiles + hard zero bottom inset
+   FTracker v1.7.86 — compact home tiles + hard zero bottom inset
    ============================================================ */
 /* Compact, centered 2-column home tiles. They remain true squares,
    but no longer consume the entire width/vertical space. */
@@ -13099,3 +13099,124 @@ body{padding-bottom:0!important;margin-bottom:0!important;}
   padding-bottom:0!important;
 }
 
+
+/* ============================================================
+   FTracker v1.7.86 — home full-width compact tiles + bottom bleed
+   ============================================================ */
+/* Home navigation: use the full available width in two columns,
+   but deliberately reduce the tile HEIGHT. The result is a clean,
+   aligned 2x3 grid without huge empty vertical space. */
+#homeScreen .nav-buttons{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:104px!important;
+  width:100%!important;
+  max-width:none!important;
+  justify-content:stretch!important;
+  align-items:stretch!important;
+  gap:9px 10px!important;
+  margin:10px 0 0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+#homeScreen .nav-buttons button{
+  width:100%!important;
+  height:104px!important;
+  min-width:0!important;
+  min-height:104px!important;
+  max-width:none!important;
+  max-height:104px!important;
+  aspect-ratio:auto!important;
+  margin:0!important;
+  padding:8px 7px!important;
+  border-radius:15px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  overflow:hidden!important;
+}
+#homeScreen .nav-buttons .nav-icon{width:23px!important;height:23px!important;flex:none!important;}
+
+/* 4+ programs: same full-width two-column rhythm, but compact in height. */
+#programList.program-grid-many{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:104px!important;
+  width:100%!important;
+  max-width:none!important;
+  justify-content:stretch!important;
+  gap:9px 10px!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+#programList.program-grid-many .centered-card{
+  width:100%!important;
+  height:104px!important;
+  min-width:0!important;
+  min-height:104px!important;
+  max-width:none!important;
+  max-height:104px!important;
+  aspect-ratio:auto!important;
+  margin:0!important;
+  padding:8px!important;
+  border-radius:15px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#programList.program-grid-many .program-icon{font-size:25px!important;line-height:1!important;margin:0 0 4px!important;}
+#programList.program-grid-many .split-title{font-size:13px!important;line-height:1.12!important;text-align:center!important;}
+#programList.program-grid-many .centered-card>div:last-child{margin-top:3px!important;font-size:10px!important;line-height:1.1!important;text-align:center!important;}
+
+@media(max-width:430px){
+  #homeScreen .nav-buttons{grid-auto-rows:100px!important;gap:8px 9px!important;}
+  #homeScreen .nav-buttons button{height:100px!important;min-height:100px!important;max-height:100px!important;border-radius:14px!important;}
+  #homeScreen .nav-buttons .nav-icon{width:22px!important;height:22px!important;}
+  #programList.program-grid-many{grid-auto-rows:100px!important;gap:8px 9px!important;}
+  #programList.program-grid-many .centered-card{height:100px!important;min-height:100px!important;max-height:100px!important;border-radius:14px!important;}
+}
+
+/* Hard bottom bleed: extend the application a little beyond the dynamic
+   viewport so WebKit cannot leave a visible black strip under the content.
+   Top safe-area remains untouched for Dynamic Island handling. */
+html,body{
+  min-height:calc(100dvh + 12px)!important;
+  background:var(--bg)!important;
+  padding-bottom:0!important;
+  margin-bottom:0!important;
+}
+.safe-area{
+  height:calc(100dvh + 12px)!important;
+  min-height:calc(100dvh + 12px)!important;
+  padding-bottom:0!important;
+  margin-bottom:0!important;
+  background:var(--bg)!important;
+}
+.safe-area>#app{
+  min-height:calc(100dvh + 12px)!important;
+  height:calc(100dvh + 12px)!important;
+  padding-bottom:0!important;
+  margin-bottom:0!important;
+  background:var(--bg)!important;
+}
+#app>[id$="Screen"]{
+  min-height:calc(100dvh - var(--ft-safe-top) + 12px)!important;
+  height:auto!important;
+  padding-bottom:0!important;
+  margin-bottom:0!important;
+}
+#app>[id$="Screen"] .screen-content,
+#app>[id$="Screen"] .screen-body,
+#app>[id$="Screen"] .window-content,
+#app>[id$="Screen"] .section-content,
+#fscoreAnalyticsScreen #fscoreAnalyticsContent{
+  padding-bottom:0!important;
+  margin-bottom:0!important;
+}

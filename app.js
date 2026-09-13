@@ -1,4 +1,4 @@
-/* FTracker v1.7.85 — single application runtime.
+/* FTracker v1.7.86 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -10765,7 +10765,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.7.85&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.7.86&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
