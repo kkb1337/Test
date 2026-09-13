@@ -13003,3 +13003,12 @@ html,body{
 .progress-trend-summary b.up{color:var(--positive);}
 .progress-trend-summary b.down{color:var(--negative);}
 .progress-trend-summary b.flat{color:var(--subtext);}
+
+/* v1.7.97 — compact explanation of training-index composition */
+.fscore-training-details{margin-top:12px;border:1px solid var(--border-color,rgba(255,255,255,.10));border-radius:12px;overflow:hidden;background:rgba(255,255,255,.025)}
+.fscore-training-details>summary{cursor:pointer;list-style:none;padding:11px 12px;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+.fscore-training-details>summary::-webkit-details-marker{display:none}
+.fscore-training-details-body{padding:0 12px 12px;display:grid;gap:8px}
+.fscore-training-details-body>div{display:grid;gap:2px}
+.fscore-training-details-body b{font-size:12px}
+.fscore-training-details-body span,.fscore-training-details-body small{font-size:11px;line-height:1.4;opacity:.72}

@@ -1,4 +1,4 @@
-# FTracker v1.7.96 — Dynamic Index refinement + UI consistency
+# FTracker v1.7.97 — Dynamic Index refinement + UI consistency
 
 This release keeps the stable window/screen architecture. Workout behavior is preserved, with only targeted rendering/performance reductions in the set-entry path.
 
@@ -11,8 +11,14 @@ This release keeps the stable window/screen architecture. Workout behavior is pr
 - Goal instructions now clearly distinguish fixed targets from stability corridors.
 - Dynamic Index now presents confidence as a confidence indicator rather than implying false precision.
 - Progress summary is clearer about the selected period and trend metrics.
-- Application, manifest and service-worker versions synchronized to 1.7.96.
+- Application, manifest and service-worker versions synchronized to 1.7.97.
 
 ## Intentionally unchanged
 - Stable workout rendering/performance path is intentionally left untouched in this release.
 - Window/screen architecture is intentionally left untouched.
+
+
+### v1.7.97
+- Индекс: тренировки 50/25/10/15; добавлено описание состава расчёта.
+- Ручной КБЖУ: допустимое отклонение ±10% по каждому заданному показателю.
+- Архитектура окон не изменялась. Глубокая переработка CSS не выполнялась.
