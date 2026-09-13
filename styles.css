@@ -12915,3 +12915,82 @@ body{padding-bottom:0!important;}
 }
 /* Dialog shell: no bottom inset either; this is deliberate and applies to every screen/window. */
 .ft-window-root.ft-window-dialog{padding-bottom:0!important;}
+
+/* ============================================================
+   FTracker v1.7.84 — home square navigation + adaptive programs
+   ============================================================ */
+/* Main navigation: six equal square tiles, always 2 columns. */
+#homeScreen .nav-buttons{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:1fr!important;
+  gap:10px!important;
+  margin-top:10px!important;
+}
+#homeScreen .nav-buttons button{
+  width:100%!important;
+  aspect-ratio:1 / 1!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0!important;
+  padding:12px 8px!important;
+  border-radius:18px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  font-size:14px!important;
+  line-height:1.15!important;
+}
+#homeScreen .nav-buttons .nav-icon{
+  width:27px!important;
+  height:27px!important;
+  flex:none!important;
+}
+/* With four or more active programs, program cards also become square 2-column tiles. */
+#programList.program-grid-many{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+#programList.program-grid-many .centered-card{
+  width:100%!important;
+  aspect-ratio:1 / 1!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0!important;
+  padding:12px!important;
+  box-sizing:border-box!important;
+  border-radius:18px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#programList.program-grid-many .program-icon{font-size:30px!important;line-height:1!important;margin-bottom:7px!important;}
+#programList.program-grid-many .split-title{font-size:16px!important;line-height:1.15!important;text-align:center!important;}
+#programList.program-grid-many .centered-card>div:last-child{margin-top:5px!important;font-size:11px!important;line-height:1.15!important;text-align:center!important;}
+
+/* Food duplicate title: deliberately two lines so the complete heading is visible on iPhone. */
+#foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header > .surface-title{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  line-height:1.08!important;
+  font-size:17px!important;
+  min-height:40px!important;
+  max-height:44px!important;
+}
+@media(max-width:430px){
+  #homeScreen .nav-buttons{gap:8px!important;}
+  #homeScreen .nav-buttons button{border-radius:16px!important;padding:10px 6px!important;font-size:13px!important;gap:6px!important;}
+  #homeScreen .nav-buttons .nav-icon{width:24px!important;height:24px!important;}
+  #programList.program-grid-many{gap:8px!important;}
+  #programList.program-grid-many .centered-card{border-radius:16px!important;padding:10px!important;}
+  #programList.program-grid-many .program-icon{font-size:27px!important;margin-bottom:5px!important;}
+  #programList.program-grid-many .split-title{font-size:14px!important;}
+  #foodDuplicateModal.ft-window-root.ft-window-workspace > .exercise-dup-sheet > .exercise-dup-header > .surface-title{font-size:16px!important;line-height:1.05!important;}
+}

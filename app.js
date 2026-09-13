@@ -1,4 +1,4 @@
-/* FTracker v1.7.83 — single application runtime.
+/* FTracker v1.7.84 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -796,6 +796,8 @@ function goHome() { showScreen('homeScreen'); renderHome(); checkDraft(); checkE
 function renderHome() {
     const list = document.getElementById('programList');
     const activePrograms = data.programs.filter(p => p.programActive);
+    list.classList.toggle('program-grid-many', activePrograms.length > 3);
+    list.classList.toggle('program-grid-standard', activePrograms.length <= 3);
     if (activePrograms.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:var(--subtext);">Нет активных сплитов</div>'; return; }
     list.innerHTML = activePrograms.map((p) => {
         const i = data.programs.indexOf(p);
@@ -9029,7 +9031,7 @@ window.showFoodDuplicateModal=function(name,matches,exact,onAllow){
     </div>`;
     document.body.appendChild(modal);
   }
-  modal.querySelector('#foodDupTitle').textContent=exact?'Продукт уже существует':'Найдены похожие продукты';
+  modal.querySelector('#foodDupTitle').innerHTML=exact?'Продукт уже<br>существует':'Найдены похожие<br>продукты';
   modal.querySelector('#foodDupSub').textContent=exact?'Точную копию создать нельзя.':`Для «${name}» найдены похожие названия.`;
   modal.querySelector('#foodDupList').innerHTML=matches.slice(0,8).map(x=>
     `<div class="exercise-dup-item"><div class="exercise-dup-name">${foodEsc(x.name)}</div><div class="exercise-dup-meta">${x.type==='dish'?'Блюдо':'На 100 г'}</div><div class="exercise-dup-reason">${foodEsc(x.reason||'Похожее название.')}</div></div>`
@@ -10763,7 +10765,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.7.83&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.7.84&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
