@@ -1,4 +1,4 @@
-# FTracker v1.7.99 — Dynamic Index refinement + UI consistency
+# FTracker v1.8.00 — Dynamic Index refinement + UI consistency
 
 This release keeps the stable window/screen architecture. Workout behavior is preserved, with only targeted rendering/performance reductions in the set-entry path.
 
@@ -11,19 +11,25 @@ This release keeps the stable window/screen architecture. Workout behavior is pr
 - Goal instructions now clearly distinguish fixed targets from stability corridors.
 - Dynamic Index now presents confidence as a confidence indicator rather than implying false precision.
 - Progress summary is clearer about the selected period and trend metrics.
-- Application, manifest and service-worker versions synchronized to 1.7.99.
+- Application, manifest and service-worker versions synchronized to 1.8.00.
 
 ## Intentionally unchanged
 - Stable workout rendering/performance path is intentionally left untouched in this release.
 - Window/screen architecture is intentionally left untouched.
 
 
-### v1.7.99
+### v1.8.00
 - Индекс: тренировки 50/25/10/15; добавлено описание состава расчёта.
 - Ручной КБЖУ: допустимое отклонение ±10% по каждому заданному показателю.
 - Архитектура окон не изменялась. Глубокая переработка CSS не выполнялась.
 
 
-## v1.7.99
+## v1.8.00
 - В конструкторе своей цели веса показателей тренировки можно менять вручную: системность, рабочие веса, расчётный 1ПМ, объём. Сумма автоматически нормализуется до 100%, а изменение весов сразу участвует в пересчёте общего Индекса.
 - «Параметры тела» по умолчанию свернуты; количество учитываемых параметров перенесено внутрь подраздела.
+
+### v1.8.00
+- Dynamics Index custom-goal editor received a compact mobile layout: single-line header, smaller body parameter cards and denser controls.
+- Body parameter count remains inside the expanded section, not in its title.
+- Body parameters section remains collapsed by default.
+- Calculation logic is unchanged in this visual release.

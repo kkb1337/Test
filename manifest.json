@@ -1,7 +1,7 @@
 {
   "name": "FTracker",
   "short_name": "FTracker",
-  "start_url": "./?v=1.7.99",
+  "start_url": "./?v=1.8.00",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "version": "1.7.99",
-  "appVersion": "1.7.99"
+  "version": "1.8.00",
+  "appVersion": "1.8.00"
 }

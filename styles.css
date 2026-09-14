@@ -13021,7 +13021,7 @@ html,body{
 .fscore-training-input-help span,.fscore-training-input-help small{color:var(--subtext);line-height:1.35;}
 
 
-/* v1.7.99 — manual training-factor weights in custom goals */
+/* v1.8.00 — manual training-factor weights in custom goals */
 #fscoreAnalyticsScreen .fscore-targets-section>summary em{display:none!important;}
 #fscoreAnalyticsScreen .fscore-target-count{margin:9px 12px 0;padding:8px 10px;border-radius:10px;background:var(--input-bg);color:var(--subtext);font-size:10px;font-weight:800;}
 #fscoreAnalyticsScreen .fscore-training-weight-editor{margin:10px 12px 0;padding:10px 11px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02);}
@@ -13032,3 +13032,180 @@ html,body{
 #fscoreAnalyticsScreen .fscore-training-weight-grid label{display:grid;gap:4px;font-size:10px;font-weight:800;color:var(--subtext);}
 #fscoreAnalyticsScreen .fscore-training-weight-grid input{min-height:38px;border-radius:9px;font-size:12px;}
 #fscoreAnalyticsScreen .fscore-training-weight-editor small{display:block;margin-top:7px;color:var(--subtext);font-size:9px;line-height:1.35;}
+
+
+/* =========================================================
+   FTracker v1.8.00 — Dynamics Index compact custom-goal UI
+   One authoritative visual layer for the Index screen.
+   The calculation/data logic is unchanged.
+   ========================================================= */
+#fscoreAnalyticsScreen > .screen-header{
+  height:56px!important;
+  min-height:56px!important;
+  max-height:56px!important;
+  margin-bottom:8px!important;
+}
+#fscoreAnalyticsScreen > .screen-header > .title{
+  font-size:21px!important;
+  line-height:1!important;
+  height:40px!important;
+  min-height:40px!important;
+  max-height:40px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  overflow-wrap:normal!important;
+  letter-spacing:-.45px!important;
+}
+#fscoreAnalyticsScreen > .screen-header > button:first-child{
+  height:42px!important;
+  min-height:42px!important;
+  border-radius:14px!important;
+}
+#fscoreAnalyticsScreen .fscore-custom-section{
+  margin:7px 0!important;
+  border-radius:14px!important;
+}
+#fscoreAnalyticsScreen .fscore-custom-section>summary{
+  min-height:44px!important;
+  padding:9px 12px!important;
+  font-size:13px!important;
+  line-height:1.1!important;
+}
+#fscoreAnalyticsScreen .fscore-targets-section>summary{
+  min-height:44px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-intro{
+  margin:0 10px!important;
+  padding:8px 0 5px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-count{
+  margin:0 0 7px!important;
+  padding:6px 9px!important;
+  border-radius:8px!important;
+  font-size:10px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-intro>div:nth-child(2){
+  font-size:10px!important;
+  line-height:1.25!important;
+}
+#fscoreAnalyticsScreen .fscore-target-intro>div:nth-child(2) b{
+  font-size:11px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-legend{
+  gap:4px!important;
+  margin-top:6px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-legend>span{
+  padding:6px 5px!important;
+  border-radius:8px!important;
+  font-size:10px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-legend small{font-size:8px!important;margin-top:2px!important;}
+#fscoreAnalyticsScreen .fscore-custom-targets{
+  gap:5px!important;
+  padding:6px 0!important;
+}
+#fscoreAnalyticsScreen .fscore-target-card{
+  margin:0 8px 5px!important;
+  padding:8px 9px!important;
+  border-radius:12px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-main{
+  grid-template-columns:24px minmax(0,1fr) minmax(96px,112px)!important;
+  gap:7px!important;
+  align-items:center!important;
+}
+#fscoreAnalyticsScreen .fscore-target-check{
+  width:24px!important;height:24px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-checkmark{
+  width:18px!important;height:18px!important;border-radius:6px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-title b{font-size:12px!important;line-height:1.1!important;}
+#fscoreAnalyticsScreen .fscore-target-title small{font-size:9px!important;margin-top:2px!important;}
+#fscoreAnalyticsScreen .fscore-target-direction-inline select{
+  min-height:32px!important;
+  height:32px!important;
+  border-radius:8px!important;
+  font-size:9px!important;
+  padding:0 5px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-settings{
+  margin:7px 0 0 31px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-goal-wrap>span,
+#fscoreAnalyticsScreen .fscore-target-corridor-editor label>span{
+  margin-bottom:3px!important;
+  font-size:9px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-goal-wrap input,
+#fscoreAnalyticsScreen .fscore-target-corridor-editor input{
+  min-height:34px!important;
+  height:34px!important;
+  border-radius:8px!important;
+  font-size:11px!important;
+}
+#fscoreAnalyticsScreen .fscore-target-corridor-editor{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 92px!important;
+  gap:6px!important;
+  align-items:end!important;
+}
+#fscoreAnalyticsScreen .fscore-target-corridor-editor .fscore-target-corridor{
+  grid-column:1/-1!important;
+  margin:0!important;
+  padding:5px 7px!important;
+  border-radius:8px!important;
+  font-size:9px!important;
+  line-height:1.15!important;
+}
+#fscoreAnalyticsScreen .fscore-inactive-toggle{
+  min-height:32px!important;
+  margin:0 8px 5px!important;
+  width:calc(100% - 16px)!important;
+  padding:5px 8px!important;
+  border-radius:9px!important;
+  font-size:10px!important;
+}
+#fscoreAnalyticsScreen .fscore-custom-training{
+  gap:6px!important;
+  padding:7px 10px 8px!important;
+}
+#fscoreAnalyticsScreen .fscore-custom-training input{
+  min-height:36px!important;
+  height:36px!important;
+  border-radius:8px!important;
+}
+#fscoreAnalyticsScreen .fscore-training-weight-editor{
+  margin:0 10px 7px!important;
+  padding:8px 9px!important;
+  border-radius:10px!important;
+}
+#fscoreAnalyticsScreen .fscore-training-weight-grid{gap:5px!important;}
+#fscoreAnalyticsScreen .fscore-training-weight-grid input{
+  min-height:34px!important;height:34px!important;border-radius:8px!important;
+}
+#fscoreAnalyticsScreen .fscore-training-input-help{
+  margin:0 10px 8px!important;
+  padding:8px 9px!important;
+  border-radius:10px!important;
+  gap:5px!important;
+  font-size:10px!important;
+}
+#fscoreAnalyticsScreen .fscore-training-input-help>b{font-size:11px!important;}
+#fscoreAnalyticsScreen .fscore-training-input-help strong{font-size:10px!important;}
+#fscoreAnalyticsScreen .fscore-training-input-help span,
+#fscoreAnalyticsScreen .fscore-training-input-help small{font-size:9px!important;line-height:1.25!important;}
+#fscoreAnalyticsScreen .fscore-custom-kbju{padding:7px 10px 8px!important;}
+#fscoreAnalyticsScreen .fscore-custom-kbju input{min-height:36px!important;height:36px!important;border-radius:8px!important;}
+#fscoreAnalyticsScreen .fscore-nutrition-default-note{font-size:9px!important;padding:7px 8px!important;margin-bottom:7px!important;}
+#fscoreAnalyticsScreen .fscore-weight-editor-head{padding:8px 10px 0!important;}
+#fscoreAnalyticsScreen .fscore-custom-weights{padding:7px 10px 9px!important;gap:5px!important;}
+#fscoreAnalyticsScreen .fscore-custom-weights input{min-height:34px!important;height:34px!important;border-radius:8px!important;}
+
+@media(max-width:390px){
+  #fscoreAnalyticsScreen > .screen-header > .title{font-size:20px!important;}
+  #fscoreAnalyticsScreen .fscore-target-main{grid-template-columns:24px minmax(0,1fr) 96px!important;}
+  #fscoreAnalyticsScreen .fscore-target-settings{margin-left:31px!important;}
+}
