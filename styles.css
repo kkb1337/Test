@@ -13021,7 +13021,7 @@ html,body{
 .fscore-training-input-help span,.fscore-training-input-help small{color:var(--subtext);line-height:1.35;}
 
 
-/* v1.8.01 — manual training-factor weights in custom goals */
+/* v1.8.03 — manual training-factor weights in custom goals */
 #fscoreAnalyticsScreen .fscore-targets-section>summary em{display:none!important;}
 #fscoreAnalyticsScreen .fscore-target-count{margin:9px 12px 0;padding:8px 10px;border-radius:10px;background:var(--input-bg);color:var(--subtext);font-size:10px;font-weight:800;}
 #fscoreAnalyticsScreen .fscore-training-weight-editor{margin:10px 12px 0;padding:10px 11px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02);}
@@ -13035,7 +13035,7 @@ html,body{
 
 
 /* =========================================================
-   FTracker v1.8.01 — Dynamics Index compact custom-goal UI
+   FTracker v1.8.03 — Dynamics Index compact custom-goal UI
    One authoritative visual layer for the Index screen.
    The calculation/data logic is unchanged.
    ========================================================= */
@@ -13247,3 +13247,33 @@ html,body{
   #fscoreAnalyticsScreen .fscore-target-main{grid-template-columns:24px minmax(0,1fr) 96px!important;}
   #fscoreAnalyticsScreen .fscore-target-settings{margin-left:31px!important;}
 }
+
+/* v1.8.03 — detailed Dynamic Index calculation methodology */
+.fscore-method-intro{margin:10px 0 14px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.035);color:#b9b9c3;font-size:14px;line-height:1.45}
+.fscore-method-section{margin:10px 0;padding:13px 14px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(255,255,255,.018)}
+.fscore-method-section h4{margin:0 0 10px;font-size:17px;line-height:1.2}
+.fscore-method-item{display:grid;grid-template-columns:minmax(105px,.32fr) 1fr;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.06)}
+.fscore-method-item:first-of-type{border-top:0;padding-top:0}
+.fscore-method-item b{font-size:14px;color:#f2f2f5}
+.fscore-method-item span{font-size:13px;line-height:1.4;color:#b5b5bf}
+.fscore-method-section .fscore-method-grid{margin-top:2px}
+.fscore-method-note{margin-top:10px;font-size:12px;line-height:1.4;color:#9999a5}
+.fscore-method-note-final{margin-top:14px;padding:12px 14px;border-radius:13px;background:rgba(71,188,83,.07)}
+@media (max-width:520px){.fscore-method-item{grid-template-columns:1fr;gap:3px}.fscore-method-intro{font-size:13px}.fscore-method-item span{font-size:12px}}
+
+/* v1.8.03 — full Dynamic Index methodology: formulas, weights and calculation chain */
+.fscore-method-sub{margin:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.018);overflow:hidden}
+.fscore-method-sub>summary{list-style:none;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:800}
+.fscore-method-sub>summary::-webkit-details-marker{display:none}
+.fscore-method-sub>summary span{font-size:10px;color:var(--ft-muted);font-weight:600}
+.fscore-method-sub>summary i{font-style:normal;color:var(--ft-muted);font-size:15px}
+.fscore-method-sub[open]>summary i{transform:rotate(180deg)}
+.fscore-method-sub .fscore-method-section{margin:0;border:0;border-top:1px solid rgba(255,255,255,.06);border-radius:0;background:transparent;padding:10px 12px}
+.fscore-method-formula{margin:9px 0 2px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.035);font-size:11px;line-height:1.35}
+.fscore-method-formula>b{display:block;margin-bottom:5px;font-size:11px}
+.fscore-method-formula div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-top:1px solid rgba(255,255,255,.05)}
+.fscore-method-formula div:first-of-type{border-top:0}
+.fscore-method-formula span{color:var(--ft-muted)}
+.fscore-method-formula strong{font-size:11px;text-align:right}
+.fscore-method-item code,.fscore-method-note code,.fscore-method-intro code{font-size:.92em;padding:1px 4px;border-radius:5px;background:rgba(255,255,255,.06);color:#e7e7ed}
+@media(max-width:520px){.fscore-method-sub>summary{grid-template-columns:auto 1fr auto}.fscore-method-sub>summary span{white-space:normal}.fscore-method-formula div{align-items:flex-start}.fscore-method-formula strong{max-width:68%}}
