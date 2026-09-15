@@ -1,5 +1,5 @@
-const APP_VERSION='1.8.08';
-const CACHE_NAME='ftracker-v1.8.08-goal-editor';
+const APP_VERSION='1.8.09';
+const CACHE_NAME='ftracker-v1.8.09-goal-editor-ui';
 const ASSETS=[
 './?v='+APP_VERSION,
 './index.html?v='+APP_VERSION,

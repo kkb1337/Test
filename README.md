@@ -1,4 +1,4 @@
-# FTracker v1.8.08 — Dynamic Index refinement + UI consistency
+# FTracker v1.8.09 — Dynamic Index refinement + UI consistency
 
 This release keeps the stable window/screen architecture. Workout behavior is preserved, with only targeted rendering/performance reductions in the set-entry path.
 
@@ -11,7 +11,7 @@ This release keeps the stable window/screen architecture. Workout behavior is pr
 - Goal instructions now clearly distinguish fixed targets from stability corridors.
 - Dynamic Index now presents confidence as a confidence indicator rather than implying false precision.
 - Progress summary is clearer about the selected period and trend metrics.
-- Application, manifest and service-worker versions synchronized to 1.8.08.
+- Application, manifest and service-worker versions synchronized to 1.8.09.
 
 ## Intentionally unchanged
 - Stable workout rendering/performance path is intentionally left untouched in this release.
@@ -47,7 +47,7 @@ v1.8.07: Индекс динамики — выровнен заголовок �
 - Расчётную логику не меняли.
 
 
-## v1.8.08
+## v1.8.09
 - Custom goal constructor moved into a separate full-screen app window.
 - Constructor order: evaluation period → factor weights → body parameters → training → nutrition.
 - Goal editor no longer occupies the Dynamic Index analytics page.
