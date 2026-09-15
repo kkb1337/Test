@@ -1,4 +1,4 @@
-# FTracker v1.8.09 — Dynamic Index refinement + UI consistency
+# FTracker v1.8.10 — Dynamic Index refinement + UI consistency
 
 This release keeps the stable window/screen architecture. Workout behavior is preserved, with only targeted rendering/performance reductions in the set-entry path.
 
@@ -47,8 +47,15 @@ v1.8.07: Индекс динамики — выровнен заголовок �
 - Расчётную логику не меняли.
 
 
-## v1.8.09
+## v1.8.10
 - Custom goal constructor moved into a separate full-screen app window.
 - Constructor order: evaluation period → factor weights → body parameters → training → nutrition.
 - Goal editor no longer occupies the Dynamic Index analytics page.
 - Saving closes the editor and returns to the Index.
+
+
+## v1.8.10
+- Goal editor header uses the same safe-area/workspace geometry as the exercise card window.
+- Goal editor body has a single scroll owner; header stays fixed below the safe area.
+- Removed redundant custom-goal intro/help text and normalized typography, spacing and left alignment.
+- Body, training and nutrition sections now use consistent heading alignment.
