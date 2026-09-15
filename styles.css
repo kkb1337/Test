@@ -13576,3 +13576,101 @@ html,body{
   #fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights{grid-template-columns:1fr!important;}
   #fscoreCustomGoalModal .fscore-target-corridor-editor{grid-template-columns:1fr!important;}
 }
+
+/* ============================================================
+   FTracker v1.8.12 — goal editor aligned with exercise-card windows
+   The goal editor now uses the same safe-area + sticky-header contract:
+   one scroll owner, safe area in content padding, header at top:0.
+   ============================================================ */
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  margin:0!important;padding:0!important;display:block!important;box-sizing:border-box!important;
+  background:var(--bg)!important;overflow:hidden!important;z-index:60000!important;isolation:isolate!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor::before{display:none!important;content:none!important;}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor>.fscore-goal-editor-modal-content{
+  position:relative!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;
+  margin:0!important;padding:var(--ft-safe-top) 12px var(--ft-safe-bottom)!important;
+  box-sizing:border-box!important;border:0!important;border-radius:0!important;background:var(--bg)!important;
+  overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:contain!important;touch-action:pan-y!important;
+  display:block!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor>.fscore-goal-editor-modal-content>.unified-surface-header.ft-modal-header{
+  position:sticky!important;top:0!important;left:auto!important;right:auto!important;bottom:auto!important;inset:auto!important;
+  z-index:1000!important;width:100%!important;height:52px!important;min-height:52px!important;max-height:52px!important;
+  margin:0 0 12px!important;padding:4px 0!important;box-sizing:border-box!important;
+  display:grid!important;grid-template-columns:76px minmax(0,1fr) 76px!important;grid-template-rows:1fr!important;
+  align-items:center!important;gap:8px!important;background:var(--bg)!important;border:0!important;
+  box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;transform:none!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor .unified-surface-header.ft-modal-header>.surface-back-btn{
+  grid-column:1!important;grid-row:1!important;justify-self:start!important;align-self:center!important;
+  position:static!important;inset:auto!important;transform:none!important;width:76px!important;min-width:76px!important;max-width:76px!important;
+  height:44px!important;min-height:44px!important;max-height:44px!important;margin:0!important;padding:0 8px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;
+  border:1px solid var(--border)!important;border-radius:14px!important;background:var(--button-gray)!important;
+  color:var(--text)!important;-webkit-text-fill-color:var(--text)!important;font-size:16px!important;font-weight:700!important;
+  box-shadow:none!important;white-space:nowrap!important;overflow:hidden!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor .unified-surface-header.ft-modal-header>.surface-title{
+  grid-column:2!important;grid-row:1!important;justify-self:center!important;align-self:center!important;
+  width:100%!important;min-width:0!important;height:auto!important;margin:0!important;padding:0 6px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;
+  font-size:22px!important;line-height:1.15!important;font-weight:850!important;text-align:center!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;background:none!important;
+  color:var(--text)!important;-webkit-text-fill-color:var(--text)!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor .unified-surface-header.ft-modal-header>.surface-header-spacer{
+  grid-column:3!important;grid-row:1!important;width:76px!important;min-width:76px!important;height:44px!important;
+  visibility:hidden!important;pointer-events:none!important;margin:0!important;
+}
+
+/* Compact strategy explanation: useful, but no duplicate prose. */
+#fscoreCustomGoalModal .fscore-mode-info{
+  display:flex!important;align-items:baseline!important;gap:8px!important;margin:0!important;padding:9px 12px!important;
+  border:1px solid var(--border)!important;border-radius:12px!important;background:var(--input-bg)!important;
+  text-align:left!important;line-height:1.25!important;
+}
+#fscoreCustomGoalModal .fscore-mode-info b{font-size:13px!important;line-height:1.2!important;font-weight:850!important;white-space:nowrap!important;color:var(--text)!important;}
+#fscoreCustomGoalModal .fscore-mode-info span{font-size:11px!important;line-height:1.25!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-mode-info small{display:none!important;}
+
+/* Body-target guidance: one compact line, left aligned like the other sections. */
+#fscoreCustomGoalModal .fscore-target-rules{
+  margin:0 12px!important;padding:7px 9px!important;border-radius:9px!important;background:rgba(255,255,255,.025)!important;
+  color:var(--subtext)!important;font-size:10px!important;line-height:1.3!important;text-align:left!important;
+}
+#fscoreCustomGoalModal .fscore-target-rules b{color:var(--text)!important;font-weight:850!important;}
+
+/* Body target cards: checkbox + name + direction, then compact current/goal values. */
+#fscoreCustomGoalModal .fscore-custom-targets{padding:7px 12px!important;gap:7px!important;}
+#fscoreCustomGoalModal .fscore-target-card{padding:10px!important;border-radius:13px!important;}
+#fscoreCustomGoalModal .fscore-target-head{
+  display:grid!important;grid-template-columns:24px minmax(0,1fr) 122px!important;align-items:center!important;gap:8px!important;
+}
+#fscoreCustomGoalModal .fscore-target-check{width:24px!important;height:24px!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+#fscoreCustomGoalModal .fscore-target-name{min-width:0!important;font-size:15px!important;line-height:1.15!important;font-weight:850!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-target-head .fscore-target-direction{width:100%!important;min-height:36px!important;height:36px!important;padding:0 7px!important;border-radius:9px!important;font-size:10px!important;font-weight:800!important;box-sizing:border-box!important;}
+#fscoreCustomGoalModal .fscore-target-values{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin:8px 0 0 32px!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-target-values.is-maintain{grid-template-columns:1fr 1fr 1fr!important;}
+#fscoreCustomGoalModal .fscore-target-value-cell{min-width:0!important;display:flex!important;flex-direction:column!important;gap:4px!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-target-value-cell>span{font-size:10px!important;line-height:1.2!important;font-weight:800!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-target-value-cell strong,
+#fscoreCustomGoalModal .fscore-target-value-cell>div{width:100%!important;min-height:40px!important;box-sizing:border-box!important;border:1px solid var(--border)!important;border-radius:10px!important;background:var(--input-bg)!important;display:flex!important;align-items:center!important;}
+#fscoreCustomGoalModal .fscore-target-value-cell strong{padding:0 10px!important;font-size:15px!important;line-height:1!important;font-weight:800!important;color:var(--text)!important;}
+#fscoreCustomGoalModal .fscore-target-value-cell input{width:100%!important;min-width:0!important;height:40px!important;min-height:40px!important;border:0!important;background:transparent!important;border-radius:10px!important;padding:0 10px!important;box-sizing:border-box!important;font-size:15px!important;font-weight:800!important;color:var(--text)!important;}
+#fscoreCustomGoalModal .fscore-target-value-cell em{flex:none!important;margin-left:auto!important;padding-right:9px!important;font-style:normal!important;font-size:10px!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-target-value-cell.hidden{display:none!important;}
+#fscoreCustomGoalModal .fscore-target-corridor{margin:6px 0 0 32px!important;padding:6px 8px!important;border-radius:8px!important;font-size:10px!important;line-height:1.2!important;text-align:left!important;background:rgba(255,255,255,.025)!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-target-corridor.hidden{display:none!important;}
+
+@media(max-width:430px){
+  #fscoreCustomGoalModal .fscore-target-head{grid-template-columns:24px minmax(0,1fr) 108px!important;}
+}
+@media(max-width:360px){
+  #fscoreCustomGoalModal .fscore-target-head{grid-template-columns:24px minmax(0,1fr)!important;}
+  #fscoreCustomGoalModal .fscore-target-head .fscore-target-direction{grid-column:2!important;}
+  #fscoreCustomGoalModal .fscore-target-values,#fscoreCustomGoalModal .fscore-target-corridor{margin-left:32px!important;}
+  #fscoreCustomGoalModal .fscore-target-values.is-maintain{grid-template-columns:1fr!important;}
+}
