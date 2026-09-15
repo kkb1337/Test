@@ -1,4 +1,4 @@
-/* FTracker v1.8.05 — single application runtime.
+/* FTracker v1.8.06 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -1433,7 +1433,7 @@ function fScoreRateScore(goal,speed){
         if(a<=1.5)return 100-(a-1)*70;
         return fScoreClamp(65-(a-1.5)*36);
     }
-    return a<=.3?100:a<=.5?88:a<=1?fScoreClamp(88-(a-.5)*70):fScoreClamp(53-(a-1)*30);
+    return a<=.3?100:a<=.5?fScoreClamp(100-(a-.3)*60):a<=1?fScoreClamp(88-(a-.5)*70):fScoreClamp(53-(a-1)*30);
 }
 function fScoreOtherMeasurements(goal,periodDays=90){
     const fields=getMeasurementFields().filter(f=>!['weight','waist'].includes(f.key));
@@ -1459,7 +1459,7 @@ function fScoreBody(goal,periodDays=90){
     if(weight)parts.push({score:fScoreRateScore(goal,weight.speed),weight:configured.weight,name:'Вес'});
     if(waist){
         let score;
-        if(goal==='cut')score=waist.change<0?100:waist.change===0?82:fScoreClamp(82-waist.change*20);
+        if(goal==='cut'){const ws=waist.speed;if(ws>=0)score=ws===0?82:fScoreClamp(82-ws*20);else{const a=Math.abs(ws);score=a<=1?100:fScoreClamp(100-(a-1)*15,70,100);}}
         else if(goal==='gain'){const s=waist.speed;score=s<=.2?100:s<=.4?90:s<=.6?75:s<=1?55:fScoreClamp(55-(s-1)*35);}
         else score=Math.abs(waist.speed)<=.3?100:Math.abs(waist.speed)<=.5?88:fScoreClamp(88-(Math.abs(waist.speed)-.5)*70);
         parts.push({score,weight:configured.waist,name:'Талия'});
@@ -1533,7 +1533,7 @@ function fScorePerformanceSignals(history, periodDays=90){
                 const w=Number(s.weight), r=Number(s.reps);
                 if(!(w>0&&r>0)) return;
                 volume+=w*r;
-                if(r<=12) best1rm=Math.max(best1rm,w*(1+r/30));
+                if(r<=12){const est=r===1?w:w*(1+r/30);best1rm=Math.max(best1rm,est);}
             });
             if(best1rm<=0&&volume<=0) return;
             const row={date:t,e1rm:best1rm,volume};
@@ -1663,7 +1663,7 @@ function fScoreNutrition(goal, customCfg=null, periodDays=90){
         const tolProtein=manualNutrition?tp*0.10:Math.max(0,Number(customCfg?.nutrition?.toleranceProtein)||10);
         const tolFat=manualNutrition?tf*0.10:Math.max(0,Number(customCfg?.nutrition?.toleranceFat)||10);
         const tolCarbs=manualNutrition?tcar*0.10:Math.max(0,Number(customCfg?.nutrition?.toleranceCarbs)||15);
-        if(tc>0){const dev=Math.max(0,Math.abs(d.cal/tc-1)-tolCal/tc);calScores.push(fScoreClamp(100-dev*220));}
+        if(tc>0){const ratio=d.cal/tc;const excess=Math.max(0,Math.abs(ratio-1)-tolCal/tc);const directionalFactor=goal==='cut'?(ratio>1?1.5:0.75):goal==='gain'?(ratio<1?1.5:0.75):1;calScores.push(fScoreClamp(100-excess*220*directionalFactor));}
         if(tp>0){const r=d.protein/tp,c=tolProtein/tp;proteinScores.push(fScoreClamp(r>=1?100:100-Math.max(0,1-r-c)*100));}
         const macro=[];if(tf>0)macro.push(fScoreClamp(100-Math.max(0,Math.abs(d.fat/tf-1)-tolFat/tf)*120));if(tcar>0)macro.push(fScoreClamp(100-Math.max(0,Math.abs(d.carbs/tcar-1)-tolCarbs/tcar)*90));if(macro.length)macroScores.push(macro.reduce((a,b)=>a+b,0)/macro.length);
     });
@@ -1989,19 +1989,19 @@ function renderFScoreAnalytics(){
     <div class="fscore-method-intro"><b>Суть:</b> доступные показатели переводятся в баллы <b>0–100</b>, затем формируются блоки <b>Тело / Тренировки / Питание</b>. Недостающие данные не дают ноль — показатель исключается из расчёта.</div>
     <details class="fscore-method-sub" open><summary>Тело</summary><div class="fscore-method-section">
       <div class="fscore-method-item"><b>Вес</b><span>Очистка аномальных скачков + EMA 7. <code>Δ% = (последнее − первое) / |первое| × 100</code>; скорость = Δ% / (дни / 7). Зона ±1% считается незначимой.</span></div>
-      <div class="fscore-method-item"><b>Талия</b><span>EMA 14. Сушка — снижение лучше; набор — до 0,2%/нед.; поддержание — до 0,3%/нед.</span></div>
+      <div class="fscore-method-item"><b>Талия</b><span>EMA 14. Сушка — снижение лучше, но слишком быстрое снижение постепенно снижает балл; набор — контролируемый рост; поддержание — стабильность.</span></div>
       <div class="fscore-method-item"><b>Остальные замеры</b><span>Параметры оцениваются отдельно, затем усредняются. При 1–2 параметрах их эффективный вес ограничивается.</span></div>
       <div class="fscore-method-formula"><b>Веса: вес · талия · остальные</b><div><span>Набор</span><strong>30% · 10% · 60%</strong></div><div><span>Сушка</span><strong>25% · 35% · 40%</strong></div><div><span>Поддержание</span><strong>35% · 25% · 40%</strong></div></div>
     </div></details>
     <details class="fscore-method-sub" open><summary>Тренировки</summary><div class="fscore-method-section">
       <div class="fscore-method-item"><b>Системность — 50%</b><span>60% — попадание в целевую частоту, 40% — равномерность. Максимальный перерыв: ≤5 дн. = 100; ≤7 = 96; ≤10 = 88; ≤14 = 76; ≤21 = 58; ≤30 = 40; &gt;30 = 20. Текущий период: 80% + предыдущий 20%.</span></div>
       <div class="fscore-method-item"><b>Рабочие веса — 25%</b><span>Максимальный вес каждого силового упражнения в тренировке. Сравнивается медиана первой и второй половины периода.</span></div>
-      <div class="fscore-method-item"><b>Расчётный 1ПМ — 10%</b><span>Для 1–12 повторений: <code>1ПМ = вес × (1 + повторения / 30)</code>. Сравниваются средние значения первой и второй половины.</span></div>
+      <div class="fscore-method-item"><b>Расчётный 1ПМ — 10%</b><span>Для 2–12 повторений: <code>1ПМ = вес × (1 + повторения / 30)</code>; при 1 повторении используется фактический вес. Сравниваются средние значения первой и второй половины.</span></div>
       <div class="fscore-method-item"><b>Объём — 15%</b><span><code>Объём = Σ(вес × повторения)</code>. Сравнивается средний объём первой и второй половины.</span></div>
       <div class="fscore-method-note">Повторения отдельно не взвешиваются: они уже входят в 1ПМ и объём. Недоступный показатель исключается, остальные веса пересчитываются.</div>
     </div></details>
     <details class="fscore-method-sub" open><summary>Питание</summary><div class="fscore-method-section">
-      <div class="fscore-method-item"><b>Калории — 40%</b><span>Сравнение с целью; автоматический допуск ±100 ккал.</span></div>
+      <div class="fscore-method-item"><b>Калории — 40%</b><span>Сравнение с целью; автоматический допуск ±100 ккал. Для сушки перебор после допуска штрафуется сильнее, для набора — недобор; поддержание остаётся симметричным.</span></div>
       <div class="fscore-method-item"><b>Белок — 30%</b><span>Автоматический допуск ±10 г. В ручном КБЖУ — ±10%; достижение или превышение цели = 100, штраф только ниже нижней границы.</span></div>
       <div class="fscore-method-item"><b>Жиры + углеводы — 30%</b><span>Отдельные оценки, затем среднее. Автоматические допуски: жиры ±10 г, углеводы ±15 г; в ручном КБЖУ — ±10%.</span></div>
       <div class="fscore-method-note">Минимум для блока — 2 дня питания.</div>

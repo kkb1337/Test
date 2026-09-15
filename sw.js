@@ -1,5 +1,5 @@
-const APP_VERSION='1.8.05';
-const CACHE_NAME='ftracker-v1.8.05-methodology';
+const APP_VERSION='1.8.06';
+const CACHE_NAME='ftracker-v1.8.06-index-calibration';
 const ASSETS=[
 './?v='+APP_VERSION,
 './index.html?v='+APP_VERSION,
