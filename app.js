@@ -1,4 +1,4 @@
-/* FTracker v1.8.06 — single application runtime.
+/* FTracker v1.8.07 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -3831,6 +3831,52 @@ function buildWorkoutSetRowHtml(realIdx,type,s,i){
     return `<div class="set-row workout-set-row"><span class="set-num">${i+1}</span>${inputFields}<button type="button" class="set-done-btn ${s.done?'done':''}" onclick="markSetDone(${realIdx},${i})" title="${s.done?'Подход выполнен':'Отметить выполненным'}" aria-label="${s.done?'Подход выполнен':'Отметить выполненным'}">${s.done?'✓':'○'}</button><button type="button" class="set-delete-btn" onclick="deleteSet(${realIdx},${i})" title="Удалить подход" aria-label="Удалить подход">🗑️</button></div>`;
 }
 
+function getWorkoutExerciseDirectoryEntry(exerciseName, type='strength'){
+    const key=normalizeExerciseKey(exerciseName);
+    let entry=(data.exerciseDirectory||[]).find(e=>normalizeExerciseKey(e?.name)===key);
+    if(!entry && key) entry=ensureDirectoryEntry(exerciseName,type);
+    return entry || null;
+}
+function getWorkoutExerciseNote(exerciseName, type='strength'){
+    const entry=getWorkoutExerciseDirectoryEntry(exerciseName,type);
+    return String(entry?.note ?? '');
+}
+function openWorkoutExerciseNote(exerciseName, type='strength'){
+    const modal=document.getElementById('workoutExerciseNoteModal');
+    const input=document.getElementById('workoutExerciseNoteInput');
+    const title=document.getElementById('workoutExerciseNoteTitle');
+    if(!modal || !input) return;
+    modal.dataset.exerciseName=String(exerciseName||'');
+    modal.dataset.exerciseType=String(type||'strength');
+    if(title) title.textContent=`Заметка · ${exerciseName}`;
+    input.value=getWorkoutExerciseNote(exerciseName,type);
+    lockModalScroll();
+    modal.classList.remove('hidden');
+    requestAnimationFrame(()=>input.focus());
+}
+function closeWorkoutExerciseNote(){
+    const modal=document.getElementById('workoutExerciseNoteModal');
+    if(modal) modal.classList.add('hidden');
+}
+function saveWorkoutExerciseNote(){
+    const modal=document.getElementById('workoutExerciseNoteModal');
+    const input=document.getElementById('workoutExerciseNoteInput');
+    if(!modal || !input) return;
+    const name=String(modal.dataset.exerciseName||'').trim();
+    const type=String(modal.dataset.exerciseType||'strength');
+    if(!name) return;
+    const entry=getWorkoutExerciseDirectoryEntry(name,type);
+    if(!entry) return;
+    entry.note=String(input.value||'').trim();
+    saveData();
+    closeWorkoutExerciseNote();
+    renderExercise();
+    showToast(entry.note ? 'Заметка сохранена' : 'Заметка удалена');
+}
+window.openWorkoutExerciseNote=openWorkoutExerciseNote;
+window.closeWorkoutExerciseNote=closeWorkoutExerciseNote;
+window.saveWorkoutExerciseNote=saveWorkoutExerciseNote;
+
 function renderExerciseBase() {
     const program=data.programs[currentProgram];
     const activeEx=getActiveExercises();
@@ -3868,11 +3914,15 @@ function renderExerciseBase() {
     const typeLabel=type==='strength'?'Силовое':type==='cardio'?'Кардио':'Повторы';
     const container=document.getElementById('exerciseContainer');
 
+    const muscleGroup=String(group||inferExerciseGroup(exerciseName,type)||'Другое').trim() || 'Другое';
+    const exerciseNote=getWorkoutExerciseNote(exerciseName,type);
     container.innerHTML=`<article class="card workout-exercise-card">
-      <div class="workout-exercise-kicker"><span>${typeLabel}</span></div>
+      <div class="workout-exercise-kicker"><span>${escapeHtml(typeLabel)} · ${escapeHtml(muscleGroup)}</span></div>
       <div class="workout-exercise-titleblock">
-        <button type="button" class="workout-exercise-name-large" onclick="openTechniqueFromWorkout(${realIdx})" aria-label="Открыть информацию об упражнении">${escapeHtml(exerciseName)} <span class="workout-info-icon">ⓘ</span></button>
-        <div class="workout-muscle-line">${escapeHtml(getWorkoutMuscleFocus(exerciseName,type,group))}</div>
+        <div class="workout-exercise-title-row">
+          <button type="button" class="workout-exercise-name-large" onclick="openTechniqueFromWorkout(${realIdx})" aria-label="Открыть информацию об упражнении">${escapeHtml(exerciseName)} <span class="workout-info-icon">ⓘ</span></button>
+          <button type="button" class="workout-note-btn ${exerciseNote?'has-note':''}" data-workout-note-name="${escapeHtml(exerciseName)}" data-workout-note-type="${escapeHtml(type)}" onclick="event.stopPropagation()" title="${exerciseNote?'Изменить заметку':'Добавить заметку'}" aria-label="${exerciseNote?'Изменить заметку':'Добавить заметку'}">📝${exerciseNote?'<span class="workout-note-dot"></span>':''}</button>
+        </div>
       </div>
       <div class="workout-action-grid">
         <button type="button" class="workout-action-btn analytics" onclick="openExerciseModal(${realIdx})"><span class="action-icon">▥</span><span class="action-copy">Аналитика<br>упражнения</span><span class="action-arrow">›</span></button>
@@ -3892,6 +3942,8 @@ function renderExerciseBase() {
       </div>
     </article>`;
 
+    const noteBtn=container.querySelector('.workout-note-btn');
+    if(noteBtn) noteBtn.addEventListener('click',()=>openWorkoutExerciseNote(noteBtn.dataset.workoutNoteName||exerciseName,noteBtn.dataset.workoutNoteType||type));
     if(typeof window.__ftSyncWorkoutViewport==='function') requestAnimationFrame(window.__ftSyncWorkoutViewport);
     if(restEndTime&&restEndTime>Date.now()){const rc=document.getElementById('restTimerContainer');if(rc)rc.classList.remove('hidden');updateRestTimerDisplay();}
     resetWorkoutRecommendationAutoCollapse();
@@ -4612,7 +4664,7 @@ function ensureDirectoryEntry(name,type='strength',group=null){
     data.exerciseDirectoryHidden = (data.exerciseDirectoryHidden||[]).filter(k=>normalizeExerciseKey(k)!==key);
     const existing=data.exerciseDirectory.find(e=>normalizeExerciseKey(e.name)===key);
     if(existing) return existing;
-    const entry={name:clean,type:type||'strength',group:group||inferExerciseGroup(clean,type||'strength'), guide:{execution:'',muscles:[],steps:[],primary:[],secondary:[],mistakes:[],recommendations:[],media:[]}};
+    const entry={name:clean,type:type||'strength',group:group||inferExerciseGroup(clean,type||'strength'), note:'', guide:{execution:'',muscles:[],steps:[],primary:[],secondary:[],mistakes:[],recommendations:[],media:[]}};
     data.exerciseDirectory.push(entry); return entry;
 }
 function getDirectoryExercises() {
@@ -7971,31 +8023,7 @@ function adjustRestTime(delta){
 
   /* ---------- Concrete muscle focus under exercise name ---------- */
   window.getWorkoutMuscleFocus = function(name,type,group){
-    const n=normalizeExerciseKey(name);
-    const map=[
-      [['жимвтренажереподуглом','жимподуглом','жимлежауглом','жимгантелейподуглом'], 'Грудь · верхняя часть'],
-      [['жимлежа','жимштангилежа','жимгантелейлежа'], 'Грудь · основная часть'],
-      [['отжиманиянабрусьях','жиманиз','жимвниз'], 'Грудь · нижняя часть'],
-      [['бицепсподуглом','бицепссидяподуглом'], 'Бицепс · длинная головка'],
-      [['бицепсштангой','бицепссezгрифом','подъемштангинабицепс'], 'Бицепс · общий акцент'],
-      [['бицепсобратнымхватом'], 'Бицепс · плечeвая мышца и предплечья'],
-      [['бабочка','разводка'], 'Грудь · средняя часть и сведение'],
-      [['вертикальнаятяга','подтягивания'], 'Спина · широчайшие'],
-      [['горизонтальнаятяга','тяганаблоке','кросстяга'], 'Спина · середина спины'],
-      [['французскийжим','разгибаниеруки','трицепсвблоке'], 'Трицепс · общий акцент'],
-      [['жимгантелейсидя','жимштангисидя','арнольд'], 'Плечи · передняя и средняя дельта'],
-      [['подъемгантелейвстороны','махигантелями'], 'Плечи · средняя дельта'],
-      [['разведениегантелейвнаклоне','обратнаябабочка'], 'Плечи · задняя дельта'],
-      [['жимногами','разгибаниеног'], 'Ноги · квадрицепс'],
-      [['сгибаниеног'], 'Ноги · задняя поверхность бедра'],
-      [['подъемынаноски','икры'], 'Ноги · икроножные'],
-      [['пресс','скручивания','подъемног'], 'Пресс · мышцы корпуса']
-    ];
-    for(const [keys,label] of map) if(keys.some(k=>n.includes(k))) return label;
-    if(type==='cardio') return 'Кардио · сердечно-сосудистая нагрузка';
-    const g=String(group||inferExerciseGroup(name,type)||'').trim();
-    const fallback={'Грудь':'Грудь · общий акцент','Бицепс':'Бицепс · общий акцент','Спина':'Спина · общий акцент','Трицепс':'Трицепс · общий акцент','Плечи':'Плечи · общий акцент','Ноги':'Ноги · общий акцент','Пресс':'Пресс · мышцы корпуса'};
-    return fallback[g]||g||'Основная группа мышц';
+    return String(group || inferExerciseGroup(name,type) || 'Другое').trim() || 'Другое';
   };
 
   /* Re-apply the muscle line after the existing renderer has built the exercise card. */
@@ -8005,10 +8033,6 @@ function adjustRestTime(delta){
     try{
       const realIdx=getRealExerciseIndex();
       const meta=getWorkoutExercise(realIdx); if(!meta) return;
-      const directoryItem=(data.exerciseDirectory||[]).find(e=>normalizeExerciseKey(e.name)===normalizeExerciseKey(meta.name));
-      const group=directoryItem?.group||inferExerciseGroup(meta.name,meta.type);
-      const el=document.querySelector('#workoutScreen .workout-muscle-line');
-      if(el) el.textContent=window.getWorkoutMuscleFocus(meta.name,meta.type,group);
       updateWorkoutProgressUI();
     }catch(e){ console.warn('v45 workout render',e); }
   };

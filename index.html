@@ -302,6 +302,19 @@
 <div class="tab-content" id="tabGraph"><div class="exercise-graph-metrics" id="exerciseGraphControls"></div><div class="graph-container"><canvas id="progressGraph"></canvas></div></div>
 </div>
 </div>
+<div class="catalog-modal hidden" id="workoutExerciseNoteModal" onclick="if(event.target===this) closeWorkoutExerciseNote()">
+<div class="catalog-modal-content workout-exercise-note-modal-content">
+<div class="unified-surface-header ft-modal-header">
+<button class="surface-back-btn" onclick="closeWorkoutExerciseNote()" type="button">← Назад</button>
+<div class="surface-title" id="workoutExerciseNoteTitle">Заметка</div>
+<span aria-hidden="true" class="surface-header-spacer"></span>
+</div>
+<div class="workout-exercise-note-hint">Заметка сохраняется за упражнением и будет доступна в следующих тренировках.</div>
+<textarea id="workoutExerciseNoteInput" rows="6" placeholder="Например: держать локти ближе к корпусу; следующий раз 32,5 кг..."></textarea>
+<button type="button" onclick="saveWorkoutExerciseNote()">Сохранить</button>
+<button type="button" class="gray" onclick="closeWorkoutExerciseNote()">Отмена</button>
+</div>
+</div>
 <div class="date-modal hidden" id="dateModal" onclick="if(event.target === this) closeDateModal()">
 <div class="date-modal-content">
 <div class="unified-surface-header ft-modal-header">
