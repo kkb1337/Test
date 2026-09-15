@@ -1,4 +1,4 @@
-/* FTracker v1.8.07 — single application runtime.
+/* FTracker v1.8.08 — single application runtime.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -943,17 +943,14 @@ function deleteFScoreCustomGoal(id){
         if(next.length){data.fscoreActiveCustomGoalId=next[0].id;data.fscoreGoal='custom';}
         else {data.fscoreActiveCustomGoalId=null;data.fscoreGoal='maintain';}
     }
-    persistFScoreCustomGoals(next); renderFScoreAnalytics(); renderFScoreHomeWidget(); showToast('Цель удалена');
+    persistFScoreCustomGoals(next); closeModalElement(document.getElementById('fscoreCustomGoalModal')); window.__fscoreEditorOpen=false; window.__fscoreCustomDraft=null; renderFScoreAnalytics(); renderFScoreHomeWidget(); showToast('Цель удалена');
 }
 function addFScoreCustomGoal(){
-    // Start a genuinely new goal without rendering the editor twice.
-    // The previous implementation rendered here and then called openFScoreCustomEditor(),
-    // which rendered the whole Analytics screen again (and could recurse on an existing goal).
+    window.__fscoreEditorBaseGoal=data.fscoreGoal||'maintain';
     window.__fscoreEditorOpen=true;
     window.__fscoreCustomDraft=createFScoreCustomDraft();
     data.fscoreGoal='custom';
-    renderFScoreAnalytics();
-    requestAnimationFrame(()=>initFScoreTargetRows());
+    renderFScoreCustomGoalModal();
 }
 function fscoreCustomModeInfo(mode){
     const map={
@@ -962,24 +959,42 @@ function fscoreCustomModeInfo(mode){
       maintain:{title:'Стабильность',short:'Поддержание · контроль стабильности',text:'Стабильность тела и тренировочного режима оценивается положительно, а автоматический КБЖУ ориентируется на поддержание.'}
     }; return map[mode]||map.maintain;
 }
-function openFScoreCustomEditor(){
-    // The editor is rendered conditionally. Opening it must therefore create the
-    // editor state and re-render the section; merely removing .hidden from a
-    // non-existent node made the old button appear dead.
-    const existing=getFScoreCustomConfig();
-    if(existing){
-        window.__fscoreCustomDraft=JSON.parse(JSON.stringify(existing));
-    }else{
-        window.__fscoreCustomDraft=createFScoreCustomDraft();
-    }
-    window.__fscoreEditorOpen=true;
-    data.fscoreGoal='custom';
-    renderFScoreAnalytics();
+function ensureFScoreCustomGoalModal(){
+    let modal=document.getElementById('fscoreCustomGoalModal');
+    if(modal)return modal;
+    modal=document.createElement('div');
+    modal.id='fscoreCustomGoalModal';
+    modal.className='catalog-modal hidden';
+    modal.setAttribute('aria-hidden','true');
+    modal.innerHTML=`<div class="catalog-modal-content fscore-goal-editor-modal-content"><div class="unified-surface-header ft-modal-header"><button class="surface-back-btn" type="button" onclick="closeFScoreCustomEditor()">← Назад</button><div class="surface-title">Настройка цели</div><span aria-hidden="true" class="surface-header-spacer"></span></div><div id="fscoreCustomGoalModalBody"></div></div>`;
+    modal.addEventListener('click',e=>{if(e.target===modal)closeFScoreCustomEditor();});
+    document.body.appendChild(modal);
+    prepareModalRoot(modal);
+    return modal;
+}
+function renderFScoreCustomGoalModal(){
+    const modal=ensureFScoreCustomGoalModal();
+    const body=document.getElementById('fscoreCustomGoalModalBody');
+    if(body)body.innerHTML=renderFScoreCustomEditorMarkup();
+    openModal(modal);
     requestAnimationFrame(()=>initFScoreTargetRows());
 }
+function openFScoreCustomEditor(){
+    const existing=getFScoreCustomConfig();
+    window.__fscoreEditorBaseGoal=data.fscoreGoal||'maintain';
+    window.__fscoreCustomDraft=existing?JSON.parse(JSON.stringify(existing)):createFScoreCustomDraft();
+    window.__fscoreEditorOpen=true;
+    data.fscoreGoal='custom';
+    renderFScoreCustomGoalModal();
+}
 function closeFScoreCustomEditor(){
+    const modal=document.getElementById('fscoreCustomGoalModal');
+    const hadSaved=!!getFScoreCustomGoals().find(x=>x.id===data.fscoreActiveCustomGoalId);
     window.__fscoreEditorOpen=false;
-    document.getElementById('fscoreCustomEditor')?.classList.add('hidden');
+    window.__fscoreCustomDraft=null;
+    if(modal)closeModalElement(modal);
+    if(!hadSaved)data.fscoreGoal=window.__fscoreEditorBaseGoal||'maintain';
+    renderFScoreAnalytics();
 }
 function updateFScoreCustomModeInfo(){
     const select=document.getElementById('fscoreCustomMode');
@@ -1239,9 +1254,10 @@ function saveFScoreCustomFromUI(){
     const nutrition={auto:document.getElementById('fscoreCustomNutritionAuto')?.value!=='manual',calories:Math.max(0,Number(document.getElementById('fscoreCustomCalories')?.value)||0),protein:Math.max(0,Number(document.getElementById('fscoreCustomProtein')?.value)||0),fat:Math.max(0,Number(document.getElementById('fscoreCustomFat')?.value)||0),carbs:Math.max(0,Number(document.getElementById('fscoreCustomCarbs')?.value)||0),toleranceCalories:Math.max(0,Number(document.getElementById('fscoreCustomCalTol')?.value)||0),toleranceProtein:Math.max(0,Number(document.getElementById('fscoreCustomProteinTol')?.value)||0),toleranceFat:Math.max(0,Number(document.getElementById('fscoreCustomFatTol')?.value)||0),toleranceCarbs:Math.max(0,Number(document.getElementById('fscoreCustomCarbsTol')?.value)||0)};
     if(!nutrition.auto && !(nutrition.calories||nutrition.protein||nutrition.fat||nutrition.carbs)){showToast('Для ручного режима задайте хотя бы одну цель КБЖУ');return;}
     if(body+training+nutritionWeight<=0){showToast('Укажите вес хотя бы для одного блока');return;}
-    // Saving data must not implicitly expand any settings section.
-    window.__fscoreEditorOpen=false;
     saveFScoreCustomConfig({id:current?.id,name,mode,evaluationDays,targets,training:{target:trainingTarget,period:trainingPeriod,weights:trainingWeights},nutrition,blockWeights:{body,training,nutrition:nutritionWeight}},current?.__draft?null:current?.id);
+    window.__fscoreEditorOpen=false;
+    window.__fscoreCustomDraft=null;
+    closeModalElement(document.getElementById('fscoreCustomGoalModal'));
     showToast('Своя цель сохранена');
 }
 function fScoreCustomBody(cfg){
@@ -1609,11 +1625,11 @@ function renderFScoreCustomEditorMarkup(){
       <div class="fscore-editor-hero"><div class="fscore-editor-icon">🎯</div><div><strong>Своя цель</strong><span>Соберите индекс под свой сценарий</span></div></div>
       <div class="fscore-custom-grid"><label><span>Название цели</span><input id="fscoreCustomName" value="${escapeHtml(c.name||'')}" maxlength="40" placeholder="Например: Рекомпозиция"></label><label><span>Основная стратегия</span><select id="fscoreCustomMode" onchange="updateFScoreCustomModeInfo()"><option value="gain" ${c.mode==='gain'?'selected':''}>💪 Набор</option><option value="cut" ${c.mode==='cut'?'selected':''}>🔥 Снижение</option><option value="maintain" ${c.mode==='maintain'?'selected':''}>⚖️ Стабильность</option></select></label></div>
       <div id="fscoreCustomModeInfo" class="fscore-mode-info"></div>
+      <section class="fscore-custom-section fscore-factor-weight-section"><div class="fscore-factor-weight-heading"><div><b>⚖️ Вес факторов</b><small>Как распределяется влияние разделов на итоговый Индекс</small></div><strong id="fscoreCustomWeightTotal">${(Number(c.blockWeights?.body)||40)+(Number(c.blockWeights?.training)||30)+(Number(c.blockWeights?.nutrition)||30)}%</strong></div><div class="fscore-custom-weights"><label>Тело<input id="fscoreCustomBodyWeight" type="number" min="0" max="100" value="${c.blockWeights?.body??40}" oninput="rebalanceFScoreWeights('body')"></label><label>Тренировки<input id="fscoreCustomTrainingWeight" type="number" min="0" max="100" value="${c.blockWeights?.training??30}" oninput="rebalanceFScoreWeights('training')"></label><label>Питание<input id="fscoreCustomNutritionWeight" type="number" min="0" max="100" value="${c.blockWeights?.nutrition??30}" oninput="rebalanceFScoreWeights('nutrition')"></label></div></section>
       <div class="fscore-evaluation-field"><div class="fscore-field-heading"><b>Период оценки</b><small>За этот период индекс анализирует изменения</small></div><div class="fscore-period-presets"><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===30?'active':''}" data-days="30" onclick="setFScorePeriodPreset(30)">30</button><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===60?'active':''}" data-days="60" onclick="setFScorePeriodPreset(60)">60</button><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===90?'active':''}" data-days="90" onclick="setFScorePeriodPreset(90)">90</button><button type="button" class="fscore-period-preset ${Number(c.evaluationDays)===180?'active':''}" data-days="180" onclick="setFScorePeriodPreset(180)">180</button><button type="button" class="fscore-period-custom-btn" onclick="setFScoreCustomPeriodMode('custom')">Свой</button></div><input id="fscoreCustomPeriodMode" type="hidden" value="preset"><div id="fscoreCustomPeriodInputWrap" class="hidden"><input id="fscoreCustomEvaluationDays" type="number" min="7" max="365" value="${c.evaluationDays}" oninput="updateFScoreEvaluationDaysFromUI()"><small>дней</small></div></div>
       <details class="fscore-custom-section fscore-targets-section" aria-label="Параметры тела"><summary><span>📏 Параметры тела</span></summary><div class="fscore-target-intro"><div class="fscore-target-count" id="fscoreTargetCount">Учитываются: ${activeTargetCount} из ${fields.length}</div><div class="fscore-target-explanation"><b>Как работает цель</b><span>Рост и снижение — фиксированная цель. Стабильно — целевое значение с допустимым коридором.</span></div><div class="fscore-target-legend"><span class="gain"><b>↑ Рост</b><small>фиксированное значение</small></span><span class="cut"><b>↓ Снижение</b><small>фиксированное значение</small></span><span class="maintain"><b>→ Стабильно</b><small>допустимый коридор</small></span></div></div><div id="fscoreCustomTargets" class="fscore-custom-targets">${rows}</div><button type="button" class="fscore-inactive-toggle" aria-expanded="true" onclick="toggleFScoreInactiveTargets(this)">Скрыть неактивные параметры${inactiveTargetCount?` · ${inactiveTargetCount}`:''}</button></details>
       <details class="fscore-custom-section"><summary>🏋️ Тренировки</summary><div class="fscore-custom-training"><label>Тренировок<input id="fscoreCustomTrainingTarget" type="number" min="1" max="100" value="${c.training?.target||15}"></label><label>Период системности, дней<input id="fscoreCustomTrainingPeriod" type="number" min="7" max="365" value="${c.training?.period||30}"></label></div><div class="fscore-training-weight-editor"><div class="fscore-training-weight-head"><span>Вес показателей тренировки</span><b id="fscoreCustomTrainingWeightTotal">${Object.values(c.training?.weights||{systemity:50,working:25,e1rm:10,volume:15}).reduce((a,b)=>a+(Number(b)||0),0)}%</b></div><div class="fscore-training-weight-grid"><label>Системность<input id="fscoreCustomTrainingSystemityWeight" type="number" min="0" max="100" value="${c.training?.weights?.systemity??50}" oninput="rebalanceFScoreTrainingWeights('systemity')"></label><label>Рабочие веса<input id="fscoreCustomTrainingWorkingWeight" type="number" min="0" max="100" value="${c.training?.weights?.working??25}" oninput="rebalanceFScoreTrainingWeights('working')"></label><label>Расчётный 1ПМ<input id="fscoreCustomTrainingE1RMWeight" type="number" min="0" max="100" value="${c.training?.weights?.e1rm??10}" oninput="rebalanceFScoreTrainingWeights('e1rm')"></label><label>Объём<input id="fscoreCustomTrainingVolumeWeight" type="number" min="0" max="100" value="${c.training?.weights?.volume??15}" oninput="rebalanceFScoreTrainingWeights('volume')"></label></div><small>Сумма всегда автоматически приводится к 100%. Изменение весов сразу пересчитывает общий Индекс.</small></div></details>
       <details class="fscore-custom-section"><summary>🍽️ Питание</summary><select id="fscoreCustomNutritionAuto" onchange="toggleFScoreNutritionMode()"><option value="auto" ${c.nutrition?.auto!==false?'selected':''}>Автоматически</option><option value="manual" ${c.nutrition?.auto===false?'selected':''}>Вручную</option></select><div class="fscore-manual-nutrition ${c.nutrition?.auto===false?'':'hidden'}"><div class="fscore-nutrition-default-note">При ручном КБЖУ допустимое отклонение для каждого заданного показателя — ±10% от цели. Внутри коридора показатель считается выполненным.</div><div class="fscore-custom-kbju"><label>Ккал<input id="fscoreCustomCalories" type="number" value="${c.nutrition?.calories||getGoalNutritionProfile(c.mode||'maintain').calories}"></label><label>Белок<input id="fscoreCustomProtein" type="number" value="${c.nutrition?.protein||getGoalNutritionProfile(c.mode||'maintain').protein}"></label><label>Жиры<input id="fscoreCustomFat" type="number" value="${c.nutrition?.fat||getGoalNutritionProfile(c.mode||'maintain').fat}"></label><label>Углеводы<input id="fscoreCustomCarbs" type="number" value="${c.nutrition?.carbs||getGoalNutritionProfile(c.mode||'maintain').carbs}"></label></div></div></details>
-      <details class="fscore-custom-section"><summary>⚖️ Вес факторов</summary><div class="fscore-weight-editor-head"><span>Общий вес всегда равен 100%</span><b id="fscoreCustomWeightTotal">${(Number(c.blockWeights?.body)||40)+(Number(c.blockWeights?.training)||30)+(Number(c.blockWeights?.nutrition)||30)}%</b></div><div class="fscore-custom-weights"><label>Тело<input id="fscoreCustomBodyWeight" type="number" min="0" max="100" value="${c.blockWeights?.body??40}" oninput="rebalanceFScoreWeights('body')"></label><label>Тренировки<input id="fscoreCustomTrainingWeight" type="number" min="0" max="100" value="${c.blockWeights?.training??30}" oninput="rebalanceFScoreWeights('training')"></label><label>Питание<input id="fscoreCustomNutritionWeight" type="number" min="0" max="100" value="${c.blockWeights?.nutrition??30}" oninput="rebalanceFScoreWeights('nutrition')"></label></div></details>
       <button type="button" class="fscore-custom-save" onclick="saveFScoreCustomFromUI()">Сохранить цель</button>${c.id?`<button type="button" class="fscore-custom-delete-goal" onclick="deleteFScoreCustomGoal('${escapeHtml(c.id)}')">Удалить цель</button>`:''}
     </div>`;
 }
@@ -1962,7 +1978,7 @@ function renderFScoreAnalytics(){
         <div class="fscore-panel-title"><span>🎯</span><div><b>Цель</b><small>Выберите режим расчёта</small></div></div>
         <div class="fscore-goal-tabs">${goalButtons}</div>${customGoalsHtml}
         ${definition?`<details class="fscore-goal-details" open><summary><span>${definition.icon} Как формируется «${definition.name}»</span><b>⌃</b></summary><div class="fscore-goal-lead">${escapeHtml(definition.lead)}</div>${definitionHtml}<div class="fscore-weight-strip"><span>Вес блоков</span><b>${weights.body}%</b><b>${weights.training}%</b><b>${weights.nutrition}%</b></div></details>`:''}
-        ${x.goal==='custom'?(window.__fscoreEditorOpen||window.__fscoreCustomDraft?renderFScoreCustomEditorMarkup():`<div class="fscore-custom-actions"><button type="button" class="fscore-secondary-btn" onclick="openFScoreCustomEditor()">⚙️ Настроить цель</button><button type="button" class="fscore-primary-btn" onclick="addFScoreCustomGoal()">＋ Добавить цель</button></div>`):`<button type="button" class="fscore-primary-btn" onclick="addFScoreCustomGoal()">＋ Создать свою цель</button>`}
+        ${x.goal==='custom'?`<div class="fscore-custom-actions"><button type="button" class="fscore-secondary-btn" onclick="openFScoreCustomEditor()">⚙️ Настроить цель</button><button type="button" class="fscore-primary-btn" onclick="addFScoreCustomGoal()">＋ Добавить цель</button></div>`:`<button type="button" class="fscore-primary-btn" onclick="addFScoreCustomGoal()">＋ Создать свою цель</button>`}
       </section>
 
       <section class="fscore-panel fscore-score-panel ${x.statusLevel}">
