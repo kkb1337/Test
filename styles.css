@@ -13803,3 +13803,91 @@ html,body{
   #fscoreCustomGoalModal .fscore-custom-training,
   #fscoreCustomGoalModal .fscore-custom-kbju{grid-template-columns:1fr!important;}
 }
+
+/* ============================================================
+   FTracker v1.8.14 — goal editor scroll + strategy + index status
+   Root fix: the goal editor has one scroll owner (its body), while
+   the header stays fixed in the window shell.
+   ============================================================ */
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor > .fscore-goal-editor-modal-content{
+  height:100%!important;
+  min-height:100%!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+#fscoreCustomGoalModal .fscore-goal-editor-modal-content > .unified-surface-header{
+  flex:0 0 var(--ft-ui-header-h)!important;
+  position:relative!important;
+  top:auto!important;
+  z-index:20!important;
+  margin:0!important;
+}
+#fscoreCustomGoalModal #fscoreCustomGoalModalBody{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:contain!important;
+  padding:0 0 24px!important;
+}
+/* Do not let legacy catalog-modal overflow rules steal the scroll owner. */
+#fscoreCustomGoalModal.ft-window-root.ft-window-workspace > .fscore-goal-editor-modal-content{
+  overflow:hidden!important;
+}
+
+/* Strategy: the selected option already names the strategy, so this is
+   explanation only — no duplicate title/subtitle pair. */
+#fscoreCustomGoalModal .fscore-mode-info{
+  display:block!important;
+  margin:0!important;
+  padding:8px 11px!important;
+  border:1px solid rgba(150,150,180,.22)!important;
+  border-radius:10px!important;
+  background:rgba(150,150,180,.045)!important;
+  text-align:left!important;
+}
+#fscoreCustomGoalModal .fscore-mode-info span{
+  display:block!important;
+  margin:0!important;
+  color:var(--subtext)!important;
+  font-size:11px!important;
+  line-height:1.3!important;
+  font-weight:650!important;
+}
+#fscoreCustomGoalModal .fscore-mode-info b,
+#fscoreCustomGoalModal .fscore-mode-info small{display:none!important;}
+
+/* 62 is an attention state: the detail score must communicate the same
+   state as the yellow home card instead of showing a green progress bar. */
+#fscoreAnalyticsScreen .fscore-score-panel.attention .fscore-score-bar i{
+  background:#f2c94c!important;
+  box-shadow:0 0 10px rgba(242,201,76,.18)!important;
+}
+#fscoreAnalyticsScreen .fscore-score-panel.bad .fscore-score-bar i{
+  background:var(--negative,#ff3b30)!important;
+  box-shadow:0 0 10px rgba(255,59,48,.14)!important;
+}
+#fscoreAnalyticsScreen .fscore-score-panel.good .fscore-score-bar i{
+  background:var(--positive,#34c759)!important;
+  box-shadow:0 0 10px rgba(52,199,89,.14)!important;
+}
+/* Keep the detail score card visually consistent with the home index state. */
+#fscoreAnalyticsScreen .fscore-score-panel.attention{
+  background:linear-gradient(145deg,rgba(242,201,76,.075),var(--ft-surface))!important;
+}
+#fscoreAnalyticsScreen .fscore-score-panel.attention .fscore-score-top em{
+  background:rgba(242,201,76,.12)!important;
+  color:#f2c94c!important;
+}
+#fscoreAnalyticsScreen .fscore-score-panel.bad{
+  background:linear-gradient(145deg,rgba(255,59,48,.065),var(--ft-surface))!important;
+}
+#fscoreAnalyticsScreen .fscore-score-panel.bad .fscore-score-top em{
+  background:rgba(255,59,48,.11)!important;
+  color:var(--negative,#ff3b30)!important;
+}

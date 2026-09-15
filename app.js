@@ -959,9 +959,9 @@ function addFScoreCustomGoal(){
 }
 function fscoreCustomModeInfo(mode){
     const map={
-      gain:{title:'Рост / набор',short:'Профицит · приоритет прогресса тренировок',text:'Рост рабочих показателей оценивается положительно, а автоматический КБЖУ ориентируется на профицит.'},
-      cut:{title:'Снижение',short:'Дефицит · сохранение тренировочных показателей',text:'Снижение веса оценивается вместе с сохранением тренировочной работоспособности, а автоматический КБЖУ ориентируется на дефицит.'},
-      maintain:{title:'Стабильность',short:'Поддержание · контроль стабильности',text:'Стабильность тела и тренировочного режима оценивается положительно, а автоматический КБЖУ ориентируется на поддержание.'}
+      gain:{text:'Профицит. Приоритет — рост веса и мышечных показателей при сохранении прогресса тренировок.'},
+      cut:{text:'Дефицит. Приоритет — снижение веса с сохранением тренировочной работоспособности.'},
+      maintain:{text:'Поддержание. Приоритет — удержание целевых значений тела и стабильного режима.'}
     }; return map[mode]||map.maintain;
 }
 function ensureFScoreCustomGoalModal(){
@@ -1006,7 +1006,7 @@ function updateFScoreCustomModeInfo(){
     const mode=select?.value||'maintain';
     const info=fscoreCustomModeInfo(mode);
     const el=document.getElementById('fscoreCustomModeInfo');
-    if(el) el.innerHTML=`<b>${escapeHtml(info.title)}</b><span>${escapeHtml(info.short)}</span><small>${escapeHtml(info.text)}</small>`;
+    if(el) el.innerHTML=`<span>${escapeHtml(info.text)}</span>`;
     // Keep the draft strategy synchronized immediately, not only after Save.
     if(window.__fscoreCustomDraft) window.__fscoreCustomDraft.mode=mode;
     document.querySelectorAll('#fscoreCustomTargets .fscore-target-card').forEach(row=>{
