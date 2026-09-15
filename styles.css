@@ -13441,3 +13441,138 @@ html,body{
   #fscoreCustomGoalModal .fscore-target-corridor-editor{grid-template-columns:1fr!important;}
   #fscoreCustomGoalModal .fscore-target-corridor{grid-column:auto!important;}
 }
+
+/* ============================================================
+   FTracker v1.8.11 — Dynamic Index goal editor window contract
+   This is a dedicated full-screen window, not a generic workspace.
+   Safe area is owned once by the root pseudo-element; the header is a
+   non-scrolling sibling and the editor body is the only vertical scroller.
+   ============================================================ */
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  min-height:100dvh!important;margin:0!important;padding:0!important;
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;
+  box-sizing:border-box!important;background:var(--bg)!important;overflow:hidden!important;
+  z-index:60000!important;isolation:isolate!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor::before{
+  content:""!important;display:block!important;flex:0 0 env(safe-area-inset-top,0px)!important;
+  width:100%!important;height:env(safe-area-inset-top,0px)!important;min-height:env(safe-area-inset-top,0px)!important;
+  margin:0!important;padding:0!important;box-sizing:border-box!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor>.fscore-goal-editor-modal-content{
+  position:relative!important;display:flex!important;flex:1 1 0!important;flex-direction:column!important;
+  width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0 12px!important;box-sizing:border-box!important;
+  border:0!important;border-radius:0!important;background:var(--bg)!important;overflow:hidden!important;
+}
+#fscoreCustomGoalModal.ft-window-root.ft-window-goal-editor>.fscore-goal-editor-modal-content>.unified-surface-header.ft-modal-header{
+  position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;inset:auto!important;
+  flex:0 0 56px!important;width:100%!important;height:56px!important;min-height:56px!important;max-height:56px!important;
+  margin:0!important;padding:0!important;box-sizing:border-box!important;
+  display:grid!important;grid-template-columns:76px minmax(0,1fr) 76px!important;grid-template-rows:56px!important;
+  align-items:center!important;gap:8px!important;z-index:20!important;transform:none!important;
+  background:var(--bg)!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;
+}
+#fscoreCustomGoalModal .unified-surface-header.ft-modal-header>.surface-back-btn{
+  grid-column:1!important;grid-row:1!important;justify-self:start!important;align-self:center!important;
+  position:static!important;inset:auto!important;transform:none!important;width:76px!important;min-width:76px!important;max-width:76px!important;
+  height:44px!important;min-height:44px!important;max-height:44px!important;margin:0!important;padding:0 8px!important;
+  box-sizing:border-box!important;border-radius:14px!important;white-space:nowrap!important;
+}
+#fscoreCustomGoalModal .unified-surface-header.ft-modal-header>.surface-title{
+  grid-column:2!important;grid-row:1!important;justify-self:stretch!important;align-self:center!important;
+  width:100%!important;min-width:0!important;height:auto!important;margin:0!important;padding:0 6px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;
+  font-size:22px!important;line-height:1.1!important;font-weight:850!important;text-align:center!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  background:none!important;-webkit-text-fill-color:var(--text)!important;color:var(--text)!important;
+}
+#fscoreCustomGoalModal .unified-surface-header.ft-modal-header>.surface-header-spacer{
+  grid-column:3!important;grid-row:1!important;width:76px!important;min-width:76px!important;max-width:76px!important;
+  height:44px!important;visibility:hidden!important;pointer-events:none!important;
+}
+#fscoreCustomGoalModal #fscoreCustomGoalModalBody{
+  flex:1 1 0!important;min-height:0!important;width:100%!important;max-width:760px!important;margin:0 auto!important;
+  padding:0 0 max(18px,env(safe-area-inset-bottom,0px))!important;box-sizing:border-box!important;
+  overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-y:contain!important;touch-action:pan-y!important;
+}
+#fscoreCustomGoalModal #fscoreCustomEditor{
+  display:flex!important;flex-direction:column!important;gap:10px!important;margin:0!important;padding:0 0 18px!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+}
+#fscoreCustomGoalModal .fscore-custom-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:0!important;}
+#fscoreCustomGoalModal .fscore-custom-grid label{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;font-size:13px!important;line-height:1.2!important;font-weight:800!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-custom-grid input,#fscoreCustomGoalModal .fscore-custom-grid select{
+  width:100%!important;min-height:44px!important;margin:0!important;padding:9px 12px!important;box-sizing:border-box!important;
+  border-radius:12px!important;font-size:16px!important;line-height:1.2!important;font-weight:700!important;
+}
+/* No explanatory strategy card: the strategy select is self-explanatory. */
+#fscoreCustomGoalModal .fscore-mode-info{display:none!important;}
+/* Period and top-level factor weights use the same card grammar. */
+#fscoreCustomGoalModal .fscore-evaluation-field,#fscoreCustomGoalModal .fscore-factor-weight-section{
+  margin:0!important;padding:13px!important;border:1px solid var(--border)!important;border-radius:16px!important;
+  background:var(--card-bg)!important;box-sizing:border-box!important;
+}
+#fscoreCustomGoalModal .fscore-field-heading{margin:0 0 10px!important;}
+#fscoreCustomGoalModal .fscore-field-heading b{display:block!important;font-size:17px!important;line-height:1.2!important;font-weight:850!important;}
+#fscoreCustomGoalModal .fscore-period-presets{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr)) auto!important;gap:7px!important;margin:0!important;}
+#fscoreCustomGoalModal .fscore-period-presets button{min-height:42px!important;padding:6px!important;border-radius:11px!important;font-size:13px!important;font-weight:850!important;}
+#fscoreCustomGoalModal .fscore-period-custom-btn{min-width:54px!important;}
+#fscoreCustomGoalModal #fscoreCustomPeriodInputWrap{display:flex!important;align-items:center!important;gap:7px!important;margin-top:8px!important;}
+#fscoreCustomGoalModal #fscoreCustomPeriodInputWrap input{min-height:42px!important;}
+#fscoreCustomGoalModal #fscoreCustomPeriodInputWrap small{font-size:12px!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-section{padding:13px!important;background:var(--card-bg)!important;border-color:var(--border)!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0 0 10px!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-heading>b{font-size:17px!important;line-height:1.2!important;font-weight:850!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-heading>strong{flex:none!important;padding:5px 9px!important;border-radius:9px!important;background:var(--input-bg)!important;font-size:13px!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-heading small,#fscoreCustomGoalModal .fscore-factor-weight-note{display:none!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;margin:0!important;padding:0!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights label{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;color:var(--subtext)!important;font-size:12px!important;font-weight:800!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights label span{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights input{width:100%!important;min-height:42px!important;margin:0!important;box-sizing:border-box!important;font-size:16px!important;font-weight:800!important;}
+#fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights em{display:none!important;}
+/* All concrete sections share the same left-aligned header. */
+#fscoreCustomGoalModal .fscore-custom-section{width:100%!important;margin:0!important;box-sizing:border-box!important;border:1px solid var(--border)!important;border-radius:16px!important;background:var(--card-bg)!important;overflow:hidden!important;}
+#fscoreCustomGoalModal .fscore-custom-section>summary{display:flex!important;align-items:center!important;justify-content:flex-start!important;text-align:left!important;width:100%!important;min-height:50px!important;margin:0!important;padding:0 14px!important;box-sizing:border-box!important;font-size:17px!important;line-height:1.2!important;font-weight:850!important;}
+#fscoreCustomGoalModal .fscore-target-intro{margin:0!important;padding:9px 14px 7px!important;border-top:1px solid var(--border)!important;border-bottom:0!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-target-count{font-size:12px!important;line-height:1.3!important;font-weight:800!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-target-explanation{display:none!important;}
+#fscoreCustomGoalModal .fscore-custom-targets{display:flex!important;flex-direction:column!important;gap:7px!important;padding:7px 12px!important;}
+#fscoreCustomGoalModal .fscore-target-card{margin:0!important;padding:10px!important;border:1px solid var(--border)!important;border-radius:13px!important;background:var(--input-bg)!important;box-sizing:border-box!important;}
+#fscoreCustomGoalModal .fscore-target-main{display:grid!important;grid-template-columns:24px minmax(0,1fr) minmax(122px,auto)!important;align-items:center!important;gap:8px!important;}
+#fscoreCustomGoalModal .fscore-target-title{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-target-title b{font-size:15px!important;line-height:1.15!important;}
+#fscoreCustomGoalModal .fscore-target-title small{font-size:11px!important;line-height:1.2!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-target-direction-inline select{width:100%!important;min-height:38px!important;padding:0 8px!important;border-radius:10px!important;font-size:11px!important;font-weight:800!important;box-sizing:border-box!important;}
+#fscoreCustomGoalModal .fscore-target-settings{margin:8px 0 0 32px!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-target-goal-wrap>span,#fscoreCustomGoalModal .fscore-target-corridor-editor label>span{display:block!important;margin-bottom:4px!important;font-size:11px!important;line-height:1.2!important;font-weight:800!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-target-goal-wrap input,#fscoreCustomGoalModal .fscore-target-corridor-editor input{width:100%!important;min-height:40px!important;box-sizing:border-box!important;border-radius:10px!important;font-size:15px!important;font-weight:800!important;}
+#fscoreCustomGoalModal .fscore-target-corridor-editor{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;align-items:end!important;}
+#fscoreCustomGoalModal .fscore-target-corridor-editor.hidden,#fscoreCustomGoalModal .fscore-target-goal-wrap.hidden{display:none!important;}
+#fscoreCustomGoalModal .fscore-target-corridor{grid-column:1/-1!important;margin-top:0!important;padding:7px 9px!important;border-radius:9px!important;font-size:11px!important;line-height:1.25!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-inactive-toggle{width:calc(100% - 24px)!important;min-height:38px!important;margin:0 12px 10px!important;font-size:11px!important;}
+#fscoreCustomGoalModal .fscore-custom-training,#fscoreCustomGoalModal .fscore-custom-kbju{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important;padding:11px 12px!important;box-sizing:border-box!important;text-align:left!important;}
+#fscoreCustomGoalModal .fscore-custom-training label,#fscoreCustomGoalModal .fscore-custom-kbju label{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;font-size:12px!important;line-height:1.2!important;font-weight:800!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-custom-training input,#fscoreCustomGoalModal .fscore-custom-kbju input{min-height:42px!important;font-size:16px!important;}
+#fscoreCustomGoalModal .fscore-training-weight-editor{margin:0 12px 10px!important;padding:10px!important;border:1px solid var(--border)!important;border-radius:12px!important;background:rgba(255,255,255,.02)!important;box-sizing:border-box!important;}
+#fscoreCustomGoalModal .fscore-training-weight-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;margin:0 0 8px!important;font-size:11px!important;}
+#fscoreCustomGoalModal .fscore-training-weight-head b{font-size:12px!important;}
+#fscoreCustomGoalModal .fscore-training-weight-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;}
+#fscoreCustomGoalModal .fscore-training-weight-grid label{display:flex!important;flex-direction:column!important;gap:4px!important;min-width:0!important;font-size:10px!important;font-weight:800!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-training-weight-grid input{width:100%!important;min-height:39px!important;font-size:13px!important;}
+#fscoreCustomGoalModal .fscore-nutrition-default-note{margin:0 12px 7px!important;font-size:11px!important;line-height:1.3!important;color:var(--subtext)!important;}
+#fscoreCustomGoalModal .fscore-custom-save,#fscoreCustomGoalModal .fscore-custom-delete-goal{width:100%!important;min-height:46px!important;margin:0!important;box-sizing:border-box!important;border-radius:13px!important;font-size:15px!important;font-weight:850!important;}
+#fscoreCustomGoalModal .fscore-custom-delete-goal{background:transparent!important;border:1px solid var(--border)!important;color:var(--text)!important;}
+@media(max-width:430px){
+  #fscoreCustomGoalModal .fscore-custom-grid{grid-template-columns:1fr!important;}
+  #fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  #fscoreCustomGoalModal .fscore-target-main{grid-template-columns:24px minmax(0,1fr)!important;}
+  #fscoreCustomGoalModal .fscore-target-direction-inline{grid-column:2!important;}
+  #fscoreCustomGoalModal .fscore-target-settings{margin-left:32px!important;}
+}
+@media(max-width:360px){
+  #fscoreCustomGoalModal .fscore-factor-weight-section .fscore-custom-weights{grid-template-columns:1fr!important;}
+  #fscoreCustomGoalModal .fscore-target-corridor-editor{grid-template-columns:1fr!important;}
+}
