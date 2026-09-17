@@ -1,4 +1,4 @@
-# FTracker v1.8.24 — Workout & Dynamic Index logic audit fixes
+# FTracker v1.8.25 — Workout & Dynamic Index logic audit fixes
 
 ## Logic fixes
 - Cardio completion now uses one validation rule everywhere: time + intensity.

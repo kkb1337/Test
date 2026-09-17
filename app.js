@@ -1760,10 +1760,25 @@ function fScoreData(){
     if(nutrition.available) confidenceParts.push(Math.min(100,Math.round((nutrition.coverage||0)*100*0.55+45)));
     const confidence=confidenceParts.length?Math.round(confidenceParts.reduce((a,b)=>a+b,0)/confidenceParts.length):0;
     const phase=confidence<55||measureCount<2?'calibration':(confidence>=80&&measureCount>=4&&days>=60?'full':'preliminary');
-    const confidenceLabel=confidence>=85?'Высокая':confidence>=65?'Хорошая':confidence>=45?'Средняя':'Низкая';
+    const confidenceLabel=confidence>=70?'данных достаточно':confidence>=45?'данных частично достаточно':'данных недостаточно';
+    const confidenceMissing=[];
+    if(measureCount<2){
+        confidenceMissing.push(`Нужно ещё ${Math.max(1,2-measureCount)} ${Math.max(1,2-measureCount)===1?'замер':'замера'} тела — сейчас ${measureCount}.`);
+    } else if(bodyDataCount<4){
+        confidenceMissing.push(`Больше замеров тела за выбранный период — сейчас заполнено параметров: ${bodyDataCount}.`);
+    }
+    if(recent.length<6 || !training.performance?.available){
+        const detail=recent.length<6?`тренировок за последние ${consistencyDays} дней: ${recent.length}`:'не хватает устойчивой истории рабочих результатов';
+        confidenceMissing.push(`Больше данных по тренировкам (${detail}).`);
+    }
+    if(!nutrition.available){
+        confidenceMissing.push(nutrition.days<2?`Записей питания: ${nutrition.days}. Нужно минимум 2 дня.`:`Больше дней с заполненным питанием за выбранный период — сейчас ${nutrition.days} из ${evaluationDays}.`);
+    } else if((nutrition.coverage||0)<0.5){
+        confidenceMissing.push(`Больше дней с заполненным питанием — сейчас ${nutrition.days} из ${evaluationDays}.`);
+    }
     const statusLevel=!available.length?'attention':score>=80?'good':score>=55?'attention':'bad';
     const status=!available.length?'Пока нет данных':(phase==='calibration'?'Собираем данные':statusLevel==='good'?'Динамика в норме':statusLevel==='attention'?'Есть что улучшить':'Динамика требует внимания');
-    return {score,status,statusLevel,goal,history:h,measures:data.measurements||[],recent,prev,body,training,nutrition,blocks,availableCount:available.length,phase,confidence,confidenceLabel,evaluationDays,consistencyDays,measureCount,bodyDataCount,bodySelectedCount,bodySelectedWithData,weights,totalWeight};
+    return {score,status,statusLevel,goal,history:h,measures:data.measurements||[],recent,prev,body,training,nutrition,blocks,availableCount:available.length,phase,confidence,confidenceLabel,confidenceMissing,evaluationDays,consistencyDays,measureCount,bodyDataCount,bodySelectedCount,bodySelectedWithData,weights,totalWeight};
 }
 function fScoreTrackScoreChange(x){
     const custom=x.goal==='custom'?getFScoreCustomConfig():null;
@@ -2027,9 +2042,10 @@ function renderFScoreAnalytics(){
         <div class="fscore-score-bar"><i style="width:${x.availableCount?x.score:0}%"></i></div>
       </section>
 
-      <section class="fscore-confidence-card" aria-label="Доверие к данным">
-        <div><b>Доверие к данным</b><small>Не входит в Индекс</small></div>
-        <strong>${x.confidence}%</strong><span>${x.confidenceLabel}</span>
+      <section class="fscore-confidence-card" aria-label="Качество данных">
+        <div class="fscore-confidence-head"><b>Качество данных</b><div><strong>${x.confidence}%</strong><span>${x.confidenceLabel}</span></div></div>
+        ${x.confidenceMissing.length?`<div class="fscore-confidence-missing"><b>Чего не хватает:</b><ol>${x.confidenceMissing.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ol></div>`:`<div class="fscore-confidence-complete">Всё необходимое для расчёта заполнено.</div>`}
+        <small class="fscore-confidence-note">Этот показатель описывает полноту данных и <b>не влияет на значение Индекса динамики.</b></small>
       </section>
 
       <section class="fscore-panel fscore-composition-panel">

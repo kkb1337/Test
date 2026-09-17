@@ -13812,21 +13812,24 @@ html,body{
 
 /* v1.8.23 — Dynamic Index / workout-result consistency */
 .fscore-confidence-card{
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr) auto auto!important;
-  align-items:center!important;
-  gap:9px!important;
+  display:block!important;
   margin:8px 0 12px!important;
-  padding:11px 14px!important;
+  padding:13px 14px!important;
   border:1px solid rgba(255,255,255,.09)!important;
   border-radius:16px!important;
   background:rgba(255,255,255,.028)!important;
 }
-.fscore-confidence-card>div{min-width:0!important;display:flex!important;flex-direction:column!important;gap:2px!important}
-.fscore-confidence-card b{font-size:13px!important}
-.fscore-confidence-card small{font-size:10px!important;color:var(--subtext)!important}
-.fscore-confidence-card strong{font-size:20px!important;line-height:1!important}
-.fscore-confidence-card>span{font-size:10px!important;font-weight:800!important;color:var(--subtext)!important;white-space:nowrap!important}
+.fscore-confidence-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+.fscore-confidence-head>b{font-size:14px!important;line-height:1.2!important}
+.fscore-confidence-head>div{display:flex!important;align-items:baseline!important;gap:7px!important;flex-shrink:0!important}
+.fscore-confidence-head strong{font-size:20px!important;line-height:1!important}
+.fscore-confidence-head span{font-size:11px!important;font-weight:800!important;color:var(--subtext)!important;white-space:nowrap!important}
+.fscore-confidence-missing{margin-top:10px!important;padding-top:9px!important;border-top:1px solid rgba(255,255,255,.07)!important}
+.fscore-confidence-missing>b{font-size:11px!important;font-weight:800!important}
+.fscore-confidence-missing ol{margin:6px 0 0 18px!important;padding:0!important}
+.fscore-confidence-missing li{padding:2px 0!important;font-size:11px!important;line-height:1.35!important;color:var(--subtext)!important}
+.fscore-confidence-complete{margin-top:10px!important;padding-top:9px!important;border-top:1px solid rgba(255,255,255,.07)!important;font-size:11px!important;line-height:1.35!important;color:var(--subtext)!important}
+.fscore-confidence-note{display:block!important;margin-top:9px!important;font-size:10px!important;line-height:1.35!important;color:var(--subtext)!important}
 .fscore-block.is-empty .fscore-block-weight{opacity:.62!important}
 .workout-extra-set-label{
   margin:10px 0 6px!important;
