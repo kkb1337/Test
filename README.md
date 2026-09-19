@@ -1,77 +1,10 @@
-# FTracker v1.8.25 — Workout & Dynamic Index logic audit fixes
+# FTracker v1.8.32 — Dynamic Index Audit Corrections
 
-## Logic fixes
-- Cardio completion now uses one validation rule everywhere: time + intensity.
-- Dynamic Index working-weight factor (25%) is now actually included in the training score.
-- Working-weight trend uses the canonical working-result rule (same weight, at least 3 sets, at least 6 reps), not the maximum single set.
-- Historical exercise type is respected when reading strength history, preventing cardio/bodyweight records from being reinterpreted after catalog changes.
-- Workout result validation is shared between checkbox completion and history saving.
-- Training factor labels/methodology now match the implemented working-weight calculation.
-
-## Intentionally unchanged
-- CSS and existing runtime architecture are untouched.
-- Overall 40/30/30 block weighting, Systemity 50%, EMA, custom goals and separate Confidence model are unchanged.
-
----
-
-# FTracker v1.8.17 — Dynamic Index refinement + UI consistency
-
-This release keeps the stable window/screen architecture. Workout behavior is preserved, with only targeted rendering/performance reductions in the set-entry path.
-
-## Changes
-- Refined Dynamic Index scoring so training performance is not counted multiple times through separate repetition, 1RM and volume weights.
-- Training score keeps the audited default weights: Systemity 50%, Load 25%, Strength/e1RM 10%, Volume 15%.
-- e1RM analysis uses a conservative 1–12 rep range for trend scoring.
-- Custom body goals now handle reaching a target and drifting beyond it as two different states.
-- Custom goal editor made more compact; inactive parameters can be shown/hidden repeatedly.
-- Goal instructions now clearly distinguish fixed targets from stability corridors.
-- Dynamic Index now presents confidence as a confidence indicator rather than implying false precision.
-- Progress summary is clearer about the selected period and trend metrics.
-- Application, manifest and service-worker versions synchronized to 1.8.09.
-
-## Intentionally unchanged
-- Stable workout rendering/performance path is intentionally left untouched in this release.
-- Window/screen architecture is intentionally left untouched.
-
-
-### v1.8.07
-- В тренировке тип и основная группа мышц объединены в одну строку; прежний уточняющий «акцент» убран.
-- Добавлена постоянная заметка к упражнению: одна редактируемая заметка хранится за упражнением и автоматически доступна в следующих тренировках.
-- Заметка не создаётся отдельно для каждой тренировки и не требует ручного переноса.
-
-- Индекс: тренировки 50/25/10/15; добавлено описание состава расчёта.
-- Ручной КБЖУ: допустимое отклонение ±10% по каждому заданному показателю.
-- Архитектура окон не изменялась. Глубокая переработка CSS не выполнялась.
-
-
-## v1.8.07
-- В конструкторе своей цели веса показателей тренировки можно менять вручную: системность, рабочие веса, расчётный 1ПМ, объём. Сумма автоматически нормализуется до 100%, а изменение весов сразу участвует в пересчёте общего Индекса.
-- «Параметры тела» по умолчанию свернуты; количество учитываемых параметров перенесено внутрь подраздела.
-
-### v1.8.07
-- Dynamics Index custom-goal editor received a compact mobile layout: single-line header, smaller body parameter cards and denser controls.
-- Body parameter count remains inside the expanded section, not in its title.
-- Body parameters section remains collapsed by default.
-- Calculation logic is unchanged in this visual release.
-
-
-v1.8.07: Индекс динамики — выровнен заголовок «Параметры тела», счётчик вынесен в отдельную компактную строку, описание цели разделено на заголовок и пояснение; легенда направлений приведена к компактному двухстрочному виду. Расчётная логика не изменена.
-
-### v1.8.07
-- Методика расчёта Индекса расширена до полного описания алгоритма: показатели, формулы, веса, нормализация, отсутствие данных, доверие и фазы.
-- Внутри методики отдельно раскрыты Тело, Тренировки, Питание, Вес факторов и Своя цель.
-- Расчётную логику не меняли.
-
-
-## v1.8.16
-- Custom goal constructor moved into a separate full-screen app window.
-- Constructor order: evaluation period → factor weights → body parameters → training → nutrition.
-- Goal editor no longer occupies the Dynamic Index analytics page.
-- Saving closes the editor and returns to the Index.
-
-
-## v1.8.16
-- Goal editor header uses the same safe-area/workspace geometry as the exercise card window.
-- Goal editor body has a single scroll owner; header stays fixed below the safe area.
-- Removed redundant custom-goal intro/help text and normalized typography, spacing and left alignment.
-- Body, training and nutrition sections now use consistent heading alignment.
+- Версия синхронизирована во всех release-метаданных, `index.html`, `app.js`, `manifest.json`, `sw.js` и отображении приложения: **v1.8.32 от 19.09.26**.
+- Service Worker и cache переведены на `1.8.32`.
+- Исправлена логика покрытия питания: при менее чем 3 заполненных днях блок питания не участвует в Индексе; после минимального порога учитываются только фактически записанные дни, без стягивания результата к 50.
+- Покрытие питания остаётся отдельным показателем качества данных и не искажает числовой балл питания.
+- Все агрегированные суббаллы Индекса дополнительно ограничиваются диапазоном `0–100`.
+- Для системности явно зафиксировано: текущее окно сравнивается с непосредственно предыдущим окном такой же длины; период отображается в интерфейсе.
+- Методика Индекса обновлена так, чтобы пользователь видел фактическое окно системности и минимальный порог питания.
+- Автотесты расширены для новых правил покрытия питания и диапазона баллов.
