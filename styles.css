@@ -5086,7 +5086,7 @@ body{min-height:100dvh;background:var(--bg);overflow-y:auto!important;}
 #progressExercisePickerModal #progressPickerList,#exercisePickerModal #exercisePickerList,#exerciseOrderModal #exerciseOrderList,#replaceExerciseModal #replaceExerciseList{display:block!important;flex:1 1 auto!important;height:auto!important;min-height:0!important;max-height:none!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;}
 #app>.hidden{display:none!important;}
 #app>[id$="Screen"]{position:relative!important;top:auto!important;transform:none!important;}
-#app>[id$="Screen"]>.screen-header{position:relative!important;top:auto!important;transform:none!important;margin:0 0 12px!important;top:0!important;}
+#app>[id$="Screen"]>.screen-header{position:relative!important;transform:none!important;margin:0 0 12px!important;top:0!important;}
 .ft-window-root.ft-window-workspace>.date-modal-content>.close-btn,.ft-window-root.ft-window-workspace>.exercise-modal-content>.modal-close-btn,.ft-window-root.ft-window-workspace>.exercise-modal-content>.close-btn,.ft-window-root.ft-window-workspace>.catalog-modal-content>.close-btn,.ft-window-root.ft-window-workspace>.theme-modal-content>.close-btn,.ft-window-root.ft-window-workspace>.food-modal-content>.close-btn,.technique-modal .close-btn,.technique-modal .modal-close-btn{position:absolute!important;top:calc(var(--ft-safe-top) + 8px)!important;right:12px!important;left:auto!important;bottom:auto!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;margin:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;z-index:3000!important;transform:none!important;box-sizing:border-box!important;}
 .ft-window-root.ft-window-dialog{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;margin:0!important;padding:calc(var(--ft-safe-top) + 12px) 12px calc(var(--ft-safe-bottom) + 12px)!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;background:var(--modal-overlay)!important;overflow:hidden!important;z-index:50000!important;}
 .ft-window-root.ft-window-dialog.hidden{display:none!important;}
@@ -7691,11 +7691,7 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
   #app>[id$="Screen"]>.screen-header>button:first-child,
   .ft-window-root.ft-window-workspace .unified-surface-header>.surface-back-btn,
   .technique-modal .unified-surface-header>.surface-back-btn{width:76px!important;min-width:76px!important;max-width:76px!important;}
-  #app>[id$="Screen"]>.screen-header>.title,
-  #app>[id$="Screen"]>.screen-header>.section-title,
-  .ft-window-root.ft-window-workspace .unified-surface-header>.surface-title,
-  .ft-window-root.ft-window-workspace .unified-surface-header>.chart-modal-title,
-  .technique-modal .unified-surface-header>.surface-title{font-size:21px!important;}
+  
 }
 :root{
   --ft-window-safe-top:env(safe-area-inset-top,0px);
@@ -7824,7 +7820,6 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
   min-width:76px!important;
 }
 #techniqueModal .exercise-card-exercise-name{
-  display:block!important;
   width:100%!important;
   max-width:100%!important;
   margin:8px 0 14px!important;
@@ -7841,8 +7836,7 @@ html,body{overflow:hidden!important;width:100%!important;height:100%!important;}
   word-break:normal!important;
   display:-webkit-box!important;
   -webkit-box-orient:vertical!important;
-  -webkit-line-clamp:2!important;
-}
+  -webkit-line-clamp:2!important;}
 #techniqueModal .exercise-card-kicker,
 #techniqueModal .exercise-card-heading,
 #techniqueModal .exercise-card-title{
@@ -11686,9 +11680,7 @@ html,body{
   #homeScreen .nav-buttons button{height:76px!important;min-height:76px!important;padding:7px 5px!important;}
   #programList.program-grid-many .centered-card{height:86px!important;min-height:86px!important;}
 }
-#homeScreen .nav-buttons{gap:0!important;}
-
-#homeScreen .nav-buttons{
+#homeScreen .nav-buttons{gap:0!important;
   grid-auto-rows:82px!important;
   row-gap:0!important;
   column-gap:0!important;
@@ -12575,8 +12567,6 @@ input,select,textarea{
 .big-number{font-family:var(--ft-font-family)!important;font-synthesis:none!important;}
 strong,b{font-synthesis:none!important;}
 @media(max-width:430px){
-  #app>[id$="Screen"]>.screen-header>.title,
-  #app>[id$="Screen"]>.screen-header>.section-title{font-size:22px!important;}
   .unified-surface-header>.surface-title,
   .unified-surface-header>.chart-modal-title,
   .ft-modal-header>.surface-title{font-size:21px!important;}
