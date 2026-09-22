@@ -1,4 +1,4 @@
-/* FTracker v1.8.35 — Dynamic Index audit corrections.
+/* FTracker v1.8.37 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -2844,7 +2844,7 @@ function saveWorkoutNewExercise(){
         const ref=-(workoutTransientExercises.length);
         workoutExerciseSlots=getActiveExerciseIndices().concat([ref]);
         currentExerciseIndex=workoutExerciseSlots.length-1;
-        workoutSets[ref]=[{done:false}];
+        workoutSets[ref]=[{}];
         saveDraft(); renderExerciseStrip(); renderExercise();
       }
       showToast('Упражнение добавлено');
@@ -2938,7 +2938,7 @@ function confirmReplaceExercise(){
 
     const previous=getPreviousExerciseResult(replacementName,new Date().toISOString());
     if(previous?.sets?.length){
-        const source=previous.sets[previous.sets.length-1], row={done:false};
+        const source=previous.sets[previous.sets.length-1], row={};
         if(replacementType==='strength'){
             row.weight=source.weight??'';
             row.reps=source.reps??'';
@@ -3871,7 +3871,7 @@ function seedWorkoutSetsFromHistory(){
         const previous=getPreviousExerciseResult(exerciseName,today);
         if(!previous || !previous.sets?.length) return;
         const type=program.types?.[realIdx] || getExerciseTypeByName(exerciseName);
-        const row={done:false};
+        const row={};
         if(type==='strength'){
             const source=getAutofillStrengthResult(exerciseName,program.name,today);
             if(source){ row.weight=source.weight>=0.01 ? formatNum(source.weight) : ''; row.reps=source.reps>0 ? formatNum(source.reps) : ''; }
@@ -3981,7 +3981,7 @@ function buildWorkoutSetRowHtml(realIdx,type,s,i){
     if(type==='strength') inputFields=`<div class="workout-set-inputs horizontal"><input type="text" inputmode="decimal" placeholder="Вес, кг" value="${escapeHtml(s.weight||'')}" onchange="updateSet(${realIdx},${i},'weight',this.value)"><input type="text" inputmode="numeric" placeholder="Повторы" value="${escapeHtml(s.reps||'')}" onchange="updateSet(${realIdx},${i},'reps',this.value)"></div>`;
     else if(type==='cardio') inputFields=`<div class="workout-set-inputs horizontal"><input type="text" inputmode="decimal" placeholder="Минуты" value="${escapeHtml(s.time||'')}" onchange="updateSet(${realIdx},${i},'time',this.value)"><input type="text" inputmode="decimal" placeholder="Инт. 1–10" value="${escapeHtml(s.intensity||'')}" onchange="updateSet(${realIdx},${i},'intensity',this.value)"></div>`;
     else inputFields=`<div class="workout-set-inputs horizontal single"><input class="workout-bodyweight-input" type="text" inputmode="numeric" placeholder="Повторы" value="${escapeHtml(s.reps||'')}" onchange="updateSet(${realIdx},${i},'reps',this.value)"></div>`;
-    return `<div class="set-row workout-set-row"><span class="set-num">${i+1}</span>${inputFields}<button type="button" class="set-done-btn ${s.done?'done':''}" onclick="markSetDone(${realIdx},${i})" title="${s.done?'Подход выполнен':'Отметить выполненным'}" aria-label="${s.done?'Подход выполнен':'Отметить выполненным'}">${s.done?'✓':'○'}</button><button type="button" class="set-delete-btn" onclick="deleteSet(${realIdx},${i})" title="Удалить подход" aria-label="Удалить подход">🗑️</button></div>`;
+    return `<div class="set-row workout-set-row"><span class="set-num">${i+1}</span>${inputFields}<button type="button" class="set-delete-btn" onclick="deleteSet(${realIdx},${i})" title="Удалить подход" aria-label="Удалить подход">🗑️</button></div>`;
 }
 
 function getWorkoutExerciseDirectoryEntry(exerciseName, type='strength'){
@@ -4039,7 +4039,7 @@ function renderExerciseBase() {
     const exerciseName=meta.name, type=meta.type, sets=workoutSets[realIdx]||[];
     const isLastExercise=currentExerciseIndex===activeEx.length-1;
     const completedSets=sets.filter(s=>hasWorkoutSetResult(realIdx,s)).length;
-    const target=type==='strength'?3:1;
+    const target=sets.length;
 
     const titleEl=document.getElementById('workoutTitle');
     if(titleEl) titleEl.textContent=program?.name || 'Тренировка';
@@ -4144,7 +4144,7 @@ function updateWorkoutCompletionUI(){
     const meta=realIdx!==undefined?getWorkoutExercise(realIdx):null;
     if(!meta) return;
     const sets=workoutSets[realIdx]||[];
-    const target=meta.type==='strength'?3:1;
+    const target=sets.length;
     const completed=countWorkoutSetResults(realIdx);
     const card=document.querySelector('#exerciseContainer .workout-exercise-card');
     if(!card) return;
@@ -4161,21 +4161,9 @@ function addSet() {
     if(!meta) return;
     const type = meta.type;
     if(!workoutSets[realIdx]) workoutSets[realIdx] = [];
-    const lastSet = workoutSets[realIdx].slice(-1)[0];
-    const exercise = meta.name;
-    const historyPrev = getPreviousExerciseResult(exercise, new Date().toISOString());
-    const historySet = historyPrev?.sets?.[historyPrev.sets.length - 1] || {};
-    const prev = lastResults[exercise] || historySet || {};
-    const newSet = { done:false };
-    if(type==='strength'){
-        newSet.weight = lastSet ? lastSet.weight : (prev.weight || '');
-        newSet.reps = lastSet ? lastSet.reps : (prev.reps || '');
-    }else if(type==='cardio'){
-        newSet.time = lastSet ? lastSet.time : (prev.time || '');
-        newSet.intensity = lastSet ? lastSet.intensity : (prev.intensity || '');
-    }else{
-        newSet.reps = lastSet ? lastSet.reps : (prev.reps || '');
-    }
+    // A newly added set is always EMPTY. Previous results are shown as
+    // reference elsewhere, but must never make a new set completed automatically.
+    const newSet = {};
     const setIndex=workoutSets[realIdx].length;
     workoutSets[realIdx].push(newSet);
     saveDraft();
@@ -4186,6 +4174,9 @@ function addSet() {
     if(list){
         list.insertAdjacentHTML('beforeend',buildWorkoutSetRowHtml(realIdx,type,newSet,setIndex));
         updateWorkoutCompletionUI();
+        // Adding the next set starts the rest timer. The new set itself remains
+        // empty and therefore does not enter results/history until filled.
+        startRestTimer(lastRestDuration);
         requestAnimationFrame(()=>{
             const row=list.lastElementChild;
             const input=row?.querySelector('input');
@@ -4196,82 +4187,23 @@ function addSet() {
     }
 }
 function deleteSet(exIdx, setIdx) { if (!workoutSets[exIdx]?.[setIdx]) return; pendingDeleteType='workoutSet'; pendingDeleteIndex=exIdx; pendingDeleteDate=String(setIdx); showDeleteConfirm('Удалить этот подход?'); }
-function updateSet(exIdx, setIdx, field, value) { if (!workoutSets[exIdx] || !workoutSets[exIdx][setIdx]) return; workoutSets[exIdx][setIdx][field] = value; saveDraft(); }
-function markSetDone(exIdx, setIdx) {
-    const set = workoutSets[exIdx]?.[setIdx];
-    if (!set) return;
-
-    if (set.done) {
-        set.done = false;
+function updateSet(exIdx, setIdx, field, value) {
+    if (!workoutSets[exIdx] || !workoutSets[exIdx][setIdx]) return;
+    const meta = getWorkoutExercise(exIdx);
+    const type = meta?.type || 'strength';
+    const set = workoutSets[exIdx][setIdx];
+    const wasComplete = isWorkoutSetFilledForResult(set,type);
+    set[field] = value;
+    const isComplete = isWorkoutSetFilledForResult(set,type);
+    if (!wasComplete && isComplete) {
+        checkPersonalRecord(exIdx,setIdx);
+        startRestTimer(lastRestDuration);
+    } else if (wasComplete && !isComplete) {
         stopRestTimer();
-    } else {
-        const meta = getWorkoutExercise(exIdx);
-        const type = meta?.type || 'strength';
-        const complete = isWorkoutSetFilledForResult(set,type);
-        if (!complete) {
-            showToast(type==='strength' ? 'Заполните вес и повторения перед отметкой подхода' : type==='cardio' ? 'Заполните время и интенсивность перед отметкой подхода' : 'Заполните повторения перед отметкой подхода');
-            return;
-        }
-        set.done = true;
-        checkPersonalRecord(exIdx, setIdx);
     }
-
     saveDraft();
-
-    // Do not rebuild the workout DOM here. Re-rendering the whole exercise
-    // used to replace interactive controls after every tap and could leave
-    // stale overlays/listeners in the interaction path.
-    const rows = document.querySelectorAll('#setsList .workout-set-row');
-    const row = rows[setIdx];
-    if (row) {
-        const btn = row.querySelector('.set-done-btn');
-        if (btn) {
-            btn.classList.toggle('done', !!set.done);
-            btn.textContent = set.done ? '✓' : '○';
-            btn.title = set.done ? 'Подход выполнен' : 'Отметить выполненным';
-            btn.setAttribute('aria-label', btn.title);
-        }
-    }
-
-    const workoutScreen = document.getElementById('exerciseContainer');
-    const savedScroll = workoutScreen ? workoutScreen.scrollTop : null;
-
-    // Update the CURRENT exercise completion card immediately. The card is not
-    // rebuilt on every tap, so its static 0/1 (or 0/3) markup must be synchronized
-    // with the checkbox state here.
-    const currentMeta = getWorkoutExercise(exIdx);
-    const currentSets = workoutSets[exIdx] || [];
-    const targetSets = (currentMeta?.type || 'strength') === 'strength' ? 3 : 1;
-    const completedNow = countWorkoutSetResults(exIdx);
-    const shownDone = Math.min(completedNow, targetSets);
-
-    const completionStrong = document.querySelector('#exerciseContainer .workout-completion-head strong');
-    if (completionStrong) completionStrong.textContent = `${shownDone}/${targetSets}`;
-
-    const completionSegments = document.querySelectorAll('#exerciseContainer .completion-segment');
-    completionSegments.forEach((segment, i) => {
-        segment.classList.toggle('filled', i < shownDone);
-    });
-
-    // Update the exercise strip state immediately as well.
-    const activeIndicesForStrip = getActiveExerciseIndices();
-    const stripPosition = activeIndicesForStrip.indexOf(exIdx);
-    if (stripPosition >= 0) {
-        const stripItem = document.querySelector(`#exerciseStrip .exercise-dot[data-step="${stripPosition + 1}"]`);
-        if (stripItem) stripItem.classList.toggle('done', completedNow > 0);
-    }
-
+    updateWorkoutCompletionUI();
     updateWorkoutProgressUI();
-
-    // Keep the current workout position after marking a set complete.
-    // Updating the strip should not move the user in iOS PWA.
-    requestAnimationFrame(() => {
-        if (workoutScreen && savedScroll !== null) {
-            workoutScreen.scrollTop = savedScroll;
-        }
-    });
-
-    if (set.done) startRestTimer(lastRestDuration);
 }
 
 function checkPersonalRecord(exIdx, setIdx) {
@@ -6368,7 +6300,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.35', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.37', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11159,11 +11091,10 @@ window.closeImportConfirm=function(){
   // Search is bound once to the actual input and calls the canonical renderer.
   function bind(){const input=document.getElementById('catalogSearch');if(!input||input.dataset.catalogBound)return;input.dataset.catalogBound='1';input.addEventListener('input',renderCatalogList);input.addEventListener('search',renderCatalogList);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  // The existing markSetDone is the checkbox handler; it already calls updateWorkoutProgressUI after toggling.
-  // Keep one progress implementation and make its calculation explicitly based on completed checkbox states.
+  // Workout progress is calculated only from filled set fields.
   updateWorkoutProgressUI=function(){
     const active=getActiveExerciseIndices();let done=0,total=0;
-    active.forEach(idx=>{const meta=getWorkoutExercise(idx);if(!meta)return;const completed=countWorkoutSetResults(idx);if((meta.type||'strength')==='strength'){total+=3;done+=Math.min(3,completed);}else{total+=1;done+=completed>0?1:0;}});
+    active.forEach(idx=>{const meta=getWorkoutExercise(idx);if(!meta)return;const sets=workoutSets[idx]||[];const completed=countWorkoutSetResults(idx);total+=sets.length;done+=completed;});
     const pct=total?Math.round(done/total*100):0;
     const bar=document.getElementById('workoutProgressBar');const left=document.getElementById('workoutProgressLeft');const right=document.getElementById('workoutProgressRight');const text=document.getElementById('workoutProgressText');
     if(bar)bar.style.width=pct+'%';if(left)left.textContent=total?`Выполнено ${done} из ${total} подходов`:'Нет упражнений';if(right)right.textContent='';if(text)text.textContent='';
@@ -11253,7 +11184,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.35&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.37&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
