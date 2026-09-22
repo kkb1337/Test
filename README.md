@@ -1,4 +1,4 @@
-# FTracker v1.8.47 — Historical Working Weight & Workout Progress
+# FTracker v1.8.48 — Historical Working Weight & Workout Progress
 
 Дата релиза: 22.09.2026
 
@@ -32,4 +32,4 @@
 ## Проверки
 - `node --check app.js` проходит.
 - Статические инварианты проверяют формулу общего прогресса, отсутствие автосоздания подхода при замене/добавлении упражнения и использование всей истории для рабочего веса.
-- Версия приложения, manifest, Service Worker, cache name, query-version и дата релиза синхронизированы: **v1.8.47 от 22.09.26**.
+- Версия приложения, manifest, Service Worker, cache name, query-version и дата релиза синхронизированы: **v1.8.48 от 22.09.26**.

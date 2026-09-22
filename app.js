@@ -1,4 +1,4 @@
-/* FTracker v1.8.47 — Dynamic Index audit corrections.
+/* FTracker v1.8.48 — Workout replacement/create state fix.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -270,6 +270,10 @@ let workoutPlanSnapshot = [];
 let workoutTransientExercises = [];
 let replacementSlotIndex = null;
 let pendingWorkoutReplacementCreate = null;
+// Explicit mode/context for the workout exercise creation sheet. This survives
+// closing the Replace sheet, so a newly created exercise can only replace the
+// selected slot when creation was launched from Replace.
+let workoutNewExerciseContext = null;
 let totalTimerInterval = null, restTimerInterval = null, restEndTime = null, lastResults = {};
 let workoutRecommendationAutoCollapseTimer = null;
 let workoutRecommendationTimerKey = '';
@@ -2633,6 +2637,9 @@ function renderReplaceExerciseListBase(query=''){
     };
 }
 function openWorkoutNewExerciseModal(){
+    // Direct 'add exercise' flow: append a new slot. Replacement flow sets
+    // its own explicit context before calling this function.
+    if(!workoutNewExerciseContext) workoutNewExerciseContext={mode:'add',programIndex:currentProgram};
     const m=document.getElementById('workoutNewExerciseModal'); if(!m)return;
     document.getElementById('workoutNewExerciseName').value='';
     document.getElementById('workoutNewExerciseGroup').value='Грудь';
@@ -2640,10 +2647,17 @@ function openWorkoutNewExerciseModal(){
     lockModalScroll(); m.classList.remove('hidden');
     setTimeout(()=>document.getElementById('workoutNewExerciseName')?.focus(),80);
 }
-function closeWorkoutNewExerciseModal(){document.getElementById('workoutNewExerciseModal')?.classList.add('hidden');}
+function closeWorkoutNewExerciseModal(){document.getElementById('workoutNewExerciseModal')?.classList.add('hidden'); workoutNewExerciseContext=null; pendingWorkoutReplacementCreate=null;}
 function openWorkoutNewExerciseFromReplace(){
     if(replacementSlotIndex===null || currentProgram===null){ showToast('Не удалось определить упражнение для замены'); return; }
-    pendingWorkoutReplacementCreate={slot:Number(replacementSlotIndex), programIndex:Number(currentProgram)};
+    const slot=Number(replacementSlotIndex);
+    const slots=getActiveExerciseIndices();
+    if(!Number.isInteger(slot) || slot<0 || slot>=slots.length){ showToast('Не удалось определить упражнение для замены'); return; }
+    // Freeze the exact slot BEFORE closing the Replace sheet. Do not depend on
+    // replacementSlotIndex after closeReplaceExerciseModal(), because that
+    // function intentionally clears the selected slot.
+    workoutNewExerciseContext={mode:'replace',slot,programIndex:Number(currentProgram),oldRef:slots[slot]};
+    pendingWorkoutReplacementCreate={slot,programIndex:Number(currentProgram)};
     closeReplaceExerciseModal();
     openWorkoutNewExerciseModal();
 }
@@ -2847,33 +2861,44 @@ function saveWorkoutNewExercise(){
     const create=()=>{
       const createdEntry=ensureDirectoryEntry(name,type,group);
       if(createdEntry) createdEntry.guide=createdEntry.guide||{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]};
-      const replacementCtx=pendingWorkoutReplacementCreate ? {...pendingWorkoutReplacementCreate} : null;
+      const replacementCtx=workoutNewExerciseContext?.mode==='replace' ? {...workoutNewExerciseContext} : null;
+      const replacementFallback=pendingWorkoutReplacementCreate ? {...pendingWorkoutReplacementCreate} : null;
+      workoutNewExerciseContext=null;
       pendingWorkoutReplacementCreate=null;
-      saveData(); closeWorkoutNewExerciseModal();
-      if(replacementCtx && currentProgram!==null && Number(replacementCtx.programIndex)===Number(currentProgram)){
-        // Creating from the Replace flow is a SLOT REPLACEMENT, never an append.
-        const slots=Array.isArray(workoutExerciseSlots)?workoutExerciseSlots.slice():getActiveExerciseIndices();
-        const slot=Number(replacementCtx.slot);
-        if(slot>=0 && slot<slots.length){
-          const oldRef=slots[slot];
-          const transient={name,type,group,guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}};
-          workoutTransientExercises=Array.isArray(workoutTransientExercises)?workoutTransientExercises:[];
-          workoutTransientExercises.push(transient);
-          const ref=-(workoutTransientExercises.length);
-          if(oldRef!==undefined) delete workoutSets[oldRef];
-          delete workoutSets[ref];
-          slots[slot]=ref;
-          workoutExerciseSlots=slots;
-          currentExerciseIndex=slot;
-          if(Array.isArray(workoutPlanSnapshot) && workoutPlanSnapshot[slot]){
+      saveData();
+      document.getElementById('workoutNewExerciseModal')?.classList.add('hidden');
+      if((replacementCtx || replacementFallback) && currentProgram!==null){
+        // HARD SLOT REPLACEMENT: creation from the Replace sheet can never
+        // append a second exercise. The old reference is removed from the
+        // active slot array and the new transient reference occupies exactly
+        // the same position.
+        const ctx=replacementCtx || {mode:'replace',...replacementFallback};
+        if(Number(ctx.programIndex)===Number(currentProgram)){
+          const slots=Array.isArray(workoutExerciseSlots)?workoutExerciseSlots.slice():[];
+          const slot=Number(ctx.slot);
+          if(slot>=0 && slot<slots.length){
+            const oldRef=slots[slot];
+            const transient={name,type,group,guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}};
+            workoutTransientExercises=Array.isArray(workoutTransientExercises)?workoutTransientExercises:[];
+            workoutTransientExercises.push(transient);
+            const ref=-(workoutTransientExercises.length);
+            if(oldRef!==undefined) delete workoutSets[oldRef];
+            delete workoutSets[ref];
+            slots.splice(slot,1,ref);
+            workoutExerciseSlots=slots;
+            currentExerciseIndex=Math.min(slot,Math.max(0,slots.length-1));
+            if(!Array.isArray(workoutPlanSnapshot)) workoutPlanSnapshot=[];
+            if(!workoutPlanSnapshot[slot]) workoutPlanSnapshot[slot]={plannedName:'',plannedType:type,plannedGroup:group};
             workoutPlanSnapshot[slot].status='replaced';
             workoutPlanSnapshot[slot].actualName=name;
             workoutPlanSnapshot[slot].actualType=type;
-            workoutPlanSnapshot[slot].actualGroup=fScoreExerciseGroup(name,type);
+            workoutPlanSnapshot[slot].actualGroup=group;
+            saveDraft();
+            renderExerciseStrip();
+            renderExercise();
+            showToast(`Заменено новым упражнением: «${name}»`);
+            return;
           }
-          saveDraft(); renderExerciseStrip(); renderExercise();
-          showToast(`Заменено новым упражнением: «${name}»`);
-          return;
         }
       }
       if(currentProgram!==null){
@@ -6374,7 +6399,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.47', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.48', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11275,7 +11300,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.47&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.48&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
