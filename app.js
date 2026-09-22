@@ -1,4 +1,4 @@
-/* FTracker v1.8.48 — Workout replacement/create state fix.
+/* FTracker v1.8.49 — Workout replacement/create state fix.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -6399,7 +6399,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.48', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.49', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11300,7 +11300,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.48&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.49&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

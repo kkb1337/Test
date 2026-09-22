@@ -1,10 +1,11 @@
-/* FTracker v1.8.48 workout logic regression tests; run with: node audit-tests.js */
+/* FTracker v1.8.49 workout logic regression tests; run with: node audit-tests.js */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const app=fs.readFileSync('app.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
 const manifest=fs.readFileSync('manifest.json','utf8');
 const sw=fs.readFileSync('sw.js','utf8');
+const css=fs.readFileSync('styles.css','utf8');
 const readme=fs.readFileSync('README.md','utf8');
 
 // Global progress model: 3 for strength, 1 for cardio/reps.
@@ -45,12 +46,20 @@ assert.match(app,/program-picker-add-new/);
 assert.match(index,/exercisePickerSearch/);
 
 // Release metadata must be synchronized.
-for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.48'),'stale release version');
+for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.49'),'stale release version');
 assert.ok(index.includes('от 22.09.26'),'release date missing');
-assert.ok(sw.includes("const APP_VERSION = '1.8.48'"),'SW cache version missing');
+assert.ok(sw.includes("const APP_VERSION = '1.8.49'"),'SW cache version missing');
 
-console.log('FTracker v1.8.48 workout logic regression tests: OK');
+console.log('FTracker v1.8.49 workout logic regression tests: OK');
 
-// v1.8.48: replacement creation must replace the frozen slot, not append.
+// v1.8.49: replacement creation must replace the frozen slot, not append.
 assert(fs.readFileSync('app.js','utf8').includes("workoutNewExerciseContext={mode:'replace',slot,programIndex:Number(currentProgram),oldRef:slots[slot]}"), 'replace creation context must freeze slot before closing replace modal');
 assert(fs.readFileSync('app.js','utf8').includes('slots.splice(slot,1,ref);'), 'new exercise replacement must replace the selected slot');
+
+
+// v1.8.49: workout header UI remains compact and uses a clear back arrow.
+assert.ok(index.includes('class="workout-close"'),'workout back control missing');
+assert.ok(index.includes('>←</button>'),'workout back arrow missing');
+assert.ok(css.includes('v1.8.49 — compact workout header'),'v1.8.49 workout UI block missing');
+assert.ok(css.includes('#workoutScreen .workout-time'),'workout timer styling missing');
+assert.ok(css.includes('#workoutScreen .workout-exercise-name-large'),'workout exercise title styling missing');

@@ -12575,3 +12575,71 @@ strong,b{font-synthesis:none!important;}
 .program-picker-add-new::first-line{font-weight:900;}
 /* Keep recommendation advice compact and trainer-like. */
 #workoutScreen .recommendation-note{font-size:12.5px!important;line-height:1.35!important;}
+
+
+/* v1.8.49 — compact workout header and exercise title.
+   Canonical final rules for the workout screen: clear back arrow,
+   compact timer pill at the right, and smaller exercise title. */
+#workoutScreen .workout-head{
+  grid-template-columns:42px minmax(0,1fr) auto!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+#workoutScreen .workout-close{
+  width:38px!important;
+  min-width:38px!important;
+  height:38px!important;
+  min-height:38px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid var(--border)!important;
+  border-radius:12px!important;
+  background:var(--input-bg)!important;
+  color:var(--text)!important;
+  box-shadow:none!important;
+  font-size:22px!important;
+  font-weight:500!important;
+  line-height:1!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#workoutScreen .workout-top-right{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  min-width:0!important;
+  padding:0!important;
+}
+#workoutScreen .workout-time{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:52px!important;
+  height:30px!important;
+  padding:0 8px!important;
+  box-sizing:border-box!important;
+  border:1px solid var(--border)!important;
+  border-radius:10px!important;
+  background:var(--input-bg)!important;
+  color:var(--subtext)!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  font-variant-numeric:tabular-nums!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+  text-shadow:none!important;
+}
+#workoutScreen .workout-exercise-name-large{
+  font-size:clamp(20px,5.4vw,25px)!important;
+  line-height:1.12!important;
+  font-weight:850!important;
+}
+#workoutScreen .workout-info-icon{font-size:17px!important;vertical-align:1px!important;}
+@media(max-width:430px){
+  #workoutScreen .workout-head{grid-template-columns:40px minmax(0,1fr) auto!important;gap:7px!important;}
+  #workoutScreen .workout-close{width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important;font-size:21px!important;border-radius:11px!important;}
+  #workoutScreen .workout-time{min-width:50px!important;height:29px!important;padding:0 7px!important;font-size:11.5px!important;border-radius:9px!important;}
+  #workoutScreen .workout-exercise-name-large{font-size:clamp(19px,5.1vw,23px)!important;}
+  #workoutScreen .workout-info-icon{font-size:16px!important;}
+}
