@@ -1,4 +1,4 @@
-/* FTracker v1.8.50 — Workout replacement/create state fix.
+/* FTracker v1.8.51 — Workout replacement/create state fix.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -3965,17 +3965,17 @@ function getExerciseRecommendation(exerciseName,type,programName){
             return {weight:nextWeight,reps:8,sets:3,currentWeight:baseWeight,currentReps:baseReps,
                 reason:baseReps>=8?`После выполнения целевого диапазона нагрузку можно повысить с ${formatNum(baseWeight)} до ${formatNum(nextWeight)} кг.`:`На ${formatNum(baseWeight)} кг пока не набран целевой объём повторений. Сначала доведи подходы до 8 повторений и только затем повышай вес.`, advice:baseReps>=8?`Ты стабильно выполнил целевой диапазон — увеличь вес небольшим шагом и сохрани чистую технику во всех рабочих подходах.`:`Не повышай вес раньше времени: сначала закрепи 8 качественных повторений в каждом рабочем подходе, затем добавляй нагрузку.`};
         }
-        return {weight:null,reps:8,sets:3,currentWeight:null,currentReps:null,reason:'После первого полноценного выполнения появится персональная цель.', advice:'Начни с веса, при котором все рабочие повторения выполняются контролируемо. Следующая рекомендация будет рассчитана по твоей собственной истории.'};
+        return {weight:null,reps:8,sets:3,currentWeight:null,currentReps:null,reason:'После первого полноценного выполнения появится персональная цель.', advice:'Начни с веса, с которым все рабочие повторения выполняются чисто.'};
     }
     const previous=getPreviousExerciseResult(exerciseName,before);
     const last=previous?.sets?.[previous.sets.length-1]||null;
     if(type==='cardio'){
         const time=last?Number(last.time??last.minutes):NaN, intensity=last?Number(last.intensity):NaN;
         const t=Number.isFinite(time)&&time>0?time:null, i=Number.isFinite(intensity)&&intensity>0?intensity:null;
-        return {time:t,intensity:i,sets:1,currentTime:t,currentIntensity:i,reason:last?'Увеличение времени или интенсивности оправдано только при сохранении контролируемого темпа.':'После первого сохранённого выполнения появится персональный рабочий показатель.', advice:last?(t!=null&&i!=null&&i>=8?'Время уже задано — сначала закрепи объём и темп, затем повышай интенсивность небольшим шагом.':'Сохрани текущую длительность и интенсивность стабильно, затем увеличивай только один параметр за раз.'):'Начни с контролируемой длительности и интенсивности; после первой записи рекомендация станет персональной.'};
+        return {time:t,intensity:i,sets:1,currentTime:t,currentIntensity:i,reason:last?'Увеличение времени или интенсивности оправдано только при сохранении контролируемого темпа.':'После первого сохранённого выполнения появится персональный рабочий показатель.', advice:last?(t!=null&&i!=null&&i>=8?'Закрепи объём и темп, затем немного повысь интенсивность.':'Сначала стабилизируй длительность и интенсивность, затем меняй один параметр.'):'Начни с комфортной длительности и интенсивности.'};
     }
     const reps=last?Number(last.reps):NaN, r=Number.isFinite(reps)&&reps>0?reps:null;
-    return {reps:r,sets:1,currentReps:r,reason:last?'Увеличивай повторения постепенно, не жертвуя техникой.':'После первого сохранённого выполнения появится персональный рабочий показатель.', advice:last?'Добавляй повторения небольшими шагами и повышай цель только после того, как текущий объём выполняется чисто и стабильно.':'Начни с количества повторений, которое можешь выполнить технически чисто; следующая цель будет рассчитана по истории.'};
+    return {reps:r,sets:1,currentReps:r,reason:last?'Увеличивай повторения постепенно, не жертвуя техникой.':'После первого сохранённого выполнения появится персональный рабочий показатель.', advice:last?'Добавляй повторения небольшими шагами после стабильного выполнения текущего объёма.':'Начни с количества повторений, которое выполняешь чисто.'};
 }
 
 function formatRecommendation(rec){
@@ -4126,12 +4126,12 @@ function renderExerciseBase() {
     const muscleGroup=String(group||inferExerciseGroup(exerciseName,type)||'Другое').trim() || 'Другое';
     const exerciseNote=getWorkoutExerciseNote(exerciseName,type);
     container.innerHTML=`<article class="card workout-exercise-card">
-      <div class="workout-exercise-kicker"><span>${escapeHtml(typeLabel)} · ${escapeHtml(muscleGroup)}</span></div>
       <div class="workout-exercise-titleblock">
         <div class="workout-exercise-title-row">
           <button type="button" class="workout-exercise-name-large" onclick="openTechniqueFromWorkout(${realIdx})" aria-label="Открыть информацию об упражнении">${escapeHtml(exerciseName)} <span class="workout-info-icon">ⓘ</span></button>
-          <button type="button" class="workout-note-btn ${exerciseNote?'has-note':''}" data-workout-note-name="${escapeHtml(exerciseName)}" data-workout-note-type="${escapeHtml(type)}" onclick="event.stopPropagation()" title="${exerciseNote?'Изменить заметку':'Добавить заметку'}" aria-label="${exerciseNote?'Изменить заметку':'Добавить заметку'}">📝${exerciseNote?'<span class="workout-note-dot"></span>':''}</button>
+          <button type="button" class="workout-note-btn ${exerciseNote?'has-note':''}" data-workout-note-name="${escapeHtml(exerciseName)}" data-workout-note-type="${escapeHtml(type)}" onclick="event.stopPropagation()" title="${exerciseNote?'Изменить заметку':'Добавить заметку'}" aria-label="${exerciseNote?'Изменить заметку':'Добавить заметку'}">✎${exerciseNote?'<span class="workout-note-dot"></span>':''}</button>
         </div>
+        <div class="workout-exercise-kicker"><span>${escapeHtml(typeLabel)} · ${escapeHtml(muscleGroup)}</span></div>
       </div>
       <div class="workout-action-grid">
         <button type="button" class="workout-action-btn analytics" onclick="openExerciseModal(${realIdx})"><span class="action-icon">▥</span><span class="action-copy">Аналитика<br>упражнения</span><span class="action-arrow">›</span></button>
@@ -6398,7 +6398,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.50', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.51', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11299,7 +11299,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.50&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.51&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

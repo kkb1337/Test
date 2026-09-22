@@ -12577,7 +12577,7 @@ strong,b{font-synthesis:none!important;}
 #workoutScreen .recommendation-note{font-size:12.5px!important;line-height:1.35!important;}
 
 
-/* v1.8.50 — compact workout header and exercise title.
+/* v1.8.51 — compact workout header and exercise title.
    Canonical final rules for the workout screen: clear back arrow,
    compact timer pill at the right, and smaller exercise title. */
 #workoutScreen .workout-head{
@@ -12645,7 +12645,7 @@ strong,b{font-synthesis:none!important;}
 }
 
 
-/* v1.8.50 — final workout screen alignment + split picker creation action.
+/* v1.8.51 — final workout screen alignment + split picker creation action.
    These are canonical end-of-file rules; older historical rules remain untouched. */
 #workoutScreen .workout-topbar{
   padding:6px 0 9px!important;
@@ -12738,4 +12738,33 @@ strong,b{font-synthesis:none!important;}
   #workoutScreen .workout-time{width:62px!important;min-width:62px!important;height:32px!important;font-size:11.5px!important;}
   .picker-search-row{gap:7px!important;}
   .picker-search-create{min-width:132px!important;max-width:145px!important;font-size:11.5px!important;}
+}
+
+/* v1.8.51 — compact workout content hierarchy.
+   Canonical end-of-file workout rules: title/meta hierarchy, compact recommendation, set controls. */
+#workoutScreen .workout-exercise-titleblock{padding:0 0 9px!important;margin:0!important;}
+#workoutScreen .workout-exercise-title-row{display:flex!important;align-items:center!important;gap:7px!important;min-width:0!important;margin:0!important;}
+#workoutScreen .workout-exercise-name-large{flex:1 1 auto!important;min-width:0!important;font-size:clamp(20px,5.2vw,23px)!important;line-height:1.1!important;font-weight:850!important;letter-spacing:-.02em!important;margin:0!important;}
+#workoutScreen .workout-info-icon{font-size:14px!important;vertical-align:1px!important;}
+#workoutScreen .workout-note-btn{flex:0 0 30px!important;width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;border-radius:9px!important;font-size:17px!important;font-weight:700!important;line-height:1!important;opacity:.9!important;}
+#workoutScreen .workout-note-btn.has-note{opacity:1!important;}
+#workoutScreen .workout-exercise-kicker{display:block!important;margin:3px 0 0!important;padding:0!important;font-size:9.5px!important;line-height:1.2!important;letter-spacing:.06em!important;color:var(--subtext)!important;font-weight:800!important;text-transform:uppercase!important;}
+
+#workoutScreen .workout-recommendation{margin:7px 0 10px!important;padding:9px 11px!important;border-radius:14px!important;background:linear-gradient(135deg,rgba(52,199,89,.09),rgba(52,199,89,.035))!important;border:1px solid rgba(52,199,89,.26)!important;box-shadow:none!important;}
+#workoutScreen .recommendation-head{min-height:30px!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;font-size:11.5px!important;line-height:1!important;letter-spacing:.04em!important;}
+#workoutScreen .recommendation-toggle{width:28px!important;height:28px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:50%!important;background:rgba(52,199,89,.12)!important;font-size:17px!important;}
+#workoutScreen .recommendation-target{display:flex!important;align-items:baseline!important;gap:8px!important;margin:5px 0 0!important;padding:6px 8px!important;border-radius:10px!important;background:rgba(255,255,255,.035)!important;border:1px solid rgba(52,199,89,.16)!important;}
+#workoutScreen .recommendation-target span{font-size:9.5px!important;line-height:1!important;color:var(--subtext)!important;font-weight:800!important;text-transform:uppercase!important;letter-spacing:.04em!important;flex:0 0 auto!important;}
+#workoutScreen .recommendation-target b{font-size:15px!important;line-height:1.15!important;font-weight:800!important;min-width:0!important;}
+#workoutScreen .recommendation-note{margin:5px 0 0!important;padding:0!important;color:var(--subtext)!important;font-size:11px!important;line-height:1.28!important;}
+
+#workoutScreen .workout-set-row{min-height:46px!important;padding:4px!important;border-radius:12px!important;gap:5px!important;}
+#workoutScreen .workout-set-row input{height:40px!important;border-radius:10px!important;font-size:16px!important;padding:0 7px!important;}
+#workoutScreen .set-num{width:32px!important;height:32px!important;border-radius:9px!important;font-size:11px!important;}
+#workoutScreen .workout-set-row .set-delete-btn{width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;border-radius:9px!important;background:transparent!important;color:var(--subtext)!important;font-size:13px!important;opacity:.7!important;}
+#workoutScreen .workout-set-row .set-delete-btn:active{opacity:1!important;transform:scale(.94)!important;}
+@media(max-width:430px){
+  #workoutScreen .workout-exercise-name-large{font-size:clamp(19px,5vw,22px)!important;}
+  #workoutScreen .workout-note-btn{flex-basis:30px!important;width:30px!important;height:30px!important;min-width:30px!important;}
+  #workoutScreen .recommendation-note{font-size:10.8px!important;}
 }
