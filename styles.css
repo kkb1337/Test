@@ -18,7 +18,10 @@ input, select { width: 100%; padding: 10px; border-radius: 10px; border: 0; back
 .exercise-dot.active { background: var(--accent-gradient); color: #fff; }
 .exercise-dot.done { background: #1c3a1c; color: var(--button-green); }
 .set-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.set-num { width: 24px; color: var(--subtext); font-size: 16px; }.set-delete-btn { width: 44px; height: 44px; border-radius: 12px; background: transparent; color: var(--negative); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+.set-num { width: 24px; color: var(--subtext); font-size: 16px; }
+.set-done-btn { width: 44px; height: 44px; border-radius: 12px; background: var(--button-gray); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+.set-done-btn.done { background: var(--accent-gradient); }
+.set-delete-btn { width: 44px; height: 44px; border-radius: 12px; background: transparent; color: var(--negative); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
 .timer-box { background: var(--card-bg); border-radius: 20px; padding: 16px; text-align: center; margin-top: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 .timer-box.warning .big-number { color: var(--negative); animation: pulse 0.5s infinite alternate; }
 @keyframes pulse { from { opacity: 1; } to { opacity: 0.7; } }
@@ -404,8 +407,14 @@ html, body { overscroll-behavior: none; }
 .workout-last-value{font-size:14px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .workout-best-badge{font-size:11px;font-weight:800;color:var(--positive);white-space:nowrap;}
 .sets-header{display:grid;grid-template-columns:34px 1fr 34px 34px;gap:8px;align-items:center;color:var(--subtext);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:0 4px 5px;}
-.set-row.workout-set-row{display:grid;grid-template-columns:34px minmax(0,1fr) 40px 40px;gap:8px;align-items:center;margin-top:8px;padding:6px;background:var(--input-bg);border-radius:15px;}.workout-set-row .set-num{width:28px;height:28px;border-radius:9px;background:var(--card-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
-.workout-set-row input{margin:0!important;min-width:0!important;width:100%!important;background:var(--card-bg)!important;border-radius:11px!important;padding:10px!important;font-size:17px!important;}.workout-set-row .set-delete-btn{background:transparent;color:var(--subtext);font-size:16px;}
+.set-row.workout-set-row{display:grid;grid-template-columns:34px minmax(0,1fr) 40px 40px;gap:8px;align-items:center;margin-top:8px;padding:6px;background:var(--input-bg);border-radius:15px;}
+.workout-set-row:has(.set-done-btn.done){background:rgba(52,199,89,.10);}
+.workout-set-row .set-num{width:28px;height:28px;border-radius:9px;background:var(--card-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+.workout-set-row input{margin:0!important;min-width:0!important;width:100%!important;background:var(--card-bg)!important;border-radius:11px!important;padding:10px!important;font-size:17px!important;}
+.workout-set-row .set-done-btn,.workout-set-row .set-delete-btn{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.workout-set-row .set-done-btn{background:var(--button-gray);color:var(--text);font-weight:900;}
+.workout-set-row .set-done-btn.done{background:var(--button-green);color:#fff;}
+.workout-set-row .set-delete-btn{background:transparent;color:var(--subtext);font-size:16px;}
 .workout-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
 .workout-actions button{margin:0!important;min-height:50px;font-size:14px;}
 .workout-actions .primary-action{background:var(--accent-gradient);color:#fff;}
@@ -424,7 +433,7 @@ html, body { overscroll-behavior: none; }
 .workout-finish-wrap{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
 .workout-finish-wrap button{margin:0!important;background:transparent!important;color:var(--subtext)!important;font-size:12px!important;padding:10px!important;}
 @media(max-width:420px){
-  .workout-head{grid-template-columns:40px 1fr 62px;gap:8px}.workout-close{width:40px!important;height:40px!important}.workout-exercise-title{font-size:22px}.workout-exercise-card{padding:14px!important}.workout-set-row{grid-template-columns:30px minmax(0,1fr) 38px 38px!important;gap:6px!important}.sets-header{grid-template-columns:30px 1fr 38px 38px}.rest-time{font-size:38px}
+  .workout-head{grid-template-columns:40px 1fr 62px;gap:8px}.workout-close{width:40px!important;height:40px!important}.workout-exercise-title{font-size:22px}.workout-exercise-card{padding:14px!important}.workout-set-row{grid-template-columns:30px minmax(0,1fr) 38px 38px!important;gap:6px!important}.workout-set-row .set-done-btn,.workout-set-row .set-delete-btn{width:38px;height:38px}.sets-header{grid-template-columns:30px 1fr 38px 38px}.rest-time{font-size:38px}
 }
 .progress-v2{display:flex;flex-direction:column;gap:12px}
 .progress-v2-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
@@ -832,7 +841,11 @@ html, body { overscroll-behavior: none; }
 #workoutScreen #setsList{display:flex;flex-direction:column;gap:7px;margin-bottom:13px;}
 #workoutScreen .workout-set-row{display:grid!important;grid-template-columns:42px minmax(0,1fr) 54px 44px!important;align-items:center!important;gap:7px!important;padding:7px!important;border-radius:16px!important;background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.055)!important;}
 #workoutScreen .workout-set-row input{min-width:0!important;height:48px!important;border-radius:12px!important;background:rgba(0,0,0,.20)!important;border:1px solid transparent!important;font-size:18px!important;font-weight:700!important;text-align:center!important;padding:0 8px!important;}
-#workoutScreen .set-num{width:42px!important;height:42px!important;border-radius:12px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(255,255,255,.055)!important;color:#b8b8bc!important;font-weight:800!important;}#workoutScreen .set-delete-btn{background:rgba(255,255,255,.045)!important;font-size:17px!important;}
+#workoutScreen .set-num{width:42px!important;height:42px!important;border-radius:12px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(255,255,255,.055)!important;color:#b8b8bc!important;font-weight:800!important;}
+#workoutScreen .set-done-btn,#workoutScreen .set-delete-btn{width:44px!important;height:44px!important;border-radius:12px!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+#workoutScreen .set-done-btn{background:rgba(255,255,255,.06)!important;font-size:22px!important;}
+#workoutScreen .set-done-btn.done{background:#62d26d!important;color:#071008!important;}
+#workoutScreen .set-delete-btn{background:rgba(255,255,255,.045)!important;font-size:17px!important;}
 #workoutScreen .workout-actions{display:grid!important;grid-template-columns:1.2fr .8fr!important;gap:8px!important;margin-top:4px!important;}
 #workoutScreen .workout-actions button{min-height:52px!important;border-radius:16px!important;font-size:15px!important;font-weight:850!important;}
 #workoutScreen .workout-finish-wrap button{min-height:52px!important;border-radius:16px!important;margin-top:8px!important;}
@@ -910,7 +923,10 @@ body.light-mode .ex-body-base{fill:rgba(110,110,115,.15);}
 body.light-mode #workoutScreen .workout-exercise-card{background:var(--card-bg)!important;border-color:var(--border)!important;box-shadow:0 8px 20px rgba(0,0,0,.08)!important;}
 body.light-mode #workoutScreen .workout-set-row{background:var(--input-bg)!important;border-color:var(--border)!important;}
 body.light-mode #workoutScreen .workout-set-row input{background:#fff!important;color:var(--text)!important;}
-body.light-mode #workoutScreen .set-num{background:#fff!important;color:var(--subtext)!important;}body.light-mode #workoutScreen .set-delete-btn{background:transparent!important;}
+body.light-mode #workoutScreen .set-num{background:#fff!important;color:var(--subtext)!important;}
+body.light-mode #workoutScreen .set-done-btn{background:#e5e5ea!important;color:var(--text)!important;}
+body.light-mode #workoutScreen .set-done-btn.done{background:var(--button-green)!important;color:#fff!important;}
+body.light-mode #workoutScreen .set-delete-btn{background:transparent!important;}
 body.light-mode #workoutScreen .workout-last-result{background:var(--input-bg)!important;border-color:var(--border)!important;}
 body.light-mode #workoutScreen .workout-last-icon{background:#fff!important;}
 body.light-mode #workoutScreen .workout-replace-btn{background:var(--input-bg)!important;border-color:var(--border)!important;color:var(--subtext)!important;}
@@ -983,7 +999,8 @@ body.light-mode #workoutScreen #exerciseStrip .exercise-dot.active{background:rg
 #workoutScreen .workout-completion-head{display:flex;align-items:baseline;gap:7px;margin-bottom:9px}.workout-completion-head b{font-size:12px;letter-spacing:.08em}.workout-completion-head strong{font-size:22px}.workout-completion-head span{color:var(--subtext);font-size:12px}
 #workoutScreen .completion-track{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.completion-segment{height:8px;border-radius:999px;background:var(--border)}.completion-segment.filled{background:#34c759}
 #workoutScreen .workout-recommendation{border:1px solid var(--border);border-radius:16px;padding:12px 14px;margin:12px 0;background:var(--card-bg);cursor:pointer;transition:.2s}.workout-recommendation.is-collapsed{padding:12px 14px}.workout-recommendation.is-collapsed .recommendation-main,.workout-recommendation.is-collapsed .recommendation-note{display:none}.recommendation-head{display:flex;justify-content:space-between;align-items:center;font-weight:800}.recommendation-toggle{font-size:18px}.recommendation-main{margin-top:8px;font-size:18px}.recommendation-note{margin-top:5px;color:var(--subtext);font-size:13px;line-height:1.35}
-#workoutScreen .workout-bottom-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin-top:14px!important}.workout-bottom-action{aspect-ratio:1/1;min-height:145px!important;border-radius:20px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:9px!important;padding:12px!important;box-sizing:border-box!important}.workout-bottom-action .nav-icon{font-size:50px;line-height:1}.workout-bottom-action .nav-label{font-size:14px;line-height:1.15;text-align:center}.workout-bottom-action:active{transform:scale(.97)}.workout-set-row .set-delete-btn{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:50%!important}
+#workoutScreen .workout-bottom-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin-top:14px!important}.workout-bottom-action{aspect-ratio:1/1;min-height:145px!important;border-radius:20px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:9px!important;padding:12px!important;box-sizing:border-box!important}.workout-bottom-action .nav-icon{font-size:50px;line-height:1}.workout-bottom-action .nav-label{font-size:14px;line-height:1.15;text-align:center}.workout-bottom-action:active{transform:scale(.97)}
+#workoutScreen .set-done-btn{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important}.workout-set-row .set-done-btn.done{background:#34c759!important;color:#fff!important;border-color:#34c759!important}.workout-set-row .set-delete-btn{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:50%!important}
 .replace-create-exercise-btn{width:100%;min-height:48px;margin:8px 0;border-radius:14px;border:1px solid var(--border);background:var(--input-bg);font-weight:800}
 @media(max-width:430px){#workoutScreen .workout-exercise-name-large{font-size:23px}.workout-bottom-action{min-height:138px!important}.workout-bottom-action .nav-icon{font-size:45px}.workout-bottom-action .nav-label{font-size:13px}.workout-action-grid button{font-size:13px}}
 #workoutScreen .workout-topbar{padding:8px 0 10px!important;}
@@ -1074,7 +1091,13 @@ body.light-mode #workoutScreen #exerciseStrip .exercise-dot.active{background:rg
 #workoutScreen .workout-set-inputs{
   min-width:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:7px!important;
 }
-#workoutScreen .workout-set-inputs input{width:100%!important;min-width:0!important;height:46px!important;box-sizing:border-box!important;}#workoutScreen .set-delete-btn{overflow:hidden!important;}
+#workoutScreen .workout-set-inputs input{width:100%!important;min-width:0!important;height:46px!important;box-sizing:border-box!important;}
+#workoutScreen .set-done-btn,#workoutScreen .set-delete-btn{
+  width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;margin:0!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;border-radius:50%!important;
+}
+#workoutScreen .set-done-btn.done{background:#55d96a!important;color:#fff!important;border-color:#55d96a!important;}
+#workoutScreen .set-delete-btn{overflow:hidden!important;}
 #workoutScreen .workout-bottom-actions{
   display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:10px!important;
   width:100%!important;margin-top:16px!important;
@@ -1267,7 +1290,11 @@ input,select{border:1px solid var(--border)!important;background:var(--input-bg)
 #workoutScreen .workout-set-inputs.horizontal{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;min-width:0!important;}
 #workoutScreen .workout-set-inputs.horizontal.single{grid-template-columns:minmax(0,1fr)!important;}
 #workoutScreen .workout-set-inputs input{width:100%!important;min-width:0!important;height:44px!important;margin:0!important;padding:0 8px!important;border-radius:11px!important;background:#18181f!important;border:1px solid #302f3a!important;color:var(--text)!important;text-align:center!important;font-size:15px!important;font-weight:800!important;}
-#workoutScreen .set-num{width:38px!important;height:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:11px!important;background:rgba(255,255,255,.045)!important;color:var(--subtext)!important;font-weight:850!important;}#workoutScreen .set-delete-btn{background:rgba(255,255,255,.035)!important;color:#a9a6b0!important;border:1px solid var(--border)!important;font-size:16px!important;}
+#workoutScreen .set-num{width:38px!important;height:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:11px!important;background:rgba(255,255,255,.045)!important;color:var(--subtext)!important;font-weight:850!important;}
+#workoutScreen .set-done-btn,#workoutScreen .set-delete-btn{width:40px!important;height:40px!important;min-width:40px!important;margin:0!important;padding:0!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;}
+#workoutScreen .set-done-btn{background:rgba(255,255,255,.06)!important;color:var(--subtext)!important;border:1px solid var(--border)!important;font-size:21px!important;}
+#workoutScreen .set-done-btn.done{background:var(--positive)!important;color:#fff!important;border-color:var(--positive)!important;}
+#workoutScreen .set-delete-btn{background:rgba(255,255,255,.035)!important;color:#a9a6b0!important;border:1px solid var(--border)!important;font-size:16px!important;}
 .data-history-status{margin-top:12px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:var(--input-bg);display:grid;gap:8px;}
 .data-history-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;}
 .data-history-row>span{color:var(--subtext);}
@@ -1313,7 +1340,9 @@ input,select{border:1px solid var(--border)!important;background:var(--input-bg)
   #workoutScreen .workout-bottom-action .nav-icon{font-size:42px!important;}
   #workoutScreen .workout-bottom-action .nav-label{font-size:12.5px!important;}
   #workoutScreen .workout-set-row{grid-template-columns:34px minmax(0,1fr) 38px 38px!important;gap:5px!important;padding:6px!important;}
-  #workoutScreen .set-num{width:34px!important;height:36px!important;}#workoutScreen .workout-set-inputs.horizontal{gap:5px!important;}
+  #workoutScreen .set-num{width:34px!important;height:36px!important;}
+  #workoutScreen .set-done-btn,#workoutScreen .set-delete-btn{width:38px!important;height:38px!important;min-width:38px!important;}
+  #workoutScreen .workout-set-inputs.horizontal{gap:5px!important;}
   #workoutScreen .workout-set-inputs input{height:42px!important;font-size:14px!important;padding:0 5px!important;}
   .screen-header .title{font-size:22px!important;}
 }
@@ -3862,7 +3891,9 @@ body.light-mode{
 .system-confirm-actions button{min-height:42px!important;height:42px!important;margin:0!important;padding:8px 10px!important;border-radius:11px!important;font-size:13px!important;font-weight:700!important;}
 .finish-confirm-icon{display:none!important;}
 #app>div.hidden,[id$="Modal"].hidden,.theme-modal.hidden,.exercise-modal.hidden,.date-modal.hidden,.confirm-modal.hidden,.workout-detail-modal.hidden,.manual-workout-modal.hidden,.achievements-modal.hidden,.food-modal.hidden,.catalog-modal.hidden,.technique-modal.hidden{display:none!important;pointer-events:none!important;visibility:hidden!important;}
-#workoutScreen input,#workoutScreen button{pointer-events:auto!important;touch-action:auto!important;}#workoutScreen .workout-action-grid .action-copy{display:block!important;min-width:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:normal!important;word-break:normal!important;line-height:1.12!important;font-size:12.5px!important;}
+#workoutScreen input,#workoutScreen button{pointer-events:auto!important;touch-action:auto!important;}
+#workoutScreen .workout-action-grid button,#workoutScreen .workout-bottom-action,#workoutScreen .workout-close,#workoutScreen .set-done-btn,#workoutScreen .set-delete-btn{position:static!important;z-index:auto!important;}
+#workoutScreen .workout-action-grid .action-copy{display:block!important;min-width:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:normal!important;word-break:normal!important;line-height:1.12!important;font-size:12.5px!important;}
 #workoutScreen .workout-action-grid .action-copy br{display:block!important;}
 #workoutScreen .workout-action-grid button{grid-template-columns:30px minmax(0,1fr) 16px!important;min-height:68px!important;overflow:visible!important;}
 .ftracker-import-trigger{width:100%!important;border-radius:14px!important;background:var(--button-gray)!important;color:var(--text)!important;font-size:17px!important;font-weight:600!important;padding:14px!important;}
@@ -4137,7 +4168,19 @@ body{
 .check-row,
 .form-row{
   align-items:center;
-}.toast{
+}
+
+.set-done-btn,
+.set-delete-btn,
+input[type="checkbox"],
+.checkbox,
+.checkbox-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+}
+.toast{
   top:calc(var(--safe-top) + 60px) !important;
 }
 
@@ -12544,5 +12587,11 @@ strong,b{font-synthesis:none!important;}
 
 
 /* v1.8.35 — completion is derived from filled fields; no manual checkbox. */
-#workoutScreen .workout-set-row{grid-template-columns:38px minmax(0,1fr) 40px!important;}#workoutScreen .workout-set-row .set-delete-btn{grid-column:3!important;}#workoutScreen .workout-set-row{grid-template-columns:38px minmax(0,1fr) 40px!important;}
+#workoutScreen .workout-set-row{grid-template-columns:38px minmax(0,1fr) 40px!important;}
+#workoutScreen .workout-set-row .set-done-btn{display:none!important;}
+#workoutScreen .workout-set-row .set-delete-btn{grid-column:3!important;}
+
+/* v1.8.36 — manual set completion control is permanently disabled. */
+#workoutScreen .workout-set-row .set-done-btn{display:none!important;width:0!important;min-width:0!important;padding:0!important;margin:0!important;border:0!important;}
+#workoutScreen .workout-set-row{grid-template-columns:38px minmax(0,1fr) 40px!important;}
 #workoutScreen .workout-set-row .set-delete-btn{grid-column:3!important;}

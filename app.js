@@ -1,4 +1,4 @@
-/* FTracker v1.8.37 — Dynamic Index audit corrections.
+/* FTracker v1.8.34 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -3868,25 +3868,35 @@ function seedWorkoutSetsFromHistory(){
     const today=new Date().toISOString();
     program.exercises.forEach((exerciseName,realIdx)=>{
         if(program.active?.[realIdx]===false) return;
-        const previous=getPreviousExerciseResult(exerciseName,today);
-        if(!previous || !previous.sets?.length) return;
         const type=program.types?.[realIdx] || getExerciseTypeByName(exerciseName);
-        const row={};
-        if(type==='strength'){
-            const source=getAutofillStrengthResult(exerciseName,program.name,today);
-            if(source){ row.weight=source.weight>=0.01 ? formatNum(source.weight) : ''; row.reps=source.reps>0 ? formatNum(source.reps) : ''; }
-        } else if(type==='cardio'){
-            const source=previous.sets[previous.sets.length-1];
-            row.time=source.time ?? source.minutes ?? ''; row.intensity=source.intensity ?? '';
-            if(source.reps!==undefined) row.reps=source.reps;
-        } else {
-            const source=previous.sets[previous.sets.length-1]; row.reps=source.reps ?? '';
+        const previous=getPreviousExerciseResult(exerciseName,today);
+        if(previous && Array.isArray(previous.sets) && previous.sets.length){
+            // Pull the complete set structure from the immediately previous workout.
+            // Every previous set is copied so the user sees the same number of sets,
+            // weights and reps and can edit them before/while performing the workout.
+            workoutSets[realIdx]=previous.sets.map(src=>{
+                const row={};
+                if(type==='strength'){
+                    row.weight=src.weight ?? '';
+                    row.reps=src.reps ?? '';
+                }else if(type==='cardio'){
+                    row.time=src.time ?? src.minutes ?? '';
+                    row.intensity=src.intensity ?? '';
+                    if(src.reps!==undefined) row.reps=src.reps;
+                }else{
+                    row.reps=src.reps ?? '';
+                }
+                return row;
+            });
+        }else{
+            // No history yet: keep the normal planned target. Strength exercises
+            // start with 3 empty sets; cardio/bodyweight start with 1.
+            const count=type==='strength'?3:1;
+            workoutSets[realIdx]=Array.from({length:count},()=>({}));
         }
-        workoutSets[realIdx]=[row];
     });
     saveDraft();
 }
-
 function getLatestAnalogousExerciseHistory(exerciseName, programName, beforeDate){
     const cutoff=beforeDate?new Date(beforeDate):new Date();
     return (data.history||[]).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).find(entry=>{
@@ -4053,7 +4063,7 @@ function renderExerciseBase() {
     const recKey=normalizeExerciseKey(exerciseName);
     const recCollapsed=window.workoutRecommendationCollapsed?.[recKey]===true;
     let recommendationMain='';
-    if(type==='strength') recommendationMain=`<b>${recommendation.weight!=null?formatNum(recommendation.weight)+' кг':'Подбери рабочий вес'} × 8 × 3</b>`;
+    if(type==='strength') recommendationMain=`<b>${recommendation.weight!=null?formatNum(recommendation.weight)+' кг':'Подбери рабочий вес'} × 8 × ${target||3}</b>`;
     else if(type==='cardio') recommendationMain=`<b>${recommendation.time!=null?formatNum(recommendation.time)+' мин':'Выбери комфортную длительность'}${recommendation.intensity!=null?' · инт. '+formatNum(recommendation.intensity):''}</b><span>· 1 подход</span>`;
     else recommendationMain=`<b>${recommendation.reps!=null?formatNum(recommendation.reps)+' повторов':'Выбери комфортное число повторов'}</b><span>· 1 подход</span>`;
     const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>💡 Рабочие показатели</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-main">${recommendationMain}</div><div class="recommendation-note">${escapeHtml(recommendation.reason)}</div></div>`;
@@ -4155,36 +4165,28 @@ function updateWorkoutCompletionUI(){
 }
 
 function addSet() {
-    const screen = document.getElementById('workoutScreen');
-    const realIdx = getRealExerciseIndex();
-    const meta = getWorkoutExercise(realIdx);
+    const realIdx=getRealExerciseIndex();
+    const meta=getWorkoutExercise(realIdx);
     if(!meta) return;
-    const type = meta.type;
-    if(!workoutSets[realIdx]) workoutSets[realIdx] = [];
-    // A newly added set is always EMPTY. Previous results are shown as
-    // reference elsewhere, but must never make a new set completed automatically.
-    const newSet = {};
+    const type=meta.type || 'strength';
+    if(!workoutSets[realIdx]) workoutSets[realIdx]=[];
+    // A newly added set is intentionally empty. Previous-workout values are
+    // seeded when the exercise starts; extra sets must be entered by the user.
+    const newSet={};
     const setIndex=workoutSets[realIdx].length;
     workoutSets[realIdx].push(newSet);
     saveDraft();
-
-    // Fast path: append only the new row. Rebuilding the complete exercise card
-    // on every added set caused avoidable layout/paint work in iOS PWA.
+    startRestTimer(lastRestDuration);
     const list=document.getElementById('setsList');
     if(list){
         list.insertAdjacentHTML('beforeend',buildWorkoutSetRowHtml(realIdx,type,newSet,setIndex));
         updateWorkoutCompletionUI();
-        // Adding the next set starts the rest timer. The new set itself remains
-        // empty and therefore does not enter results/history until filled.
-        startRestTimer(lastRestDuration);
         requestAnimationFrame(()=>{
             const row=list.lastElementChild;
             const input=row?.querySelector('input');
-            if(input){ try{input.focus({preventScroll:true});}catch(e){input.focus();} }
+            if(input){try{input.focus({preventScroll:true});}catch(e){input.focus();}}
         });
-    }else{
-        renderExercise();
-    }
+    }else renderExercise();
 }
 function deleteSet(exIdx, setIdx) { if (!workoutSets[exIdx]?.[setIdx]) return; pendingDeleteType='workoutSet'; pendingDeleteIndex=exIdx; pendingDeleteDate=String(setIdx); showDeleteConfirm('Удалить этот подход?'); }
 function updateSet(exIdx, setIdx, field, value) {
@@ -6300,7 +6302,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.37', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.34', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11184,7 +11186,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.37&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.34&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
