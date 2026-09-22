@@ -3822,6 +3822,10 @@ function getBestWorkingResult(exerciseName,programName,beforeDate){
     (data.history||[]).forEach(entry=>{
         const d=new Date(entry.date||0);
         if(!Number.isFinite(d.getTime()) || d>=cutoff) return;
+        // A working weight belongs to the same program context when one is supplied.
+        // This prevents an unrelated program history from silently becoming the
+        // current working weight for the exercise.
+        if(programName && entry.program!==programName) return;
         const r=getWorkingResultFromEntry(entry,exerciseName);
         if(!r) return;
         if(!best || Number(r.weight)>Number(best.weight) ||
@@ -3858,10 +3862,11 @@ function getFallbackStrengthResult(exerciseName,programName,beforeDate){
     return {weight:w,reps:Math.max(1,Math.round(r)),samples:samples.length,estimated:true};
 }
 function getAutofillStrengthResult(exerciseName,programName,beforeDate){
+    // The first set must contain a proven working weight, never an estimate.
+    // Fallback estimates remain available for recommendations, but are not
+    // written into the workout input as if they were an earned working weight.
     const working=getBestQualifiedStrengthResult(exerciseName,programName,beforeDate);
     if(working) return {...working,reps:8,sets:3,ideal:true};
-    const fallback=getFallbackStrengthResult(exerciseName,programName,beforeDate);
-    if(fallback) return {...fallback,reps:8,sets:3,ideal:true};
     return null;
 }
 
@@ -4062,7 +4067,7 @@ function renderExerciseBase() {
     if(type==='strength') recommendationMain=`<b>${recommendation.weight!=null?formatNum(recommendation.weight)+' кг':'Подбери рабочий вес'} × 8 × 3</b>`;
     else if(type==='cardio') recommendationMain=`<b>${recommendation.time!=null?formatNum(recommendation.time)+' мин':'Выбери комфортную длительность'}${recommendation.intensity!=null?' · инт. '+formatNum(recommendation.intensity):''}</b><span>· 1 подход</span>`;
     else recommendationMain=`<b>${recommendation.reps!=null?formatNum(recommendation.reps)+' повторов':'Выбери комфортное число повторов'}</b><span>· 1 подход</span>`;
-    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>💡 Рабочие показатели</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-main">${recommendationMain}</div><div class="recommendation-note">${escapeHtml(recommendation.reason)}</div></div>`;
+    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>💡 Рекомендация</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-main">${recommendationMain}</div></div>`;
 
     let setsHTML='';
     sets.forEach((s,i)=>{
