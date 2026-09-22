@@ -1,4 +1,4 @@
-/* FTracker v1.8.51 — Workout replacement/create state fix.
+/* FTracker v1.8.52 — Workout replacement/create state fix.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -1959,9 +1959,9 @@ function renderFScoreHomeWidget(){
         const goalName=x.goal==='custom'?(activeCustomGoal?.name||'Своя цель'):({cut:'Сушка',gain:'Набор',maintain:'Поддержание'}[x.goal]||'Поддержание');
         const displayStatus=x.phase==='calibration'?'Собираем данные':x.status;
         const score=x.availableCount?Math.max(0,Math.min(100,Math.round(x.score))):0;
-        const deltaText=delta&&Number.isFinite(delta.delta)?`${delta.delta>0?'+':''}${Math.round(delta.delta)}`:'—';
+        const deltaText=delta&&Number.isFinite(delta.delta)?`${delta.delta>0?'+':''}${Math.round(delta.delta)}`:'Нет сравнения';
         const deltaClass=delta&&delta.delta>0?'up':delta&&delta.delta<0?'down':'flat';
-        const deltaPeriod=delta?.period||'с последней оценки';
+        const deltaPeriod=delta?.period||'';
         const ringStyle=`--fscore-value:${score}%;`;
         const blockNames={body:'Тело',training:'Тренировки',nutrition:'Питание'};
         const blockMarkup=x.blocks.map(b=>{
@@ -4129,7 +4129,7 @@ function renderExerciseBase() {
       <div class="workout-exercise-titleblock">
         <div class="workout-exercise-title-row">
           <button type="button" class="workout-exercise-name-large" onclick="openTechniqueFromWorkout(${realIdx})" aria-label="Открыть информацию об упражнении">${escapeHtml(exerciseName)} <span class="workout-info-icon">ⓘ</span></button>
-          <button type="button" class="workout-note-btn ${exerciseNote?'has-note':''}" data-workout-note-name="${escapeHtml(exerciseName)}" data-workout-note-type="${escapeHtml(type)}" onclick="event.stopPropagation()" title="${exerciseNote?'Изменить заметку':'Добавить заметку'}" aria-label="${exerciseNote?'Изменить заметку':'Добавить заметку'}">✎${exerciseNote?'<span class="workout-note-dot"></span>':''}</button>
+          <button type="button" class="workout-note-btn ${exerciseNote?'has-note':''}" data-workout-note-name="${escapeHtml(exerciseName)}" data-workout-note-type="${escapeHtml(type)}" onclick="event.stopPropagation()" title="${exerciseNote?'Изменить заметку':'Добавить заметку'}" aria-label="${exerciseNote?'Изменить заметку':'Добавить заметку'}">📝${exerciseNote?'<span class="workout-note-dot"></span>':''}</button>
         </div>
         <div class="workout-exercise-kicker"><span>${escapeHtml(typeLabel)} · ${escapeHtml(muscleGroup)}</span></div>
       </div>
@@ -4503,6 +4503,49 @@ function finishWorkout() {
         showToast('Ошибка: тренировка могла не сохраниться. Проверьте историю.');
     }
 }
+function getWorkoutPersonalRecords(entry) {
+    const records = {};
+    const previousHistory = (data.history || []).filter(e => e !== entry);
+    (entry?.exercises || []).forEach(ex => {
+        const type = ex.type || getExerciseTypeByName(ex.name);
+        const currentSets = (ex.sets || []).filter(Boolean);
+        if (!currentSets.length || !ex.name) return;
+        const previousSets = [];
+        previousHistory.forEach(h => {
+            const hx = (h.exercises || []).find(x => x.name === ex.name && (x.type || type) === type);
+            if (hx) (hx.sets || []).forEach(set => previousSets.push(set));
+        });
+        if (type === 'strength') {
+            const valid = currentSets.filter(s => Number.isFinite(parseFloat(s.weight)) && parseInt(s.reps) > 0 && parseFloat(s.weight) > 0);
+            if (!valid.length) return;
+            const bestCurrent = valid.reduce((a,b) => {
+                const aw=parseFloat(a.weight)||0, bw=parseFloat(b.weight)||0, ar=parseInt(a.reps)||0, br=parseInt(b.reps)||0;
+                return bw>aw || (bw===aw && br>ar) ? b : a;
+            });
+            const prevMaxWeight = previousSets.reduce((m,s)=>Math.max(m,parseFloat(s.weight)||0),0);
+            const prevBestRepsAtWeight = previousSets.reduce((m,s)=>{
+                const w=parseFloat(s.weight)||0, r=parseInt(s.reps)||0;
+                return w===parseFloat(bestCurrent.weight) ? Math.max(m,r) : m;
+            },0);
+            const w=parseFloat(bestCurrent.weight)||0, r=parseInt(bestCurrent.reps)||0;
+            if (w>prevMaxWeight) records[ex.name]=`Новый рекорд веса: ${formatNum(w)} кг × ${r}`;
+            else if (w===prevMaxWeight && r>prevBestRepsAtWeight) records[ex.name]=`Новый рекорд повторений с ${formatNum(w)} кг: ${r}`;
+        } else if (type === 'bodyweight') {
+            const bestCurrent=Math.max(...currentSets.map(s=>parseInt(s.reps)||0));
+            const prevBest=Math.max(0,...previousSets.map(s=>parseInt(s.reps)||0));
+            if(bestCurrent>0 && bestCurrent>prevBest) records[ex.name]=`Новый рекорд повторений: ${bestCurrent}`;
+        } else if (type === 'cardio') {
+            const bestTime=Math.max(...currentSets.map(s=>parseFloat(s.time)||0));
+            const bestIntensity=Math.max(...currentSets.map(s=>parseFloat(s.intensity)||0));
+            const prevTime=Math.max(0,...previousSets.map(s=>parseFloat(s.time)||0));
+            const prevIntensity=Math.max(0,...previousSets.map(s=>parseFloat(s.intensity)||0));
+            if(bestTime>0 && bestTime>prevTime) records[ex.name]=`Новый рекорд времени: ${formatNum(bestTime)} мин`;
+            else if(bestIntensity>0 && bestIntensity>prevIntensity) records[ex.name]=`Новый рекорд интенсивности: ${formatNum(bestIntensity)}`;
+        }
+    });
+    return records;
+}
+
 function showWorkoutSummary(entry) {
     const duration = entry.durationSeconds || 0;
     const sets = (entry.exercises||[]).reduce((n,e)=>n+(e.sets||[]).length,0);
@@ -4511,7 +4554,9 @@ function showWorkoutSummary(entry) {
     const cardioMinutes = (entry.exercises||[]).reduce((sum,e)=>sum+(e.sets||[]).reduce((s,x)=>s+(parseFloat(x.time)||0),0),0);
     const best = getBestWorkoutForProgram(entry);
     const comparisons = compareWorkoutEntries(entry, best);
-    const records = Object.entries(currentAchievements);
+    const computedRecords = getWorkoutPersonalRecords(entry);
+    Object.assign(currentAchievements, computedRecords);
+    const records = Object.entries(computedRecords);
     const title = document.getElementById('workoutSummaryTitle');
     const content = document.getElementById('workoutSummaryContent');
 
@@ -4565,10 +4610,10 @@ function showWorkoutSummary(entry) {
             <div class="smart-stat"><div class="smart-stat-value">${sets}</div><div class="smart-stat-label">ПОДХОДОВ</div></div>
             <div class="smart-stat"><div class="smart-stat-value">${hasVolume?volume.toLocaleString('ru-RU'):(cardioMinutes?formatNum(cardioMinutes):'—')}</div><div class="smart-stat-label">${hasVolume?'ОБЪЁМ, КГ':'КАРДИО, МИН'}</div></div>
         </div>
-        ${best ? `<div class="analysis-card summary-overall"><div class="analysis-title">📊 Общий объём тренировки</div><div class="overall-result"><span>Сегодня</span><b>${hasVolume ? volume.toLocaleString('ru-RU')+' кг' : formatNum(cardioMinutes)+' мин'}</b></div><div class="overall-result"><span>Максимальный объём тренировки</span><b>${bestVolume ? bestVolume.toLocaleString('ru-RU')+' кг' : '—'}</b></div><div class="overall-diff ${volumeClass}">${volumeArrow} ${bestVolume ? (volumeDiff===0 ? 'На уровне лучшего результата' : `${Math.abs(volumeDiff).toLocaleString('ru-RU')} кг · ${Math.round(volumePct*10)/10}% ${volumeDiff>0?'выше':'ниже'} лучшего`) : 'Недостаточно данных для сравнения'}</div></div>` : `<div class="analysis-card"><div class="analysis-title">📊 Общая аналитика</div><div class="analysis-line">Это первая сохранённая тренировка этого сплита. Дальше приложение начнёт сравнивать результаты с лучшими показателями.</div></div>`}
-        ${records.length ? `<div class="analysis-card records-card"><div class="analysis-title">🏆 Новые рекорды</div>${records.map(([ex,txt])=>`<div class="summary-record"><span>✨ ${escapeHtml(ex)}</span><b>${escapeHtml(txt)}</b></div>`).join('')}</div>` : ''}
-        ${best && comparisonRows ? `<div class="analysis-card best-comparison-card"><div class="analysis-title">📈 Сравнение с лучшими результатами</div><div class="analysis-subtitle">Сравнение одного лучшего подхода упражнения с лучшим подходом за всю историю. Количество подходов не влияет на результат.</div>${comparisonRows}</div>` : ''}
-        <div class="analysis-card final-insight-card"><div class="analysis-title">💡 Итог</div><div class="analysis-line">${records.length ? `Сегодня установлено новых рекордов: <b>${records.length}</b>.` : 'Новых личных рекордов сегодня не установлено.'} ${best && bestVolume ? (volumeDiff>0 ? `Общий объём выше твоего предыдущего максимума на ${Math.round(volumePct*10)/10}%.` : volumeDiff<0 ? `Общий объём ниже твоего максимума на ${Math.round(volumePct*10)/10}%.` : 'Общий объём совпал с твоим максимумом.') : ''}</div></div>
+        ${records.length ? `<div class="analysis-card records-card"><div class="analysis-title">🏆 Новые рекорды</div>${records.map(([ex,txt])=>`<div class="summary-record"><span>✨ ${escapeHtml(ex)}</span><b>${escapeHtml(txt)}</b></div>`).join('')}</div>` : `<div class="analysis-card final-insight-card"><div class="analysis-title">💡 Итог</div><div class="analysis-line">Новых личных рекордов сегодня не установлено. Сравнение ниже показывает изменения по лучшим подходам упражнений.</div></div>`}
+        ${best && comparisonRows ? `<div class="analysis-card best-comparison-card"><div class="analysis-title">📈 Результаты по упражнениям</div><div class="analysis-subtitle">Лучший подход сегодня сравнивается с личным максимумом этого упражнения за всю историю.</div>${comparisonRows}</div>` : ''}
+        ${best ? `<div class="analysis-card summary-overall"><div class="analysis-title">📊 Общий объём тренировки</div><div class="overall-result"><span>Сегодня</span><b>${hasVolume ? volume.toLocaleString('ru-RU')+' кг' : formatNum(cardioMinutes)+' мин'}</b></div><div class="overall-result"><span>Максимальный объём тренировки</span><b>${bestVolume ? bestVolume.toLocaleString('ru-RU')+' кг' : '—'}</b></div><div class="overall-diff ${volumeClass}">${volumeArrow} ${bestVolume ? (volumeDiff===0 ? 'На уровне лучшего результата' : `${Math.abs(volumeDiff).toLocaleString('ru-RU')} кг · ${Math.round(volumePct*10)/10}% ${volumeDiff>0?'выше':'ниже'} лучшего`) : 'Недостаточно данных для сравнения'}</div></div>` : ''}
+        ${records.length ? `<div class="analysis-card final-insight-card"><div class="analysis-title">💡 Итог</div><div class="analysis-line">Сегодня установлено новых личных рекордов: <b>${records.length}</b>. Общий объём показан отдельно и не определяет наличие личного рекорда.</div></div>` : ''}
     `;
     lockModalScroll(); document.getElementById('workoutSummaryModal').classList.remove('hidden');
 }
@@ -6398,7 +6443,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.51', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.52', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11299,7 +11344,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.51&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.52&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

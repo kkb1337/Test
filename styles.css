@@ -12577,7 +12577,7 @@ strong,b{font-synthesis:none!important;}
 #workoutScreen .recommendation-note{font-size:12.5px!important;line-height:1.35!important;}
 
 
-/* v1.8.51 — compact workout header and exercise title.
+/* v1.8.52 — compact workout header and exercise title.
    Canonical final rules for the workout screen: clear back arrow,
    compact timer pill at the right, and smaller exercise title. */
 #workoutScreen .workout-head{
@@ -12645,7 +12645,7 @@ strong,b{font-synthesis:none!important;}
 }
 
 
-/* v1.8.51 — final workout screen alignment + split picker creation action.
+/* v1.8.52 — final workout screen alignment + split picker creation action.
    These are canonical end-of-file rules; older historical rules remain untouched. */
 #workoutScreen .workout-topbar{
   padding:6px 0 9px!important;
@@ -12740,7 +12740,7 @@ strong,b{font-synthesis:none!important;}
   .picker-search-create{min-width:132px!important;max-width:145px!important;font-size:11.5px!important;}
 }
 
-/* v1.8.51 — compact workout content hierarchy.
+/* v1.8.52 — compact workout content hierarchy.
    Canonical end-of-file workout rules: title/meta hierarchy, compact recommendation, set controls. */
 #workoutScreen .workout-exercise-titleblock{padding:0 0 9px!important;margin:0!important;}
 #workoutScreen .workout-exercise-title-row{display:flex!important;align-items:center!important;gap:7px!important;min-width:0!important;margin:0!important;}
@@ -12767,4 +12767,56 @@ strong,b{font-synthesis:none!important;}
   #workoutScreen .workout-exercise-name-large{font-size:clamp(19px,5vw,22px)!important;}
   #workoutScreen .workout-note-btn{flex-basis:30px!important;width:30px!important;height:30px!important;min-width:30px!important;}
   #workoutScreen .recommendation-note{font-size:10.8px!important;}
+}
+
+
+/* v1.8.52 — workout notes + compact result hierarchy + F-Score alignment. */
+#workoutScreen .workout-note-btn{
+  width:30px!important;height:30px!important;min-width:30px!important;flex:0 0 30px!important;
+  border-radius:9px!important;font-size:16px!important;line-height:1!important;
+  background:rgba(255,255,255,.045)!important;border:1px solid var(--border)!important;
+}
+#workoutScreen .workout-note-btn.has-note{background:rgba(52,199,89,.10)!important;border-color:rgba(52,199,89,.42)!important;}
+#workoutScreen .workout-note-dot{right:4px!important;top:4px!important;width:5px!important;height:5px!important;}
+#workoutScreen .workout-recommendation{
+  padding:10px 12px!important;margin:10px 0!important;border-radius:14px!important;
+}
+#workoutScreen .recommendation-head{font-size:13px!important;line-height:1.1!important;}
+#workoutScreen .recommendation-main{margin-top:5px!important;font-size:15px!important;}
+#workoutScreen .recommendation-target{margin-top:6px!important;padding:7px 9px!important;border-radius:10px!important;display:flex!important;align-items:baseline!important;justify-content:space-between!important;gap:8px!important;}
+#workoutScreen .recommendation-target span{font-size:10px!important;letter-spacing:.08em!important;color:var(--subtext)!important;font-weight:800!important;}
+#workoutScreen .recommendation-target b{font-size:14px!important;line-height:1.15!important;text-align:right!important;}
+#workoutScreen .recommendation-note{margin-top:6px!important;font-size:11px!important;line-height:1.3!important;}
+#fscoreAnalyticsScreen .fscore-analytics-ring-wrap{align-items:center!important;gap:14px!important;}
+#fscoreAnalyticsScreen .fscore-analytics-ring-copy{min-width:0!important;flex:1 1 auto!important;max-width:100%!important;overflow:hidden!important;}
+#fscoreAnalyticsScreen .fscore-analytics-ring-copy>span{font-size:10px!important;line-height:1.15!important;white-space:nowrap!important;}
+#fscoreAnalyticsScreen .fscore-analytics-ring-copy>b{font-size:17px!important;line-height:1.15!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+#fscoreAnalyticsScreen .fscore-analytics-ring-copy>em{max-width:100%!important;white-space:normal!important;line-height:1.15!important;}
+#fscoreAnalyticsScreen .fscore-score-panel{overflow:hidden!important;}
+#fscoreAnalyticsScreen .fscore-detail-goal{min-width:0!important;max-width:42%!important;overflow-wrap:anywhere!important;}
+#fscoreHomeWidget .fscore-home-top{align-items:center!important;}
+#fscoreHomeWidget .fscore-home-goal{max-width:100%!important;overflow-wrap:anywhere!important;}
+#fscoreHomeWidget .fscore-home-middle{align-items:center!important;}
+#fscoreHomeWidget .fscore-home-trend{min-width:0!important;overflow:hidden!important;}
+#fscoreHomeWidget .fscore-home-status{min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important;}
+@media(max-width:420px){
+  #fscoreAnalyticsScreen .fscore-analytics-ring-wrap{gap:11px!important;}
+  #fscoreAnalyticsScreen .fscore-analytics-ring-copy>b{font-size:16px!important;}
+  #fscoreAnalyticsScreen .fscore-analytics-ring-copy>em{font-size:9px!important;padding:4px 7px!important;}
+}
+
+
+/* v1.8.52 — final F-Score text fitting on iPhone. */
+#fscoreAnalyticsScreen .fscore-goal-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;}
+#fscoreAnalyticsScreen .fscore-goal-tabs button{min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;line-height:1.1!important;padding-left:4px!important;padding-right:4px!important;}
+#fscoreHomeWidget .fscore-home-top>span:first-child{min-width:0!important;}
+#fscoreHomeWidget .fscore-home-top>span:first-child .fscore-home-title{white-space:nowrap!important;}
+#fscoreHomeWidget .fscore-home-trend{gap:5px!important;}
+#fscoreHomeWidget .fscore-home-delta{font-size:18px!important;flex-wrap:wrap!important;row-gap:2px!important;}
+#fscoreHomeWidget .fscore-home-delta small{font-size:10px!important;}
+#fscoreHomeWidget .fscore-home-status b{white-space:normal!important;line-height:1.15!important;}
+@media(max-width:430px){
+  #fscoreAnalyticsScreen .fscore-goal-tabs button{font-size:11px!important;min-height:50px!important;}
+  #fscoreHomeWidget .fscore-home-delta{font-size:17px!important;}
+  #fscoreHomeWidget .fscore-home-hero{gap:10px!important;}
 }
