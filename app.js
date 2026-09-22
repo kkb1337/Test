@@ -1,4 +1,4 @@
-/* FTracker v1.8.38 — Dynamic Index audit corrections.
+/* FTracker v1.8.42 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -3702,7 +3702,7 @@ function renderExerciseStrip() {
         const realIdx=getActiveExerciseIndices()[idx];
         const exerciseMeta=getWorkoutExercise(realIdx);
         const sets=workoutSets[realIdx]||[];
-        const hasDone=sets.some(s=>hasWorkoutSetResult(realIdx,s));
+        const hasDone=isWorkoutExerciseCompleted(realIdx);
         const active=idx===currentExerciseIndex?'active':'';
         const doneClass=hasDone?'done':'';
         return `<div class="exercise-dot ${active} ${doneClass}" data-step="${idx+1}" onclick="switchExercise(${idx})">${escapeHtml(ex)}</div>`;
@@ -3713,24 +3713,27 @@ function renderExerciseStrip() {
     },50);
     updateWorkoutProgressUI();
 }
+function getWorkoutCompletionTarget(type){ return type==='strength' ? 3 : 1; }
+function isWorkoutExerciseCompleted(exIdx){
+    const meta=getWorkoutExercise(exIdx);
+    return !!meta && countWorkoutSetResults(exIdx) >= getWorkoutCompletionTarget(meta.type);
+}
 function updateWorkoutProgressUI(){
     const activeIndices=getActiveExerciseIndices();
     const total=activeIndices.length;
-    const completed=activeIndices.reduce((n,idx)=> n + (countWorkoutSetResults(idx)>0?1:0), 0);
-    const totalSets=activeIndices.reduce((n,idx)=>n+countWorkoutSetResults(idx),0);
-    const pct=total?Math.round((completed/total)*100):0;
-    const bar=document.getElementById('workoutProgressBar');
-    if(bar) bar.style.width=pct+'%';
-    const left=document.getElementById('workoutProgressLeft');
-    if(left) left.textContent=`${Math.min(currentExerciseIndex+1,total)} из ${total} упражнений`;
+    const completed=activeIndices.reduce((n,idx)=>n+(isWorkoutExerciseCompleted(idx)?1:0),0);
+    const pct=total?Math.round(completed/total*100):0;
+    const bar=document.getElementById('workoutProgressBar'); if(bar) bar.style.width=pct+'%';
+    const left=document.getElementById('workoutProgressLeft'); if(left) left.textContent=`${Math.min(currentExerciseIndex+1,total)} из ${total} упражнений`;
     const right=document.getElementById('workoutProgressRight');
     const currentReal=activeIndices[currentExerciseIndex];
     const currentMeta=currentReal!==undefined?getWorkoutExercise(currentReal):null;
-    const currentDone=(currentReal!==undefined?countWorkoutSetResults(currentReal):0);
-    if(right) right.textContent=currentMeta?.type==='strength' ? `${Math.min(currentDone,3)}/3 подходов выполнено` : `${currentDone} подходов выполнено`;
-    const text=document.getElementById('workoutProgressText');
-    if(text) text.textContent=`Упражнение ${Math.min(currentExerciseIndex+1,total)} из ${total}`;
+    const currentDone=currentReal!==undefined?countWorkoutSetResults(currentReal):0;
+    const target=currentMeta?getWorkoutCompletionTarget(currentMeta.type):1;
+    if(right) right.textContent=`${Math.min(currentDone,target)}/${target} подход${target===1?'':'а'} выполнено`;
+    const text=document.getElementById('workoutProgressText'); if(text) text.textContent=`Упражнение ${Math.min(currentExerciseIndex+1,total)} из ${total}`;
 }
+
 function switchExercise(idx) { stopRestTimer(); currentExerciseIndex=idx; renderExerciseStrip(); renderExercise(); saveDraft(); }
 function getRealExerciseIndex() { return getActiveExerciseIndices()[currentExerciseIndex]; }
 
@@ -3871,28 +3874,9 @@ function getAutofillStrengthResult(exerciseName,programName,beforeDate){
 }
 
 function seedWorkoutSetsFromHistory(){
-    if(currentProgram === null || !data.programs[currentProgram]) return;
-    const program=data.programs[currentProgram];
-    const today=new Date().toISOString();
-    program.exercises.forEach((exerciseName,realIdx)=>{
-        if(program.active?.[realIdx]===false) return;
-        const previous=getPreviousExerciseResult(exerciseName,today);
-        if(!previous || !previous.sets?.length) return;
-        const type=program.types?.[realIdx] || getExerciseTypeByName(exerciseName);
-        const row={};
-        if(type==='strength'){
-            const source=getAutofillStrengthResult(exerciseName,program.name,today);
-            if(source){ row.weight=source.weight>=0.01 ? formatNum(source.weight) : ''; row.reps=source.reps>0 ? formatNum(source.reps) : ''; }
-        } else if(type==='cardio'){
-            const source=previous.sets[previous.sets.length-1];
-            row.time=source.time ?? source.minutes ?? ''; row.intensity=source.intensity ?? '';
-            if(source.reps!==undefined) row.reps=source.reps;
-        } else {
-            const source=previous.sets[previous.sets.length-1]; row.reps=source.reps ?? '';
-        }
-        workoutSets[realIdx]=[row];
-    });
-    saveDraft();
+    // New workout: no placeholder/auto-created sets.
+    // Values are filled only when the user explicitly adds the first set.
+    return;
 }
 
 function getLatestAnalogousExerciseHistory(exerciseName, programName, beforeDate){
@@ -3921,40 +3905,25 @@ function getExerciseRecommendation(exerciseName,type,programName){
         const fallback=working?null:getFallbackStrengthResult(exerciseName,programName,before);
         const base=working||fallback;
         if(base){
-            const baseWeight=Number(base.weight)||0;
-            const baseReps=Number(base.reps)||0;
+            const baseWeight=Number(base.weight)||0, baseReps=Number(base.reps)||0;
             const step=baseWeight<20?1:2.5;
-            const nextWeight=baseReps>=8 ? Math.round((baseWeight+step)/step)*step : baseWeight;
-            return {
-                weight:nextWeight>0?nextWeight:baseWeight,
-                reps:8,
-                sets:3,
-                baseWeight,
-                reason: baseReps>=8
-                    ? `Рабочий вес выполнен на 8+ повторений. Следующая цель — ${formatNum(nextWeight)} кг × 8 × 3.`
-                    : `Рабочий вес пока ниже 8 повторений. Сохраняем ${formatNum(baseWeight)} кг и стремимся к 3 × 8.`
-            };
+            const nextWeight=baseReps>=8?Math.round((baseWeight+step)/step)*step:baseWeight;
+            return {weight:nextWeight,reps:8,sets:3,currentWeight:baseWeight,currentReps:baseReps,
+                reason:baseReps>=8?`Текущий рабочий показатель ${formatNum(baseWeight)} кг × ${formatNum(baseReps)} × 3 достиг цели. Можно перейти на ${formatNum(nextWeight)} кг.`:`Сохраняем ${formatNum(baseWeight)} кг и доводим рабочие подходы до 8 повторений перед повышением веса.`};
         }
-        return {
-            weight:null,reps:8,sets:3,
-            reason:'Для этого упражнения ещё нет базы. Подбери вес, с которым сможешь уверенно выполнить 3 × 8, и приложение начнёт рассчитывать рекомендацию.'
-        };
+        return {weight:null,reps:8,sets:3,currentWeight:null,currentReps:null,reason:'Для этого упражнения ещё нет подтверждённого рабочего показателя. После первого полноценного выполнения приложение начнёт рассчитывать персональную цель.'};
     }
     const previous=getPreviousExerciseResult(exerciseName,before);
-    if(previous?.sets?.length){
-        const last=previous.sets[previous.sets.length-1]||{};
-        if(type==='cardio'){
-            const time=Number(last.time??last.minutes);
-            const intensity=Number(last.intensity);
-            return {time:Number.isFinite(time)&&time>0?time:null,intensity:Number.isFinite(intensity)&&intensity>0?intensity:null,sets:1,
-                reason:'Ориентир взят из последнего выполнения. Сохраняй контроль темпа и самочувствия.'};
-        }
-        const reps=Number(last.reps);
-        return {reps:Number.isFinite(reps)&&reps>0?reps:null,sets:1,
-            reason:'Ориентир взят из последнего выполнения. Сохраняй технику и не доводи подход до потери контроля.'};
+    const last=previous?.sets?.[previous.sets.length-1]||null;
+    if(type==='cardio'){
+        const time=last?Number(last.time??last.minutes):NaN, intensity=last?Number(last.intensity):NaN;
+        const t=Number.isFinite(time)&&time>0?time:null, i=Number.isFinite(intensity)&&intensity>0?intensity:null;
+        return {time:t,intensity:i,sets:1,currentTime:t,currentIntensity:i,reason:last?'Цель основана на последнем сохранённом рабочем показателе. Повышай нагрузку постепенно, сохраняя контроль самочувствия.':'После первого сохранённого выполнения появится персональный рабочий показатель.'};
     }
-    return {reps:null,sets:1,reason:'Первичная рекомендация появится после первого сохранённого выполнения упражнения.'};
+    const reps=last?Number(last.reps):NaN, r=Number.isFinite(reps)&&reps>0?reps:null;
+    return {reps:r,sets:1,currentReps:r,reason:last?'Цель основана на последнем сохранённом результате. Повышай число повторений постепенно, сохраняя технику.':'После первого сохранённого выполнения появится персональный рабочий показатель.'};
 }
+
 function formatRecommendation(rec){
     if(!rec) return '';
     return `<div class="workout-recommendation"><div class="recommendation-head"><span>🎯 Рабочие показатели</span><span>на эту тренировку</span></div><div class="recommendation-main"><b>${formatNum(rec.weight)} кг × ${rec.reps}</b><span>· ${rec.sets} подхода</span></div><div class="recommendation-note">${escapeHtml(rec.reason)}</div></div>`;
@@ -4050,7 +4019,7 @@ function renderExerciseBase() {
     // Progress target for strength is the standard 3 working sets.
     // Completed count is based only on fully filled sets, so 4/3 is valid
     // when an additional set is added.
-    const target=type==='strength' ? 3 : Math.max(1,sets.length);
+    const target=getWorkoutCompletionTarget(type);
 
     const titleEl=document.getElementById('workoutTitle');
     if(titleEl) titleEl.textContent=program?.name || 'Тренировка';
@@ -4060,14 +4029,25 @@ function renderExerciseBase() {
     if(timeEl) timeEl.dataset.workoutTimer='1';
 
 
-    const recommendation=getExerciseRecommendation(exerciseName,type,program?.name) || {reps:8,sets:target,reason:'После первого выполнения приложение начнёт использовать твои собственные результаты для расчёта рекомендации.'};
+    const recommendation=getExerciseRecommendation(exerciseName,type,program?.name) || {reps:8,sets:target,reason:'После первого выполнения приложение начнёт использовать твои собственные результаты для расчёта цели.'};
     const recKey=normalizeExerciseKey(exerciseName);
     const recCollapsed=window.workoutRecommendationCollapsed?.[recKey]===true;
-    let recommendationMain='';
-    if(type==='strength') recommendationMain=`<b>${recommendation.weight!=null?formatNum(recommendation.weight)+' кг':'Подбери рабочий вес'} × 8 × 3</b>`;
-    else if(type==='cardio') recommendationMain=`<b>${recommendation.time!=null?formatNum(recommendation.time)+' мин':'Выбери комфортную длительность'}${recommendation.intensity!=null?' · инт. '+formatNum(recommendation.intensity):''}</b><span>· 1 подход</span>`;
-    else recommendationMain=`<b>${recommendation.reps!=null?formatNum(recommendation.reps)+' повторов':'Выбери комфортное число повторов'}</b><span>· 1 подход</span>`;
-    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>💡 Рекомендация</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-main">${recommendationMain}</div></div>`;
+    let currentMain='', targetMain='';
+    if(type==='strength'){
+        currentMain=recommendation.currentWeight!=null ? `${formatNum(recommendation.currentWeight)} кг × ${formatNum(recommendation.currentReps||8)} × ${target}` : 'Нет сохранённого рабочего веса';
+        targetMain=recommendation.weight!=null ? `${formatNum(recommendation.weight)} кг × ${formatNum(recommendation.reps||8)} × ${target}` : 'Подбери рабочий вес';
+    }else if(type==='cardio'){
+        const ct=recommendation.currentTime!=null?`${formatNum(recommendation.currentTime)} мин`:'';
+        const ci=recommendation.currentIntensity!=null?` · интенсивность ${formatNum(recommendation.currentIntensity)}/10`:'';
+        currentMain=(ct||ci)?`${ct}${ci} × ${target}`:'Нет сохранённого рабочего показателя';
+        const tt=recommendation.time!=null?`${formatNum(recommendation.time)} мин`:'';
+        const ti=recommendation.intensity!=null?` · интенсивность ${formatNum(recommendation.intensity)}/10`:'';
+        targetMain=(tt||ti)?`${tt}${ti} × ${target}`:'Определи комфортную длительность и интенсивность';
+    }else{
+        currentMain=recommendation.currentReps!=null?`${formatNum(recommendation.currentReps)} повторений × ${target}`:'Нет сохранённого рабочего показателя';
+        targetMain=recommendation.reps!=null?`${formatNum(recommendation.reps)} повторений × ${target}`:'Определи целевое число повторений';
+    }
+    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>💡 Рабочие показатели</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-current"><span>Текущий рабочий показатель</span><b>${escapeHtml(currentMain)}</b></div><div class="recommendation-target"><span>Цель на эту тренировку</span><b>${escapeHtml(targetMain)}</b></div><div class="recommendation-note">${escapeHtml(recommendation.reason||'')}</div></div>`;
 
     let setsHTML='';
     sets.forEach((s,i)=>{
@@ -4155,7 +4135,7 @@ function updateWorkoutCompletionUI(){
     const meta=realIdx!==undefined?getWorkoutExercise(realIdx):null;
     if(!meta) return;
     const sets=workoutSets[realIdx]||[];
-    const target=sets.length;
+    const target=getWorkoutCompletionTarget(meta.type);
     const completed=countWorkoutSetResults(realIdx);
     const card=document.querySelector('#exerciseContainer .workout-exercise-card');
     if(!card) return;
@@ -4177,15 +4157,16 @@ function addSet() {
     const historyPrev = getPreviousExerciseResult(exercise, new Date().toISOString());
     const historySet = historyPrev?.sets?.[historyPrev.sets.length - 1] || {};
     const prev = lastResults[exercise] || historySet || {};
+    const recommendation = getExerciseRecommendation(exercise,type,data.programs[currentProgram]?.name);
     const newSet = { done:false };
     if(type==='strength'){
-        newSet.weight = lastSet ? lastSet.weight : (prev.weight || '');
-        newSet.reps = lastSet ? lastSet.reps : (prev.reps || '');
+        newSet.weight = lastSet ? lastSet.weight : (recommendation?.currentWeight ?? prev.weight ?? '');
+        newSet.reps = lastSet ? lastSet.reps : (recommendation?.currentReps ?? prev.reps ?? '');
     }else if(type==='cardio'){
-        newSet.time = lastSet ? lastSet.time : (prev.time || '');
-        newSet.intensity = lastSet ? lastSet.intensity : (prev.intensity || '');
+        newSet.time = lastSet ? lastSet.time : (recommendation?.currentTime ?? prev.time ?? '');
+        newSet.intensity = lastSet ? lastSet.intensity : (recommendation?.currentIntensity ?? prev.intensity ?? '');
     }else{
-        newSet.reps = lastSet ? lastSet.reps : (prev.reps || '');
+        newSet.reps = lastSet ? lastSet.reps : (recommendation?.currentReps ?? prev.reps ?? '');
     }
     const setIndex=workoutSets[realIdx].length;
     workoutSets[realIdx].push(newSet);
@@ -4388,12 +4369,16 @@ function finishWorkout() {
     });
     localStorage.setItem('strong_last_results', JSON.stringify(lastResults));
     const durationSeconds = sessionDurationSeconds;
-    const completedExerciseIndices=sessionIndices.filter(realIdx=>{
-        const type=getWorkoutExercise(realIdx)?.type||'strength';
-        const sets=workoutSets[realIdx]||[];
-        return sets.some(s=>isWorkoutSetFilledForResult(s,type));
-    });
     const completionRequirements={strength:3,cardio:1,bodyweight:1};
+    const recordedExerciseIndices=sessionIndices.filter(realIdx=>{
+        const type=getWorkoutExercise(realIdx)?.type||'strength';
+        return (workoutSets[realIdx]||[]).some(s=>isWorkoutSetFilledForResult(s,type));
+    });
+    const completedExerciseIndices=recordedExerciseIndices.filter(realIdx=>{
+        const type=getWorkoutExercise(realIdx)?.type||'strength';
+        const required=completionRequirements[type]||1;
+        return (workoutSets[realIdx]||[]).filter(s=>isWorkoutSetFilledForResult(s,type)).length>=required;
+    });
     const completionTargets=completedExerciseIndices.map(realIdx=>{
         const type=getWorkoutExercise(realIdx)?.type||'strength';
         return {realIdx,type,required:completionRequirements[type]||1};
@@ -4432,7 +4417,7 @@ function finishWorkout() {
         date: new Date().toISOString(), program: program.name, durationSeconds,
         completion:{completed:completionDone,total:completionTotal,percent:completionPercent},
         plannedExercises,
-        exercises: completedExerciseIndices.map(realIdx => {
+        exercises: recordedExerciseIndices.map(realIdx => {
             const meta=getWorkoutExercise(realIdx);
             if(!meta) return null;
             const type=meta.type||'strength';
@@ -6320,7 +6305,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.38', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.42', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -8075,7 +8060,7 @@ function adjustRestTime(delta){
   updateWorkoutProgressUI = function(){
     const activeIndices=getActiveExerciseIndices();
     const total=activeIndices.length;
-    const completed=activeIndices.reduce((n,idx)=>n+(countWorkoutSetResults(idx)>0?1:0),0);
+    const completed=activeIndices.reduce((n,idx)=>n+(isWorkoutExerciseCompleted(idx)?1:0),0);
     const pct=total?Math.round((completed/total)*100):0;
     const bar=document.getElementById('workoutProgressBar');
     if(bar) bar.style.width=pct+'%';
@@ -11204,7 +11189,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.38&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.42&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

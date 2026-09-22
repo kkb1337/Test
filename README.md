@@ -1,4 +1,4 @@
-# FTracker v1.8.39 — Workout Set Logic
+# FTracker v1.8.42 — Workout Set Logic
 
 ## Approved logic / actions
 1. The workout completion indicator shows only `ВЫПОЛНЕНО X/3 подходов` for strength exercises. The redundant `Цель: 3 подхода` text is removed.
@@ -8,13 +8,13 @@
    - bodyweight: reps must be filled.
 3. A strength exercise may exceed the planned target, so values such as `4/3` are valid after an additional completed set.
 4. At workout start, the first set is prefixed from the existing application working-weight calculation (`getAutofillStrengthResult`), using the established history/formula logic. No new formula was introduced and workout/history scoring logic was not changed.
-5. Version/cache identifiers are synchronized to v1.8.39.
+5. Version/cache identifiers are synchronized to v1.8.42.
 
 ## What changed
 - Removed the duplicate target label from the workout completion block.
 - Fixed the strength completion target to 3 working sets while keeping the completed count based strictly on fully filled sets.
 - Activated the existing calculated working-weight autofill for the first set when a valid historical calculation is available.
-- Synchronized release version to 1.8.39 in app metadata and service worker.
+- Synchronized release version to 1.8.42 in app metadata and service worker.
 
 ## Remaining / planned
 - Validate the workout flow on iOS PWA after installation/update:
@@ -30,7 +30,7 @@
 - Empty or partially filled rows never count as completed results.
 - The existing working-weight calculation remains the single source of truth for first-set autofill; no duplicate formula was added.
 
-## v1.8.39 — Working weight vs recommendation
+## v1.8.42 — Working weight vs recommendation
 
 - First strength-set autofill now uses only the qualified working weight actually earned from history; estimated fallback values are no longer written into the first-set input.
 - Qualified working weight is taken from a historical workout in the active program, using the existing qualification rule: the same weight must have at least 3 sets with 6+ repetitions; the displayed repetitions are the rounded average for those qualified sets.
