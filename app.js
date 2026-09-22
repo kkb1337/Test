@@ -1,4 +1,4 @@
-/* FTracker v1.8.49 — Workout replacement/create state fix.
+/* FTracker v1.8.50 — Workout replacement/create state fix.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -5194,7 +5194,6 @@ function renderExercisePickerBase(){
         const selected=existing.has(normalizeExerciseKey(item.name));
         return `<button type="button" class="catalog-choice ${selected?'selected':''}" ${selected?'disabled':''} data-picker-name="${escapeHtml(item.name)}"><span class="catalog-choice-name">${escapeHtml(item.name)}</span><span class="catalog-choice-group">${escapeHtml(item.type==='cardio'?'Кардио':item.group)}</span><span>${selected?'✓':'›'}</span></button>`;
     }).join('')}</section>`).join('') || '<div style="padding:12px;color:var(--subtext);">Ничего не найдено</div>';
-    root.insertAdjacentHTML('beforeend', `<button type="button" class="program-picker-add-new" onclick="openNewDirectoryExerciseForSplit(${exercisePickerProgramIndex})">＋ Добавить упражнение — нет в списке</button>`);
     root.querySelectorAll('[data-picker-name]').forEach(btn=>btn.addEventListener('click',()=>{if(!btn.disabled)selectExerciseForProgram(exercisePickerProgramIndex,btn.dataset.pickerName,getDirectoryExercises().find(x=>x.name===btn.dataset.pickerName)?.type||'strength');}));
 }
 function selectExerciseForProgram(progIdx,name,type){
@@ -6399,7 +6398,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.49', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.50', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11300,7 +11299,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.49&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.50&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
