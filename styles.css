@@ -11680,10 +11680,8 @@ html,body{
   #homeScreen .nav-buttons button{height:76px!important;min-height:76px!important;padding:7px 5px!important;}
   #programList.program-grid-many .centered-card{height:86px!important;min-height:86px!important;}
 }
-#homeScreen .nav-buttons{gap:0!important;
+#homeScreen .nav-buttons{
   grid-auto-rows:82px!important;
-  row-gap:0!important;
-  column-gap:0!important;
   gap:0!important;
 }
 #homeScreen .nav-buttons button{

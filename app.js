@@ -1,4 +1,4 @@
-/* FTracker v1.8.34 — Dynamic Index audit corrections.
+/* FTracker v1.8.35 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -6368,7 +6368,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.34', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.35', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11253,7 +11253,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.34&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.35&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
