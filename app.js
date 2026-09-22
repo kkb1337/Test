@@ -1,4 +1,4 @@
-/* FTracker v1.8.42 — Dynamic Index audit corrections.
+/* FTracker v1.8.44 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -2844,7 +2844,7 @@ function saveWorkoutNewExercise(){
         const ref=-(workoutTransientExercises.length);
         workoutExerciseSlots=getActiveExerciseIndices().concat([ref]);
         currentExerciseIndex=workoutExerciseSlots.length-1;
-        workoutSets[ref]=[{}];
+        workoutSets[ref]=[];
         saveDraft(); renderExerciseStrip(); renderExercise();
       }
       showToast('Упражнение добавлено');
@@ -2935,21 +2935,6 @@ function confirmReplaceExercise(){
     // important: stale sets must not be counted after a replacement.
     if(oldRef!==undefined) delete workoutSets[oldRef];
     delete workoutSets[newRef];
-
-    const previous=getPreviousExerciseResult(replacementName,new Date().toISOString());
-    if(previous?.sets?.length){
-        const source=previous.sets[previous.sets.length-1], row={};
-        if(replacementType==='strength'){
-            row.weight=source.weight??'';
-            row.reps=source.reps??'';
-        }else if(replacementType==='cardio'){
-            row.time=source.time??source.minutes??'';
-            row.intensity=source.intensity??'';
-        }else{
-            row.reps=source.reps??'';
-        }
-        workoutSets[newRef]=[row];
-    }
 
     // Keep the original planned exercise in the same plan slot so F-Score
     // evaluates the replacement against what was actually planned.
@@ -3825,10 +3810,8 @@ function getBestWorkingResult(exerciseName,programName,beforeDate){
     (data.history||[]).forEach(entry=>{
         const d=new Date(entry.date||0);
         if(!Number.isFinite(d.getTime()) || d>=cutoff) return;
-        // A working weight belongs to the same program context when one is supplied.
-        // This prevents an unrelated program history from silently becoming the
-        // current working weight for the exercise.
-        if(programName && entry.program!==programName) return;
+        // Working weight is an exercise-level historical metric. It uses the
+        // full history regardless of which program/split contained the exercise.
         const r=getWorkingResultFromEntry(entry,exerciseName);
         if(!r) return;
         if(!best || Number(r.weight)>Number(best.weight) ||
@@ -3842,7 +3825,7 @@ function getBestWorkingResult(exerciseName,programName,beforeDate){
 function getFallbackStrengthResult(exerciseName,programName,beforeDate){
     const cutoff=beforeDate?new Date(beforeDate):new Date();
     const entries=(data.history||[]).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).filter(entry=>{
-        const d=new Date(entry.date||0); return Number.isFinite(d.getTime()) && d<cutoff && (!programName || entry.program===programName);
+        const d=new Date(entry.date||0); return Number.isFinite(d.getTime()) && d<cutoff;
     });
     const samples=[];
     for(const entry of entries){
@@ -3901,9 +3884,11 @@ function roundRecommendationWeight(weight){
 function getExerciseRecommendation(exerciseName,type,programName){
     const before=new Date().toISOString();
     if(type==='strength'){
-        const working=getBestQualifiedStrengthResult(exerciseName,programName,before);
-        const fallback=working?null:getFallbackStrengthResult(exerciseName,programName,before);
-        const base=working||fallback;
+        // Recommendations are derived only from a historically qualified
+        // working weight. Estimated fallback values are intentionally excluded:
+        // an estimate is not an earned working weight and must not become a
+        // target presented as if it were based on confirmed history.
+        const base=getBestQualifiedStrengthResult(exerciseName,programName,before);
         if(base){
             const baseWeight=Number(base.weight)||0, baseReps=Number(base.reps)||0;
             const step=baseWeight<20?1:2.5;
@@ -4047,7 +4032,7 @@ function renderExerciseBase() {
         currentMain=recommendation.currentReps!=null?`${formatNum(recommendation.currentReps)} повторений × ${target}`:'Нет сохранённого рабочего показателя';
         targetMain=recommendation.reps!=null?`${formatNum(recommendation.reps)} повторений × ${target}`:'Определи целевое число повторений';
     }
-    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>💡 Рабочие показатели</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-current"><span>Текущий рабочий показатель</span><b>${escapeHtml(currentMain)}</b></div><div class="recommendation-target"><span>Цель на эту тренировку</span><b>${escapeHtml(targetMain)}</b></div><div class="recommendation-note">${escapeHtml(recommendation.reason||'')}</div></div>`;
+    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>🎯 Рекомендация</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-target"><span>Цель</span><b>${escapeHtml(targetMain)}</b></div><div class="recommendation-note"><span>Почему стоит улучшить</span><b>${escapeHtml(recommendation.reason||'')}</b></div></div>`;
 
     let setsHTML='';
     sets.forEach((s,i)=>{
@@ -6305,7 +6290,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.42', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.44', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11096,14 +11081,31 @@ window.closeImportConfirm=function(){
   // Search is bound once to the actual input and calls the canonical renderer.
   function bind(){const input=document.getElementById('catalogSearch');if(!input||input.dataset.catalogBound)return;input.dataset.catalogBound='1';input.addEventListener('input',renderCatalogList);input.addEventListener('search',renderCatalogList);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  // Workout progress is calculated only from filled set fields.
+  // Global workout progress counts required work units, not input rows.
+  // Strength = 3 required sets; cardio/bodyweight = 1 required result.
+  // Empty rows never increase the denominator and extra sets never inflate it.
   updateWorkoutProgressUI=function(){
-    const active=getActiveExerciseIndices();let done=0,total=0;
-    active.forEach(idx=>{const meta=getWorkoutExercise(idx);if(!meta)return;const sets=workoutSets[idx]||[];const completed=countWorkoutSetResults(idx);total+=sets.length;done+=completed;});
+    const active=getActiveExerciseIndices();
+    let done=0,total=0,completedExercises=0;
+    active.forEach(idx=>{
+      const meta=getWorkoutExercise(idx); if(!meta) return;
+      const required=getWorkoutCompletionTarget(meta.type);
+      const completed=countWorkoutSetResults(idx);
+      total+=required;
+      done+=Math.min(completed,required);
+      if(completed>=required) completedExercises++;
+    });
     const pct=total?Math.round(done/total*100):0;
-    const bar=document.getElementById('workoutProgressBar');const left=document.getElementById('workoutProgressLeft');const right=document.getElementById('workoutProgressRight');const text=document.getElementById('workoutProgressText');
-    if(bar)bar.style.width=pct+'%';if(left)left.textContent=total?`Выполнено ${done} из ${total} подходов`:'Нет упражнений';if(right)right.textContent='';if(text)text.textContent='';
+    const bar=document.getElementById('workoutProgressBar');
+    const left=document.getElementById('workoutProgressLeft');
+    const right=document.getElementById('workoutProgressRight');
+    const text=document.getElementById('workoutProgressText');
+    if(bar) bar.style.width=pct+'%';
+    if(left) left.textContent=total?`Выполнено ${done} из ${total} подходов`:'Нет упражнений';
+    if(right) right.textContent=active.length?`${completedExercises} из ${active.length} упражнений`:'';
+    if(text) text.textContent='';
   };
+
 
   // Inline onclick/oninput attributes use global bindings, not just window properties.
   // Synchronize both paths so old implementations cannot win in the PWA.
@@ -11189,7 +11191,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.42&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.44&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

@@ -1,40 +1,35 @@
-# FTracker v1.8.42 — Workout Set Logic
+# FTracker v1.8.44 — Historical Working Weight & Workout Progress
 
-## Approved logic / actions
-1. The workout completion indicator shows only `ВЫПОЛНЕНО X/3 подходов` for strength exercises. The redundant `Цель: 3 подхода` text is removed.
-2. Progress counts only fully completed sets:
-   - strength: both weight and reps must be filled with positive values;
-   - cardio: time and intensity must be filled;
-   - bodyweight: reps must be filled.
-3. A strength exercise may exceed the planned target, so values such as `4/3` are valid after an additional completed set.
-4. At workout start, the first set is prefixed from the existing application working-weight calculation (`getAutofillStrengthResult`), using the established history/formula logic. No new formula was introduced and workout/history scoring logic was not changed.
-5. Version/cache identifiers are synchronized to v1.8.42.
+Дата релиза: 22.09.2026
 
-## What changed
-- Removed the duplicate target label from the workout completion block.
-- Fixed the strength completion target to 3 working sets while keeping the completed count based strictly on fully filled sets.
-- Activated the existing calculated working-weight autofill for the first set when a valid historical calculation is available.
-- Synchronized release version to 1.8.42 in app metadata and service worker.
+## Рабочий вес
+- Рабочий вес для силового упражнения рассчитывается по всей истории пользователя, а не только по последней тренировке и не ограничивается текущей программой/сплитом.
+- Исторически подтверждённым рабочим результатом считается вес, выполненный минимум в 3 силовых подходах по 6+ повторений в одной тренировке. Для этого результата сохраняется среднее число повторений.
+- Из всех подтверждённых исторических рабочих результатов выбирается максимальный рабочий вес; при равном весе приоритет получает более поздняя дата.
+- Исторический рабочий вес используется как источник данных для новой тренировки и для расчёта персональной рекомендации.
+- Расчётная рекомендация не использует резервную оценку, если подтверждённого исторического рабочего веса нет: в этом случае приложение просит сначала получить подтверждённый рабочий результат.
 
-## Remaining / planned
-- Validate the workout flow on iOS PWA after installation/update:
-  1. new exercise with no history;
-  2. exercise with calculated working weight;
-  3. partial set must remain 0/3;
-  4. completed sets become 1/3, 2/3, 3/3;
-  5. an additional completed set can show 4/3.
-- Confirm cache refresh after the service-worker version bump.
+## Создание и замена упражнения
+- При старте новой тренировки данные истории доступны для рекомендации и автозаполнения полей после ручного добавления подхода, но сами подходы автоматически не создаются.
+- При замене упражнения старые подходы удаляются вместе со старым упражнением; новое упражнение получает 0 подходов.
+- Исторические результаты нового упражнения не превращаются автоматически в новый подход. Пользователь сам нажимает «Добавить подход».
+- При ручном добавлении подхода существующая логика может подставить исторический рабочий вес/повторы в поля, но строка подхода появляется только после действия пользователя.
 
-## Key architecture decisions
-- The displayed completion count is a result counter, not an input-row counter.
-- Empty or partially filled rows never count as completed results.
-- The existing working-weight calculation remains the single source of truth for first-set autofill; no duplicate formula was added.
+## Плашка рекомендации
+- Заголовок: «🎯 Рекомендация».
+- Основной блок: «Цель».
+- Ниже: «Почему стоит улучшить» с объяснением, основанным на историческом рабочем результате.
 
-## v1.8.42 — Working weight vs recommendation
+## Верхний прогресс тренировки
+Общий прогресс считается по обязательным рабочим единицам всей тренировки, а не по количеству созданных строк:
+- силовое упражнение = 3 обязательных подхода;
+- кардио = 1 обязательный результат;
+- упражнение на повторения = 1 обязательный результат.
 
-- First strength-set autofill now uses only the qualified working weight actually earned from history; estimated fallback values are no longer written into the first-set input.
-- Qualified working weight is taken from a historical workout in the active program, using the existing qualification rule: the same weight must have at least 3 sets with 6+ repetitions; the displayed repetitions are the rounded average for those qualified sets.
-- The program filter is now applied consistently when selecting the best qualified working weight.
-- The recommendation remains separate from the input value: it shows the next target calculated from the qualified working weight using the existing progression step/rounding logic.
-- The workout card title was changed from “💡 Рабочие показатели” to “💡 Рекомендация”; explanatory text was removed so the card communicates only the target.
-- Fallback calculation itself remains available for recommendation generation when no qualified working weight exists, but it is not treated as an earned working weight for first-set autofill.
+Пример: 6 силовых + кардио + упражнение на повторения = `6 × 3 + 1 + 1 = 20`, поэтому новая тренировка начинается с `Выполнено 0 из 20 подходов`.
+Дополнительные силовые подходы после обязательных трёх не увеличивают общий знаменатель.
+
+## Проверки
+- `node --check app.js` проходит.
+- Статические инварианты проверяют формулу общего прогресса, отсутствие автосоздания подхода при замене/добавлении упражнения и использование всей истории для рабочего веса.
+- Версия приложения, manifest, Service Worker, cache name, query-version и дата релиза синхронизированы: **v1.8.44 от 22.09.26**.

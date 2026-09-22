@@ -12547,7 +12547,7 @@ strong,b{font-synthesis:none!important;}
 #workoutScreen .workout-set-row{grid-template-columns:38px minmax(0,1fr) 40px!important;}#workoutScreen .workout-set-row .set-delete-btn{grid-column:3!important;}#workoutScreen .workout-set-row{grid-template-columns:38px minmax(0,1fr) 40px!important;}
 #workoutScreen .workout-set-row .set-delete-btn{grid-column:3!important;}
 
-/* v1.8.42 workout recommendation: current vs target, shared by strength/cardio/reps */
+/* v1.8.44 workout recommendation: current vs target, shared by strength/cardio/reps */
 #workoutScreen .recommendation-current,#workoutScreen .recommendation-target{display:flex;flex-direction:column;gap:3px;margin-top:9px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid var(--border);}
 #workoutScreen .recommendation-current span,#workoutScreen .recommendation-target span{font-size:11px;color:var(--subtext);font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
 #workoutScreen .recommendation-current b,#workoutScreen .recommendation-target b{font-size:16px;line-height:1.25;}

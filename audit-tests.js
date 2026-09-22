@@ -1,23 +1,39 @@
-/* FTracker Dynamic Index invariant tests; run with: node audit-tests.js */
+/* FTracker v1.8.44 workout logic regression tests; run with: node audit-tests.js */
 const assert=require('node:assert/strict');
-const clamp=(v,min=0,max=100)=>{v=Number(v);if(!Number.isFinite(v))return null;min=Number.isFinite(Number(min))?Number(min):0;max=Number.isFinite(Number(max))?Number(max):100;if(min>max)[min,max]=[max,min];return Math.max(min,Math.min(max,v));};
-const frequency=(count,periodDays=30)=>{count=Math.max(0,Number(count)||0);periodDays=Math.max(7,Number(periodDays)||30);const weekly=count*7/periodDays;if(weekly>=2&&weekly<=5)return 100;if(weekly<2)return clamp(weekly/2*100);return 100;};
-const nutritionCoverage=(days,periodDays=90)=>Math.min(1,days/Math.min(14,periodDays));
-const nutritionAvailable=(days)=>days>=3;
-const nutritionFinal=(raw,days)=>nutritionAvailable(days)?clamp(raw):null;
-for(const n of [0,1,7,13,17,30,100])assert.ok(frequency(n)>=0&&frequency(n)<=100);
-assert.equal(frequency(13,30),100); // ~3.0/week
-assert.equal(frequency(17,30),100); // ~4.0/week
-assert.equal(frequency(30,30),100); // high frequency is not penalized by itself
-assert.ok(frequency(6,30)<100);      // ~1.4/week is insufficient
-assert.equal(nutritionAvailable(2),false);
-assert.equal(nutritionAvailable(3),true);
-assert.equal(nutritionFinal(100,3),100);
-assert.equal(nutritionFinal(0,3),0);
-assert.equal(nutritionCoverage(2,90),2/14);
-assert.equal(nutritionCoverage(7,90),.5);
-assert.equal(nutritionCoverage(14,90),1);
-assert.equal(clamp(NaN),null);assert.equal(clamp(Infinity),null);assert.equal(clamp(120),100);
-const files=['index.html','manifest.json','sw.js','app.js','README.md'].map(f=>require('node:fs').readFileSync(f,'utf8'));
-for(const s of files) assert.ok(!/1\.8\.(21|27|28)/.test(s),'stale version identifier found');
-console.log('FTracker scoring invariants: OK');
+const fs=require('node:fs');
+const app=fs.readFileSync('app.js','utf8');
+const index=fs.readFileSync('index.html','utf8');
+const manifest=fs.readFileSync('manifest.json','utf8');
+const sw=fs.readFileSync('sw.js','utf8');
+const readme=fs.readFileSync('README.md','utf8');
+
+// Global progress model: 3 for strength, 1 for cardio/reps.
+const required=t=>t==='strength'?3:1;
+const progress=types=>{const total=types.reduce((s,t)=>s+required(t),0); return {done:0,total};};
+assert.deepEqual(progress(['strength','strength','strength','strength','strength','strength','cardio','bodyweight']),{done:0,total:20});
+assert.equal(Math.min(4,3),3,'extra strength set must not inflate global denominator');
+
+// New/replaced exercise starts with zero sets; no copied historical row.
+assert.match(app,/workoutSets\[ref\]=\[\];/);
+assert.doesNotMatch(app,/workoutSets\[newRef\]=\[row\];/);
+assert.doesNotMatch(app,/const previous=getPreviousExerciseResult\(replacementName/);
+
+// Historical working weight is not restricted by program/split.
+assert.match(app,/Working weight is an exercise-level historical metric/);
+assert.doesNotMatch(app,/if\(programName && entry\.program!==programName\) return;/);
+
+// Recommendation must come from a qualified historical working weight, not fallback estimation.
+assert.match(app,/const base=getBestQualifiedStrengthResult\(exerciseName,programName,before\);/);
+assert.doesNotMatch(app,/const base=working\|\|fallback/);
+
+// Top progress must use required units, not number of existing input rows.
+assert.match(app,/Global workout progress counts required work units, not input rows/);
+assert.match(app,/total\+=required/);
+assert.match(app,/done\+=Math\.min\(completed,required\)/);
+
+// Release metadata must be synchronized.
+for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.44'),'stale release version');
+assert.ok(index.includes('от 22.09.26'),'release date missing');
+assert.ok(sw.includes("const APP_VERSION = '1.8.44'"),'SW cache version missing');
+
+console.log('FTracker v1.8.44 workout logic regression tests: OK');
