@@ -1,4 +1,4 @@
-/* FTracker v1.8.46 — Dynamic Index audit corrections.
+/* FTracker v1.8.47 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -269,6 +269,7 @@ let workoutPlanSnapshot = [];
 // Negative slot references point into this transient array and are never saved to data.programs.
 let workoutTransientExercises = [];
 let replacementSlotIndex = null;
+let pendingWorkoutReplacementCreate = null;
 let totalTimerInterval = null, restTimerInterval = null, restEndTime = null, lastResults = {};
 let workoutRecommendationAutoCollapseTimer = null;
 let workoutRecommendationTimerKey = '';
@@ -2641,6 +2642,8 @@ function openWorkoutNewExerciseModal(){
 }
 function closeWorkoutNewExerciseModal(){document.getElementById('workoutNewExerciseModal')?.classList.add('hidden');}
 function openWorkoutNewExerciseFromReplace(){
+    if(replacementSlotIndex===null || currentProgram===null){ showToast('Не удалось определить упражнение для замены'); return; }
+    pendingWorkoutReplacementCreate={slot:Number(replacementSlotIndex), programIndex:Number(currentProgram)};
     closeReplaceExerciseModal();
     openWorkoutNewExerciseModal();
 }
@@ -2810,9 +2813,14 @@ window.showExerciseDuplicateModal=function(name,matches,exact,onAllow){
       modal._onAllow=null;
       modal.classList.add('hidden');
       modal.setAttribute('aria-hidden','true');
+      const stackIndex=modalStack.indexOf(modal);
+      if(stackIndex!==-1) modalStack.splice(stackIndex,1);
       if(typeof updateModalStackState==='function') updateModalStackState();
-      /* Explicit approval: execute the original create callback exactly once. */
+      /* Explicit approval: close this decision layer first, then execute the
+         original create callback exactly once. This prevents the duplicate
+         sheet from remaining above a newly opened/updated screen. */
       if(typeof fn==='function') fn();
+      if(modal.parentNode) modal.parentNode.removeChild(modal);
     };
   } else {
     modal._onAllow=null;
@@ -2839,7 +2847,35 @@ function saveWorkoutNewExercise(){
     const create=()=>{
       const createdEntry=ensureDirectoryEntry(name,type,group);
       if(createdEntry) createdEntry.guide=createdEntry.guide||{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]};
+      const replacementCtx=pendingWorkoutReplacementCreate ? {...pendingWorkoutReplacementCreate} : null;
+      pendingWorkoutReplacementCreate=null;
       saveData(); closeWorkoutNewExerciseModal();
+      if(replacementCtx && currentProgram!==null && Number(replacementCtx.programIndex)===Number(currentProgram)){
+        // Creating from the Replace flow is a SLOT REPLACEMENT, never an append.
+        const slots=Array.isArray(workoutExerciseSlots)?workoutExerciseSlots.slice():getActiveExerciseIndices();
+        const slot=Number(replacementCtx.slot);
+        if(slot>=0 && slot<slots.length){
+          const oldRef=slots[slot];
+          const transient={name,type,group,guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}};
+          workoutTransientExercises=Array.isArray(workoutTransientExercises)?workoutTransientExercises:[];
+          workoutTransientExercises.push(transient);
+          const ref=-(workoutTransientExercises.length);
+          if(oldRef!==undefined) delete workoutSets[oldRef];
+          delete workoutSets[ref];
+          slots[slot]=ref;
+          workoutExerciseSlots=slots;
+          currentExerciseIndex=slot;
+          if(Array.isArray(workoutPlanSnapshot) && workoutPlanSnapshot[slot]){
+            workoutPlanSnapshot[slot].status='replaced';
+            workoutPlanSnapshot[slot].actualName=name;
+            workoutPlanSnapshot[slot].actualType=type;
+            workoutPlanSnapshot[slot].actualGroup=fScoreExerciseGroup(name,type);
+          }
+          saveDraft(); renderExerciseStrip(); renderExercise();
+          showToast(`Заменено новым упражнением: «${name}»`);
+          return;
+        }
+      }
       if(currentProgram!==null){
         const transient={name,type,group,guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}};
         workoutTransientExercises=Array.isArray(workoutTransientExercises)?workoutTransientExercises:[];
@@ -5056,6 +5092,7 @@ let pendingSplitExerciseCreate=null;
 function openNewDirectoryExerciseForSplit(progIdx){
     if(!data.programs?.[progIdx]) return;
     pendingSplitExerciseCreate={progIdx:Number(progIdx)};
+    closeExercisePicker();
     openNewDirectoryExerciseModal();
 }
 window.openNewDirectoryExerciseForSplit=openNewDirectoryExerciseForSplit;
@@ -6337,7 +6374,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.46', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.47', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11238,7 +11275,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.46&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.47&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
