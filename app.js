@@ -1,4 +1,4 @@
-/* FTracker v1.8.44 — Dynamic Index audit corrections.
+/* FTracker v1.8.45 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -4032,7 +4032,7 @@ function renderExerciseBase() {
         currentMain=recommendation.currentReps!=null?`${formatNum(recommendation.currentReps)} повторений × ${target}`:'Нет сохранённого рабочего показателя';
         targetMain=recommendation.reps!=null?`${formatNum(recommendation.reps)} повторений × ${target}`:'Определи целевое число повторений';
     }
-    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>🎯 Рекомендация</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-target"><span>Цель</span><b>${escapeHtml(targetMain)}</b></div><div class="recommendation-note"><span>Почему стоит улучшить</span><b>${escapeHtml(recommendation.reason||'')}</b></div></div>`;
+    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>🎯 Рекомендация</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-target"><span>Цель</span><b>${escapeHtml(targetMain)}</b></div></div>`;
 
     let setsHTML='';
     sets.forEach((s,i)=>{
@@ -4372,10 +4372,12 @@ function finishWorkout() {
     const completionUnits=allPlannedWorkoutIndices.map(realIdx=>{
         const type=getWorkoutExercise(realIdx)?.type||'strength';
         const required=completionRequirements[type]||1;
+        const rows=Array.isArray(workoutSets[realIdx])?workoutSets[realIdx].length:0;
         const done=(workoutSets[realIdx]||[]).filter(s=>isWorkoutSetFilledForResult(s,type)).length;
-        return {realIdx,type,required,done:Math.min(required,done)};
+        const extra=Math.max(0,rows-required);
+        return {realIdx,type,required,total:required+extra,done};
     });
-    const completionTotal=completionUnits.reduce((sum,x)=>sum+x.required,0);
+    const completionTotal=completionUnits.reduce((sum,x)=>sum+x.total,0);
     const completionDone=completionUnits.reduce((sum,x)=>sum+x.done,0);
     const completionPercent=completionTotal?Math.round(completionDone/completionTotal*100):0;
     const plannedSnapshot=Array.isArray(workoutPlanSnapshot)?workoutPlanSnapshot:[];
@@ -5000,6 +5002,12 @@ function purgeDirectoryExercise(name){
     showDeleteConfirm(`Удалить «${escapeHtml(name)}» полностью? Будут удалены справочник, ${refs} вхожд. в программах и ${historyRows} историч. записей/результатов. Это необратимо — перед удалением рекомендуется экспортировать бэкап.`);
 }
 function renameExerciseGlobal(oldName) { openRenameExerciseModal(oldName); }
+let pendingDirectoryAddToProgram=null;
+function openNewExerciseFromSplitPicker(){
+    if(!Number.isInteger(exercisePickerProgramIndex) || !data.programs[exercisePickerProgramIndex]) return;
+    pendingDirectoryAddToProgram=exercisePickerProgramIndex;
+    openNewDirectoryExerciseModal();
+}
 function openNewDirectoryExerciseModal(){
     document.getElementById('directoryNewName').value='';
     document.getElementById('directoryNewType').value='strength';
@@ -5007,7 +5015,7 @@ function openNewDirectoryExerciseModal(){
     lockModalScroll(); document.getElementById('directoryNewExerciseModal').classList.remove('hidden');
     setTimeout(()=>document.getElementById('directoryNewName')?.focus(),50);
 }
-function closeNewDirectoryExerciseModal(){document.getElementById('directoryNewExerciseModal')?.classList.add('hidden');}
+function closeNewDirectoryExerciseModal(){document.getElementById('directoryNewExerciseModal')?.classList.add('hidden'); pendingDirectoryAddToProgram=null;}
 function showExerciseCreateConfirm(name,onConfirm){
     let modal=document.getElementById('exerciseCreateConfirmModal');
     if(!modal){
@@ -5057,10 +5065,17 @@ function saveNewDirectoryExercise(){
         guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}
       });
       data.exerciseDirectoryHidden=(data.exerciseDirectoryHidden||[]).filter(k=>ftFullKey(k)!==key);
+      const targetProgram=Number.isInteger(pendingDirectoryAddToProgram)?pendingDirectoryAddToProgram:null;
+      pendingDirectoryAddToProgram=null;
       saveData(); directoryView='active';
       const search=document.getElementById('directorySearch'); if(search) search.value='';
       closeNewDirectoryExerciseModal(); renderExerciseDirectory(); renderHome();
-      showToast('Упражнение добавлено в справочник');
+      if(targetProgram!==null && data.programs[targetProgram]){
+        selectExerciseForProgram(targetProgram,name,type);
+      } else {
+        renderSettings();
+      }
+      showToast(targetProgram!==null?'Упражнение добавлено в справочник и сплит':'Упражнение добавлено в справочник');
     };
     if(dup.similar.length){
       window.showExerciseDuplicateModal(name,dup.similar,false,create);
@@ -6290,7 +6305,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.44', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.45', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11081,21 +11096,23 @@ window.closeImportConfirm=function(){
   // Search is bound once to the actual input and calls the canonical renderer.
   function bind(){const input=document.getElementById('catalogSearch');if(!input||input.dataset.catalogBound)return;input.dataset.catalogBound='1';input.addEventListener('input',renderCatalogList);input.addEventListener('search',renderCatalogList);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  // Global workout progress counts required work units, not input rows.
+  // Global workout progress: required sets + explicitly added extra sets.
   // Strength = 3 required sets; cardio/bodyweight = 1 required result.
-  // Empty rows never increase the denominator and extra sets never inflate it.
+  // Extra rows increase the denominator only after the user explicitly adds them.
   updateWorkoutProgressUI=function(){
     const active=getActiveExerciseIndices();
     let done=0,total=0,completedExercises=0;
     active.forEach(idx=>{
       const meta=getWorkoutExercise(idx); if(!meta) return;
       const required=getWorkoutCompletionTarget(meta.type);
+      const rows=Array.isArray(workoutSets[idx])?workoutSets[idx].length:0;
       const completed=countWorkoutSetResults(idx);
-      total+=required;
-      done+=Math.min(completed,required);
+      const extra=Math.max(0,rows-required);
+      total+=required+extra;
+      done+=completed;
       if(completed>=required) completedExercises++;
     });
-    const pct=total?Math.round(done/total*100):0;
+    const pct=total?Math.min(100,Math.round(done/total*100)):0;
     const bar=document.getElementById('workoutProgressBar');
     const left=document.getElementById('workoutProgressLeft');
     const right=document.getElementById('workoutProgressRight');
@@ -11105,7 +11122,6 @@ window.closeImportConfirm=function(){
     if(right) right.textContent=active.length?`${completedExercises} из ${active.length} упражнений`:'';
     if(text) text.textContent='';
   };
-
 
   // Inline onclick/oninput attributes use global bindings, not just window properties.
   // Synchronize both paths so old implementations cannot win in the PWA.
@@ -11191,7 +11207,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.44&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.45&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
