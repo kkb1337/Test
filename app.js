@@ -1,4 +1,4 @@
-/* FTracker v1.8.45 — Dynamic Index audit corrections.
+/* FTracker v1.8.46 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -2801,14 +2801,17 @@ window.showExerciseDuplicateModal=function(name,matches,exact,onAllow){
   back.onclick=close;
   cancel.onclick=close;
   modal.onclick=e=>{if(e.target===modal)close();};
+  modal._onAllow=typeof onAllow==='function'?onAllow:null;
   if(!exact){
-    modal._onAllow=onAllow;
-    add.onclick=()=>{
+    add.onclick=(e)=>{
+      e.preventDefault();
+      e.stopPropagation();
       const fn=modal._onAllow;
       modal._onAllow=null;
       modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden','true');
       if(typeof updateModalStackState==='function') updateModalStackState();
-      /* This is the explicit approval path; creation itself does not re-open the conflict window. */
+      /* Explicit approval: execute the original create callback exactly once. */
       if(typeof fn==='function') fn();
     };
   } else {
@@ -3703,20 +3706,25 @@ function isWorkoutExerciseCompleted(exIdx){
     const meta=getWorkoutExercise(exIdx);
     return !!meta && countWorkoutSetResults(exIdx) >= getWorkoutCompletionTarget(meta.type);
 }
-function updateWorkoutProgressUI(){
+function getWorkoutProgressTotals(){
     const activeIndices=getActiveExerciseIndices();
-    const total=activeIndices.length;
-    const completed=activeIndices.reduce((n,idx)=>n+(isWorkoutExerciseCompleted(idx)?1:0),0);
-    const pct=total?Math.round(completed/total*100):0;
+    const baseTotal=activeIndices.reduce((sum,idx)=>sum+getWorkoutCompletionTarget(getWorkoutExercise(idx)?.type||'strength'),0);
+    const completed=activeIndices.reduce((sum,idx)=>sum+countWorkoutSetResults(idx),0);
+    const total=Math.max(baseTotal,completed);
+    return {activeIndices,baseTotal,completed,total};
+}
+function updateWorkoutProgressUI(){
+    const {activeIndices,completed,total}=getWorkoutProgressTotals();
+    const pct=total?Math.min(100,Math.round(completed/total*100)):0;
     const bar=document.getElementById('workoutProgressBar'); if(bar) bar.style.width=pct+'%';
-    const left=document.getElementById('workoutProgressLeft'); if(left) left.textContent=`${Math.min(currentExerciseIndex+1,total)} из ${total} упражнений`;
+    const left=document.getElementById('workoutProgressLeft'); if(left) left.textContent=`Выполнено ${completed} из ${total} подходов`;
     const right=document.getElementById('workoutProgressRight');
     const currentReal=activeIndices[currentExerciseIndex];
     const currentMeta=currentReal!==undefined?getWorkoutExercise(currentReal):null;
     const currentDone=currentReal!==undefined?countWorkoutSetResults(currentReal):0;
     const target=currentMeta?getWorkoutCompletionTarget(currentMeta.type):1;
-    if(right) right.textContent=`${Math.min(currentDone,target)}/${target} подход${target===1?'':'а'} выполнено`;
-    const text=document.getElementById('workoutProgressText'); if(text) text.textContent=`Упражнение ${Math.min(currentExerciseIndex+1,total)} из ${total}`;
+    if(right) right.textContent=`${currentDone}/${target} подход${target===1?'':'а'} выполнено`;
+    const text=document.getElementById('workoutProgressText'); if(text) text.textContent=`Упражнение ${Math.min(currentExerciseIndex+1,activeIndices.length)} из ${activeIndices.length}`;
 }
 
 function switchExercise(idx) { stopRestTimer(); currentExerciseIndex=idx; renderExerciseStrip(); renderExercise(); saveDraft(); }
@@ -3894,24 +3902,31 @@ function getExerciseRecommendation(exerciseName,type,programName){
             const step=baseWeight<20?1:2.5;
             const nextWeight=baseReps>=8?Math.round((baseWeight+step)/step)*step:baseWeight;
             return {weight:nextWeight,reps:8,sets:3,currentWeight:baseWeight,currentReps:baseReps,
-                reason:baseReps>=8?`Текущий рабочий показатель ${formatNum(baseWeight)} кг × ${formatNum(baseReps)} × 3 достиг цели. Можно перейти на ${formatNum(nextWeight)} кг.`:`Сохраняем ${formatNum(baseWeight)} кг и доводим рабочие подходы до 8 повторений перед повышением веса.`};
+                reason:baseReps>=8?`После выполнения целевого диапазона нагрузку можно повысить с ${formatNum(baseWeight)} до ${formatNum(nextWeight)} кг.`:`На ${formatNum(baseWeight)} кг пока не набран целевой объём повторений. Сначала доведи подходы до 8 повторений и только затем повышай вес.`, advice:baseReps>=8?`Ты стабильно выполнил целевой диапазон — увеличь вес небольшим шагом и сохрани чистую технику во всех рабочих подходах.`:`Не повышай вес раньше времени: сначала закрепи 8 качественных повторений в каждом рабочем подходе, затем добавляй нагрузку.`};
         }
-        return {weight:null,reps:8,sets:3,currentWeight:null,currentReps:null,reason:'Для этого упражнения ещё нет подтверждённого рабочего показателя. После первого полноценного выполнения приложение начнёт рассчитывать персональную цель.'};
+        return {weight:null,reps:8,sets:3,currentWeight:null,currentReps:null,reason:'После первого полноценного выполнения появится персональная цель.', advice:'Начни с веса, при котором все рабочие повторения выполняются контролируемо. Следующая рекомендация будет рассчитана по твоей собственной истории.'};
     }
     const previous=getPreviousExerciseResult(exerciseName,before);
     const last=previous?.sets?.[previous.sets.length-1]||null;
     if(type==='cardio'){
         const time=last?Number(last.time??last.minutes):NaN, intensity=last?Number(last.intensity):NaN;
         const t=Number.isFinite(time)&&time>0?time:null, i=Number.isFinite(intensity)&&intensity>0?intensity:null;
-        return {time:t,intensity:i,sets:1,currentTime:t,currentIntensity:i,reason:last?'Цель основана на последнем сохранённом рабочем показателе. Повышай нагрузку постепенно, сохраняя контроль самочувствия.':'После первого сохранённого выполнения появится персональный рабочий показатель.'};
+        return {time:t,intensity:i,sets:1,currentTime:t,currentIntensity:i,reason:last?'Увеличение времени или интенсивности оправдано только при сохранении контролируемого темпа.':'После первого сохранённого выполнения появится персональный рабочий показатель.', advice:last?(t!=null&&i!=null&&i>=8?'Время уже задано — сначала закрепи объём и темп, затем повышай интенсивность небольшим шагом.':'Сохрани текущую длительность и интенсивность стабильно, затем увеличивай только один параметр за раз.'):'Начни с контролируемой длительности и интенсивности; после первой записи рекомендация станет персональной.'};
     }
     const reps=last?Number(last.reps):NaN, r=Number.isFinite(reps)&&reps>0?reps:null;
-    return {reps:r,sets:1,currentReps:r,reason:last?'Цель основана на последнем сохранённом результате. Повышай число повторений постепенно, сохраняя технику.':'После первого сохранённого выполнения появится персональный рабочий показатель.'};
+    return {reps:r,sets:1,currentReps:r,reason:last?'Увеличивай повторения постепенно, не жертвуя техникой.':'После первого сохранённого выполнения появится персональный рабочий показатель.', advice:last?'Добавляй повторения небольшими шагами и повышай цель только после того, как текущий объём выполняется чисто и стабильно.':'Начни с количества повторений, которое можешь выполнить технически чисто; следующая цель будет рассчитана по истории.'};
 }
 
 function formatRecommendation(rec){
     if(!rec) return '';
-    return `<div class="workout-recommendation"><div class="recommendation-head"><span>🎯 Рабочие показатели</span><span>на эту тренировку</span></div><div class="recommendation-main"><b>${formatNum(rec.weight)} кг × ${rec.reps}</b><span>· ${rec.sets} подхода</span></div><div class="recommendation-note">${escapeHtml(rec.reason)}</div></div>`;
+    const target=rec.weight!=null
+      ? `${formatNum(rec.weight)} кг × ${formatNum(rec.reps||0)} × ${formatNum(rec.sets||1)}`
+      : rec.time!=null
+        ? `${formatNum(rec.time)} мин${rec.intensity!=null?` × ${formatNum(rec.intensity)}/10`:''}`
+        : rec.reps!=null
+          ? `${formatNum(rec.reps)} повторений × ${formatNum(rec.sets||1)}`
+          : 'Персональная цель';
+    return `<div class="workout-recommendation"><div class="recommendation-head"><span>🎯 Рекомендация</span><span>✓</span></div><div class="recommendation-target"><span>Цель</span><b>${escapeHtml(target)}</b></div><div class="recommendation-note">${escapeHtml(rec.advice||rec.reason||'Повышай нагрузку постепенно, сохраняя технику и качество выполнения.')}</div></div>`;
 }
 
 function resetWorkoutRecommendationAutoCollapse(){
@@ -4032,7 +4047,8 @@ function renderExerciseBase() {
         currentMain=recommendation.currentReps!=null?`${formatNum(recommendation.currentReps)} повторений × ${target}`:'Нет сохранённого рабочего показателя';
         targetMain=recommendation.reps!=null?`${formatNum(recommendation.reps)} повторений × ${target}`:'Определи целевое число повторений';
     }
-    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>🎯 Рекомендация</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-target"><span>Цель</span><b>${escapeHtml(targetMain)}</b></div></div>`;
+    const advice=recommendation.advice||recommendation.reason||'Повышай нагрузку постепенно, сохраняя технику и качество выполнения.';
+    const recommendationHtml=`<div class="workout-recommendation ${recCollapsed?'is-collapsed':''}" data-rec-key="${escapeHtml(recKey)}" onclick="toggleWorkoutRecommendation('${escapeHtml(recKey)}')" role="button" tabindex="0" aria-expanded="${!recCollapsed}"><div class="recommendation-head"><span>🎯 Рекомендация</span><span class="recommendation-toggle">${recCollapsed?'⌄':'✓'}</span></div><div class="recommendation-target"><span>Цель</span><b>${escapeHtml(targetMain)}</b></div><div class="recommendation-note">${escapeHtml(advice)}</div></div>`;
 
     let setsHTML='';
     sets.forEach((s,i)=>{
@@ -5060,15 +5076,21 @@ function saveNewDirectoryExercise(){
       if(!Array.isArray(data.exerciseDirectory)) data.exerciseDirectory=[];
       const key=String(name).normalize('NFKC').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/gi,'');
       /* No second duplicate check here: this callback is already the user's explicit approval. */
-      data.exerciseDirectory.push({
-        name,type,group,
-        guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}
-      });
+      const existingDirectory=data.exerciseDirectory.find(e=>normalizeExerciseKey(e.name)===normalizeExerciseKey(name));
+      if(!existingDirectory){
+        data.exerciseDirectory.push({
+          name,type,group,
+          guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}
+        });
+      }
       data.exerciseDirectoryHidden=(data.exerciseDirectoryHidden||[]).filter(k=>ftFullKey(k)!==key);
-      const splitCtx=pendingSplitExerciseCreate;
+      const splitCtx=pendingSplitExerciseCreate ? {...pendingSplitExerciseCreate} : null;
       pendingSplitExerciseCreate=null;
       if(splitCtx && data.programs?.[splitCtx.progIdx]){
         const p=data.programs[splitCtx.progIdx];
+        p.exercises=Array.isArray(p.exercises)?p.exercises:[];
+        p.active=Array.isArray(p.active)?p.active:[];
+        p.types=Array.isArray(p.types)?p.types:[];
         const pKey=normalizeExerciseKey(name);
         if(!(p.exercises||[]).some(x=>normalizeExerciseKey(x)===pKey)){
           p.exercises=p.exercises||[]; p.active=p.active||[]; p.types=p.types||[];
@@ -6315,7 +6337,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.45', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.46', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11216,7 +11238,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.45&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.46&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

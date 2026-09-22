@@ -1,4 +1,4 @@
-/* FTracker v1.8.45 workout logic regression tests; run with: node audit-tests.js */
+/* FTracker v1.8.46 workout logic regression tests; run with: node audit-tests.js */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const app=fs.readFileSync('app.js','utf8');
@@ -45,8 +45,8 @@ assert.match(app,/program-picker-add-new/);
 assert.match(index,/exercisePickerSearch/);
 
 // Release metadata must be synchronized.
-for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.45'),'stale release version');
+for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.46'),'stale release version');
 assert.ok(index.includes('от 22.09.26'),'release date missing');
-assert.ok(sw.includes("const APP_VERSION = '1.8.45'"),'SW cache version missing');
+assert.ok(sw.includes("const APP_VERSION = '1.8.46'"),'SW cache version missing');
 
-console.log('FTracker v1.8.45 workout logic regression tests: OK');
+console.log('FTracker v1.8.46 workout logic regression tests: OK');
