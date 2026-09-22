@@ -1,4 +1,4 @@
-/* FTracker v1.8.37 — Dynamic Index audit corrections.
+/* FTracker v1.8.38 — Dynamic Index audit corrections.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -3660,6 +3660,9 @@ function startConfirmed(event) {
         });
         workoutStartTime=Date.now();
         currentAchievements={};
+        // Prefill the first set from the calculated working-weight logic.
+        // Only fully completed sets count toward progress/history.
+        seedWorkoutSetsFromHistory();
         showScreen('workoutScreen');
         const title=document.getElementById('workoutTitle');
         if(title) title.textContent=formatWorkoutDisplayTitle(program.name);
@@ -4039,7 +4042,10 @@ function renderExerciseBase() {
     const exerciseName=meta.name, type=meta.type, sets=workoutSets[realIdx]||[];
     const isLastExercise=currentExerciseIndex===activeEx.length-1;
     const completedSets=sets.filter(s=>hasWorkoutSetResult(realIdx,s)).length;
-    const target=sets.length;
+    // Progress target for strength is the standard 3 working sets.
+    // Completed count is based only on fully filled sets, so 4/3 is valid
+    // when an additional set is added.
+    const target=type==='strength' ? 3 : Math.max(1,sets.length);
 
     const titleEl=document.getElementById('workoutTitle');
     if(titleEl) titleEl.textContent=program?.name || 'Тренировка';
@@ -4085,7 +4091,7 @@ function renderExerciseBase() {
         <button type="button" class="workout-action-btn replace" onclick="openReplaceExerciseModal(${currentExerciseIndex})"><span class="action-icon">↔</span><span class="action-copy">Заменить<br>упражнение</span><span class="action-arrow">›</span></button>
       </div>
       <section class="workout-completion">
-        <div class="workout-completion-head"><div><b>ВЫПОЛНЕНО</b><strong>${completedSets}/${target}</strong><span>подходов</span></div><em>Цель: ${target} ${target===1?'подход':'подхода'}</em></div>
+        <div class="workout-completion-head"><div><b>ВЫПОЛНЕНО</b><strong>${completedSets}/${target}</strong><span>подходов</span></div></div>
         <div class="completion-track">${bars}</div>
       </section>
       ${recommendationHtml}
@@ -6309,7 +6315,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.37', {updateViaCache:'none'})
+        navigator.serviceWorker.register('./sw.js?v=1.8.38', {updateViaCache:'none'})
             .then(reg => console.log('SW registered', reg.scope))
             .catch(err => console.log('SW failed', err));
     });
@@ -11193,7 +11199,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.37&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.38&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
