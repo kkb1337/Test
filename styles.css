@@ -12554,7 +12554,10 @@ strong,b{font-synthesis:none!important;}
 #workoutScreen .recommendation-target{background:rgba(52,199,89,.08);border-color:rgba(52,199,89,.22);}
 #workoutScreen .workout-recommendation.is-collapsed .recommendation-current,#workoutScreen .workout-recommendation.is-collapsed .recommendation-target,#workoutScreen .workout-recommendation.is-collapsed .recommendation-note{display:none!important;}
 
-
-/* v1.8.45 — create an exercise directly from the split exercise picker */
-.exercise-picker-create-btn{width:100%;margin:9px 0 10px!important;min-height:40px!important;padding:9px 12px!important;border:1px dashed var(--border)!important;border-radius:12px!important;background:rgba(255,255,255,.035)!important;color:var(--text)!important;font:inherit!important;font-weight:700!important;text-align:center!important;}
-#workoutScreen .workout-recommendation .recommendation-note{display:none!important;}
+/* v1.8.45 — create an exercise directly from the split picker */
+.program-picker-add-new{
+  display:block;width:calc(100% - 24px);margin:10px 12px 14px;padding:12px 14px;
+  border:1px dashed var(--border);border-radius:12px;background:var(--card-bg);
+  color:var(--text);font:inherit;font-weight:750;text-align:center;cursor:pointer;
+}
+.program-picker-add-new:active{transform:scale(.99);}

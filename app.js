@@ -4372,12 +4372,10 @@ function finishWorkout() {
     const completionUnits=allPlannedWorkoutIndices.map(realIdx=>{
         const type=getWorkoutExercise(realIdx)?.type||'strength';
         const required=completionRequirements[type]||1;
-        const rows=Array.isArray(workoutSets[realIdx])?workoutSets[realIdx].length:0;
         const done=(workoutSets[realIdx]||[]).filter(s=>isWorkoutSetFilledForResult(s,type)).length;
-        const extra=Math.max(0,rows-required);
-        return {realIdx,type,required,total:required+extra,done};
+        return {realIdx,type,required,done:Math.min(required,done)};
     });
-    const completionTotal=completionUnits.reduce((sum,x)=>sum+x.total,0);
+    const completionTotal=completionUnits.reduce((sum,x)=>sum+x.required,0);
     const completionDone=completionUnits.reduce((sum,x)=>sum+x.done,0);
     const completionPercent=completionTotal?Math.round(completionDone/completionTotal*100):0;
     const plannedSnapshot=Array.isArray(workoutPlanSnapshot)?workoutPlanSnapshot:[];
@@ -5002,12 +5000,6 @@ function purgeDirectoryExercise(name){
     showDeleteConfirm(`Удалить «${escapeHtml(name)}» полностью? Будут удалены справочник, ${refs} вхожд. в программах и ${historyRows} историч. записей/результатов. Это необратимо — перед удалением рекомендуется экспортировать бэкап.`);
 }
 function renameExerciseGlobal(oldName) { openRenameExerciseModal(oldName); }
-let pendingDirectoryAddToProgram=null;
-function openNewExerciseFromSplitPicker(){
-    if(!Number.isInteger(exercisePickerProgramIndex) || !data.programs[exercisePickerProgramIndex]) return;
-    pendingDirectoryAddToProgram=exercisePickerProgramIndex;
-    openNewDirectoryExerciseModal();
-}
 function openNewDirectoryExerciseModal(){
     document.getElementById('directoryNewName').value='';
     document.getElementById('directoryNewType').value='strength';
@@ -5015,7 +5007,7 @@ function openNewDirectoryExerciseModal(){
     lockModalScroll(); document.getElementById('directoryNewExerciseModal').classList.remove('hidden');
     setTimeout(()=>document.getElementById('directoryNewName')?.focus(),50);
 }
-function closeNewDirectoryExerciseModal(){document.getElementById('directoryNewExerciseModal')?.classList.add('hidden'); pendingDirectoryAddToProgram=null;}
+function closeNewDirectoryExerciseModal(){document.getElementById('directoryNewExerciseModal')?.classList.add('hidden');}
 function showExerciseCreateConfirm(name,onConfirm){
     let modal=document.getElementById('exerciseCreateConfirmModal');
     if(!modal){
@@ -5044,6 +5036,14 @@ function showExerciseCreateConfirm(name,onConfirm){
     openModal(modal);
 }
 
+let pendingSplitExerciseCreate=null;
+function openNewDirectoryExerciseForSplit(progIdx){
+    if(!data.programs?.[progIdx]) return;
+    pendingSplitExerciseCreate={progIdx:Number(progIdx)};
+    openNewDirectoryExerciseModal();
+}
+window.openNewDirectoryExerciseForSplit=openNewDirectoryExerciseForSplit;
+
 function saveNewDirectoryExercise(){
     const input=document.getElementById('directoryNewName');
     const name=String(input?.value||'').trim().replace(/\s+/g,' ');
@@ -5065,17 +5065,26 @@ function saveNewDirectoryExercise(){
         guide:{steps:[],execution:'',primary:[],secondary:[],muscles:[],mistakes:[],recommendations:[],media:[]}
       });
       data.exerciseDirectoryHidden=(data.exerciseDirectoryHidden||[]).filter(k=>ftFullKey(k)!==key);
-      const targetProgram=Number.isInteger(pendingDirectoryAddToProgram)?pendingDirectoryAddToProgram:null;
-      pendingDirectoryAddToProgram=null;
+      const splitCtx=pendingSplitExerciseCreate;
+      pendingSplitExerciseCreate=null;
+      if(splitCtx && data.programs?.[splitCtx.progIdx]){
+        const p=data.programs[splitCtx.progIdx];
+        const pKey=normalizeExerciseKey(name);
+        if(!(p.exercises||[]).some(x=>normalizeExerciseKey(x)===pKey)){
+          p.exercises=p.exercises||[]; p.active=p.active||[]; p.types=p.types||[];
+          p.exercises.push(name); p.active.push(true); p.types.push(type||'strength');
+        }
+      }
       saveData(); directoryView='active';
       const search=document.getElementById('directorySearch'); if(search) search.value='';
       closeNewDirectoryExerciseModal(); renderExerciseDirectory(); renderHome();
-      if(targetProgram!==null && data.programs[targetProgram]){
-        selectExerciseForProgram(targetProgram,name,type);
-      } else {
+      if(splitCtx){
         renderSettings();
+        setTimeout(()=>document.getElementById('splitCard_'+splitCtx.progIdx)?.classList.add('open'),0);
+        showToast('Упражнение добавлено в справочник и в сплит');
+      }else{
+        showToast('Упражнение добавлено в справочник');
       }
-      showToast(targetProgram!==null?'Упражнение добавлено в справочник и сплит':'Упражнение добавлено в справочник');
     };
     if(dup.similar.length){
       window.showExerciseDuplicateModal(name,dup.similar,false,create);
@@ -5101,6 +5110,7 @@ function renderExercisePickerBase(){
         const selected=existing.has(normalizeExerciseKey(item.name));
         return `<button type="button" class="catalog-choice ${selected?'selected':''}" ${selected?'disabled':''} data-picker-name="${escapeHtml(item.name)}"><span class="catalog-choice-name">${escapeHtml(item.name)}</span><span class="catalog-choice-group">${escapeHtml(item.type==='cardio'?'Кардио':item.group)}</span><span>${selected?'✓':'›'}</span></button>`;
     }).join('')}</section>`).join('') || '<div style="padding:12px;color:var(--subtext);">Ничего не найдено</div>';
+    root.insertAdjacentHTML('beforeend', `<button type="button" class="program-picker-add-new" onclick="openNewDirectoryExerciseForSplit(${exercisePickerProgramIndex})">＋ Добавить упражнение — нет в списке</button>`);
     root.querySelectorAll('[data-picker-name]').forEach(btn=>btn.addEventListener('click',()=>{if(!btn.disabled)selectExerciseForProgram(exercisePickerProgramIndex,btn.dataset.pickerName,getDirectoryExercises().find(x=>x.name===btn.dataset.pickerName)?.type||'strength');}));
 }
 function selectExerciseForProgram(progIdx,name,type){
@@ -11096,28 +11106,27 @@ window.closeImportConfirm=function(){
   // Search is bound once to the actual input and calls the canonical renderer.
   function bind(){const input=document.getElementById('catalogSearch');if(!input||input.dataset.catalogBound)return;input.dataset.catalogBound='1';input.addEventListener('input',renderCatalogList);input.addEventListener('search',renderCatalogList);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  // Global workout progress: required sets + explicitly added extra sets.
-  // Strength = 3 required sets; cardio/bodyweight = 1 required result.
-  // Extra rows increase the denominator only after the user explicitly adds them.
+  // Global workout progress counts every actual set slot.
+  // Base target: strength=3, cardio/bodyweight=1. Any user-added set beyond
+  // that base target expands the total denominator by one as well.
   updateWorkoutProgressUI=function(){
     const active=getActiveExerciseIndices();
     let done=0,total=0,completedExercises=0;
     active.forEach(idx=>{
       const meta=getWorkoutExercise(idx); if(!meta) return;
       const required=getWorkoutCompletionTarget(meta.type);
-      const rows=Array.isArray(workoutSets[idx])?workoutSets[idx].length:0;
+      const rows=Array.isArray(workoutSets[idx]) ? workoutSets[idx].length : 0;
       const completed=countWorkoutSetResults(idx);
-      const extra=Math.max(0,rows-required);
-      total+=required+extra;
-      done+=completed;
+      total += required + Math.max(0, rows-required);
+      done += completed;
       if(completed>=required) completedExercises++;
     });
-    const pct=total?Math.min(100,Math.round(done/total*100)):0;
+    const pct=total?Math.round(done/total*100):0;
     const bar=document.getElementById('workoutProgressBar');
     const left=document.getElementById('workoutProgressLeft');
     const right=document.getElementById('workoutProgressRight');
     const text=document.getElementById('workoutProgressText');
-    if(bar) bar.style.width=pct+'%';
+    if(bar) bar.style.width=Math.min(100,pct)+'%';
     if(left) left.textContent=total?`Выполнено ${done} из ${total} подходов`:'Нет упражнений';
     if(right) right.textContent=active.length?`${completedExercises} из ${active.length} упражнений`:'';
     if(text) text.textContent='';

@@ -11,14 +11,10 @@ const readme=fs.readFileSync('README.md','utf8');
 const required=t=>t==='strength'?3:1;
 const progress=types=>{const total=types.reduce((s,t)=>s+required(t),0); return {done:0,total};};
 assert.deepEqual(progress(['strength','strength','strength','strength','strength','strength','cardio','bodyweight']),{done:0,total:20});
-assert.equal(Math.min(4,3),3,'per-exercise required target remains 3');
-const dynamicTotal=(types,rows)=>types.reduce((sum,t,i)=>sum+required(t)+Math.max(0,(rows[i]||0)-required(t)),0);
-const dynamicDone=filled=>filled.reduce((s,n)=>s+n,0);
-assert.equal(dynamicTotal(['strength','strength','strength','strength','strength','strength','cardio','bodyweight'],[3,3,3,3,3,3,1,1]),20);
-assert.equal(dynamicTotal(['strength','strength','strength','strength','strength','strength','cardio','bodyweight'],[3,3,3,3,3,3,2,1]),21);
-assert.equal(dynamicDone([3,3,3,3,3,3,2,1]),21);
-assert.equal(dynamicTotal(['strength'],[4]),4);
-assert.equal(dynamicDone([4]),4);
+const dynamicProgress=(requiredRows, rows, completed)=>({done:completed,total:requiredRows+Math.max(0,rows-requiredRows)});
+assert.deepEqual(dynamicProgress(1,2,2),{done:2,total:2+0},'cardio second set model');
+assert.deepEqual(dynamicProgress(1,3,3),{done:3,total:3},'cardio third set model');
+assert.deepEqual(dynamicProgress(3,4,4),{done:4,total:4},'strength fourth set model');
 
 // New/replaced exercise starts with zero sets; no copied historical row.
 assert.match(app,/workoutSets\[ref\]=\[\];/);
@@ -33,17 +29,20 @@ assert.doesNotMatch(app,/if\(programName && entry\.program!==programName\) retur
 assert.match(app,/const base=getBestQualifiedStrengthResult\(exerciseName,programName,before\);/);
 assert.doesNotMatch(app,/const base=working\|\|fallback/);
 
-// Top progress uses required sets plus explicitly added extra sets.
-assert.match(app,/Global workout progress: required sets \+ explicitly added extra sets/);
-assert.ok(app.includes('const extra=Math.max(0,rows-required)'));
-assert.ok(app.includes('total+=required+extra'));
-assert.ok(app.includes('done+=completed'));
-assert.ok(app.includes('Выполнено ${done} из ${total} подходов'));
+// Top progress must use required units, not number of existing input rows.
+assert.match(app,/Global workout progress counts every actual set slot/);
+assert.match(app,/total \+= required \+ Math\.max\(0, rows-required\)/);
+assert.match(app,/done \+= completed/);
+assert.doesNotMatch(app,/done\s*\+=\s*Math\.min\(completed,required\)/);
 
-// Split picker can create a directory exercise and immediately attach it to the split.
-assert.ok(index.includes('openNewExerciseFromSplitPicker()'));
-assert.ok(app.includes('function openNewExerciseFromSplitPicker()'));
-assert.ok(app.includes('selectExerciseForProgram(targetProgram,name,type)'));
+// Recommendation card contains only the target; explanatory copy is removed.
+assert.doesNotMatch(app,/Почему стоит улучшить/);
+
+// Split picker can create the same directory exercise inline and attach it to the current split.
+assert.match(app,/openNewDirectoryExerciseForSplit/);
+assert.match(app,/pendingSplitExerciseCreate/);
+assert.match(app,/program-picker-add-new/);
+assert.match(index,/exercisePickerSearch/);
 
 // Release metadata must be synchronized.
 for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.45'),'stale release version');
