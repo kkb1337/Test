@@ -1,4 +1,4 @@
-/* FTracker v1.8.75 logic regression tests; run with: node audit-tests.js */
+/* FTracker v1.8.76 logic regression tests; run with: node audit-tests.js */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const app=fs.readFileSync('app.js','utf8');
@@ -6,6 +6,7 @@ const index=fs.readFileSync('index.html','utf8');
 const manifest=fs.readFileSync('manifest.json','utf8');
 const sw=fs.readFileSync('sw.js','utf8');
 const css=fs.readFileSync('styles.css','utf8');
+const uiCss=fs.readFileSync('ui_refactor_1.8.76.css','utf8');
 const readme=fs.readFileSync('README.md','utf8');
 
 // Global progress model: 3 for strength, 1 for cardio/reps.
@@ -52,9 +53,15 @@ assert.doesNotMatch(app,/insertAdjacentHTML\('beforeend', `.*program-picker-add-
 assert.match(index,/exercisePickerSearch/);
 
 // Release metadata must be synchronized.
-for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.75'),'stale release version');
+for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.76'),'stale release version');
 assert.ok(index.includes('от 04.10.26'),'release date missing');
-assert.ok(sw.includes("const APP_VERSION = '1.8.75'"),'SW cache version missing');
+assert.ok(sw.includes("const APP_VERSION = '1.8.76'"),'SW cache version missing');
+assert.match(index,/ui_refactor_1\.8\.76\.css\?v=1\.8\.76/,'unified UI stylesheet is not linked');
+assert.match(sw,/ui_refactor_1\.8\.76\.css/,'unified UI stylesheet is not cached by the SW');
+assert.match(uiCss,/body:not\(\.light-mode\)/,'dark theme token layer missing');
+assert.match(uiCss,/body\.light-mode|:root/,'light theme token layer missing');
+assert.match(uiCss,/safe-area-inset-top/,'iOS safe-area UI layer missing');
+assert.match(uiCss,/workoutScreen \.workout-close::after/,'workout back control styling missing');
 
 
 assert.ok(app.includes("weights:{systemity:40,strength:60}"),'training index default weights must be 40/60');
@@ -66,14 +73,14 @@ assert.ok(app.includes('createdAt'), 'custom goal creation baseline missing');
 assert.ok(app.includes('Math.max(now-days*86400000,Number(startAt)||0)'), 'goal startAt baseline missing');
 assert.ok(app.includes('const total=baseTotal;'),'extra completed sets must not expand workout progress');
 
-// v1.8.72: exercise notes use a durable exercise-keyed store and remain mirrored in the directory.
+// v1.8.76: exercise notes use a durable exercise-keyed store and remain mirrored in the directory.
 assert.match(app,/exerciseNotes:\s*\{\}/,'durable exercise notes store missing');
 assert.match(app,/data\.exerciseNotes\[key\]=note/,'exercise note write path missing');
 assert.match(app,/delete data\.exerciseNotes\[key\]/,'exercise note clear path missing');
 assert.match(app,/data\.exerciseNotes && Object\.prototype\.hasOwnProperty\.call\(data\.exerciseNotes,key\)/,'exercise note read path missing');
 assert.match(css,/#workoutScreen \.workout-completion-head\{[^}]*justify-content:center!important/,'workout completion should be centered');
 assert.match(css,/#workoutScreen \.workout-action-grid\{[^}]*grid-template-columns:1fr 1fr!important/,'workout action buttons should have equal width');
-console.log('FTracker v1.8.75 logic regression tests: OK');
+console.log('FTracker v1.8.76 logic regression tests: OK');
 
 // v1.8.57: replacement creation must replace the frozen slot, not append.
 assert(fs.readFileSync('app.js','utf8').includes("workoutNewExerciseContext={mode:'replace',slot,programIndex:Number(currentProgram),oldRef:slots[slot]}"), 'replace creation context must freeze slot before closing replace modal');
@@ -115,4 +122,4 @@ const rebalanceEdited=(weights,enabled,changedKey,value)=>{const out={...weights
 assert.deepEqual(rebalanceEdited({body:40,training:30,nutrition:30},{body:true,training:true,nutrition:true},'body',70),{body:70,training:15,nutrition:15});
 assert.deepEqual(rebalanceEdited({body:70,training:15,nutrition:15},{body:true,training:true,nutrition:false},'body',70),{body:70,training:30,nutrition:15});
 assert.deepEqual(rebalanceEdited({body:50,training:30,nutrition:20},{body:true,training:true,nutrition:true},'training',60),{body:29,training:60,nutrition:11});
-console.log('FTracker v1.8.72 Index-weight regression checks: OK');
+console.log('FTracker v1.8.76 Index-weight regression checks: OK');

@@ -1,4 +1,4 @@
-/* FTracker v1.8.75 — Workout replacement/create state fix.
+/* FTracker v1.8.76 — Workout replacement/create state fix.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -306,6 +306,8 @@ function localDateString(d) {
 function applyTheme(theme) {
     if (theme === 'light') document.body.classList.add('light-mode');
     else document.body.classList.remove('light-mode');
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.setAttribute('content', theme === 'light' ? '#f2f2f7' : '#000000');
     localStorage.setItem('strong_theme', theme);
 }
 function formatDataEventDate(ts){
@@ -6578,7 +6580,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.75', {updateViaCache:'none'}).catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=1.8.76', {updateViaCache:'none'}).catch(() => {});
     });
 }
 
@@ -11498,7 +11500,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.75&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.76&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);

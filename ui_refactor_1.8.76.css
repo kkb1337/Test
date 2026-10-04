@@ -1,0 +1,389 @@
+/* ========================================================================
+   FTracker 1.8.76 — unified iOS UI layer
+   Visual-only layer. Business logic, storage, calculations and API untouched.
+   Loaded after styles.css so the existing application structure remains intact.
+   ======================================================================== */
+
+:root {
+  --ft75-bg: #f2f2f7;
+  --ft75-surface: #ffffff;
+  --ft75-surface-2: #f2f2f7;
+  --ft75-surface-3: #e5e5ea;
+  --ft75-text: #1c1c1e;
+  --ft75-text-2: #636366;
+  --ft75-text-3: #8e8e93;
+  --ft75-separator: rgba(60,60,67,.18);
+  --ft75-separator-strong: rgba(60,60,67,.28);
+  --ft75-accent: #248a3d;
+  --ft75-accent-strong: #1f6f32;
+  --ft75-accent-soft: rgba(36,138,61,.12);
+  --ft75-danger: #d70015;
+  --ft75-warning: #a95100;
+  --ft75-overlay: rgba(0,0,0,.34);
+  --ft75-shadow-1: 0 1px 3px rgba(0,0,0,.08);
+  --ft75-shadow-2: 0 8px 24px rgba(0,0,0,.10);
+  --ft75-shadow-3: 0 16px 40px rgba(0,0,0,.16);
+  --ft75-r-sm: 8px;
+  --ft75-r-md: 12px;
+  --ft75-r-lg: 16px;
+  --ft75-r-xl: 20px;
+  --ft75-pill: 999px;
+  --ft75-s1: 4px;
+  --ft75-s2: 8px;
+  --ft75-s3: 12px;
+  --ft75-s4: 16px;
+  --ft75-s5: 20px;
+  --ft75-s6: 24px;
+  --ft75-s7: 32px;
+  --ft75-control: 44px;
+  --ft75-header: 56px;
+  --ft75-font: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,sans-serif;
+}
+
+body:not(.light-mode) {
+  --ft75-bg: #000000;
+  --ft75-surface: #1c1c1e;
+  --ft75-surface-2: #2c2c2e;
+  --ft75-surface-3: #3a3a3c;
+  --ft75-text: #f5f5f7;
+  --ft75-text-2: #aeaeb2;
+  --ft75-text-3: #8e8e93;
+  --ft75-separator: rgba(255,255,255,.14);
+  --ft75-separator-strong: rgba(255,255,255,.22);
+  --ft75-accent: #30d158;
+  --ft75-accent-strong: #248a3d;
+  --ft75-accent-soft: rgba(48,209,88,.14);
+  --ft75-danger: #ff453a;
+  --ft75-warning: #ff9f0a;
+  --ft75-overlay: rgba(0,0,0,.58);
+  --ft75-shadow-1: 0 1px 3px rgba(0,0,0,.28);
+  --ft75-shadow-2: 0 8px 24px rgba(0,0,0,.34);
+  --ft75-shadow-3: 0 16px 40px rgba(0,0,0,.48);
+}
+
+html, body, #app, button, input, select, textarea, optgroup {
+  font-family: var(--ft75-font) !important;
+  font-synthesis: none !important;
+}
+
+html { background: var(--ft75-bg) !important; }
+body {
+  background: var(--ft75-bg) !important;
+  color: var(--ft75-text) !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* Keep legacy variables pointing at one semantic system. */
+body {
+  --bg: var(--ft75-bg) !important;
+  --card-bg: var(--ft75-surface) !important;
+  --input-bg: var(--ft75-surface-2) !important;
+  --text: var(--ft75-text) !important;
+  --subtext: var(--ft75-text-2) !important;
+  --border: var(--ft75-separator) !important;
+  --button-gray: var(--ft75-surface-3) !important;
+  --button-green: var(--ft75-accent) !important;
+  --positive: var(--ft75-accent) !important;
+  --negative: var(--ft75-danger) !important;
+  --accent-gradient: var(--ft75-accent) !important;
+  --modal-overlay: var(--ft75-overlay) !important;
+  --ft-bg: var(--ft75-bg) !important;
+  --ft-surface: var(--ft75-surface) !important;
+  --ft-surface-secondary: var(--ft75-surface-2) !important;
+  --ft-text: var(--ft75-text) !important;
+  --ft-text-secondary: var(--ft75-text-2) !important;
+  --ft-text-tertiary: var(--ft75-text-3) !important;
+  --ft-border: var(--ft75-separator) !important;
+  --ft-accent: var(--ft75-accent) !important;
+  --ft-accent-pressed: var(--ft75-accent-strong) !important;
+  --ft-radius-sm: var(--ft75-r-sm) !important;
+  --ft-radius-md: var(--ft75-r-md) !important;
+  --ft-radius-lg: var(--ft75-r-lg) !important;
+  --ft-radius-pill: var(--ft75-pill) !important;
+  --ft-shadow-sm: var(--ft75-shadow-1) !important;
+  --ft-shadow-md: var(--ft75-shadow-2) !important;
+  --ft-shadow-lg: var(--ft75-shadow-3) !important;
+}
+
+/* ---------- Typography ---------- */
+.title { font-weight: 700 !important; letter-spacing: -.025em !important; }
+.home-title-clickable { font-size: 32px !important; line-height: 1.12 !important; margin: 0 0 20px !important; position: relative !important; }
+.screen-header .title.section-title { font-size: 24px !important; line-height: 1.15 !important; }
+.section-title-icon { font-size: .82em !important; margin-right: 4px !important; }
+.subtitle { font-size: 14px !important; line-height: 1.45 !important; }
+.field-label, .chart-range-caption, .measurement-modal-note { font-size: 12px !important; line-height: 1.35 !important; }
+
+/* Avoid tiny unreadable labels while retaining compact metadata. */
+[class*="fscore"] small,
+[class*="fscore"] .fscore-subtitle,
+[class*="fscore"] .fscore-empty,
+[class*="fscore"] .fscore-method-item span,
+[class*="fscore"] .fscore-status-reason span { font-size: 12px !important; line-height: 1.35 !important; }
+
+/* ---------- App shell / safe area ---------- */
+.safe-area { background: var(--ft75-bg) !important; min-height: 100dvh !important; }
+.container { max-width: 600px !important; width: 100% !important; margin: 0 auto !important; padding-left: 16px !important; padding-right: 16px !important; }
+#app { min-height: 100dvh !important; }
+
+/* ---------- Home ---------- */
+#homeScreen { padding-top: max(8px, env(safe-area-inset-top)) !important; }
+.home-title-clickable { background: none !important; -webkit-text-fill-color: initial !important; color: var(--ft75-text) !important; }
+.home-title-gear {
+  position: absolute !important;
+  top: 50% !important;
+  right: 0 !important;
+  transform: translateY(-50%) !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: var(--ft75-r-md) !important;
+  color: var(--ft75-text-2) !important;
+  background: var(--ft75-surface) !important;
+  box-shadow: var(--ft75-shadow-1) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+#fscoreHomeWidget { border-radius: var(--ft75-r-xl) !important; background: var(--ft75-surface) !important; border: 1px solid var(--ft75-separator) !important; box-shadow: var(--ft75-shadow-1) !important; }
+#fscoreHomeWidget .fscore-home-title { font-size: 17px !important; font-weight: 700 !important; }
+#fscoreHomeWidget .fscore-home-hint { font-size: 12px !important; color: var(--ft75-text-2) !important; }
+
+/* Main navigation: one calm vertical stack, no uneven grid row gaps. */
+.nav-buttons { display: flex !important; flex-direction: column !important; flex-wrap: nowrap !important; gap: 0 !important; margin: 16px 0 0 !important; overflow: hidden !important; border: 1px solid var(--ft75-separator) !important; border-radius: var(--ft75-r-lg) !important; background: var(--ft75-surface) !important; box-shadow: var(--ft75-shadow-1) !important; }
+.nav-buttons button { flex: none !important; width: 100% !important; min-height: 52px !important; margin: 0 !important; border-radius: 0 !important; border: 0 !important; border-bottom: 1px solid var(--ft75-separator) !important; background: transparent !important; color: var(--ft75-text) !important; justify-content: flex-start !important; padding: 0 16px !important; font-size: 15px !important; }
+.nav-buttons button:last-child { border-bottom: 0 !important; }
+.nav-buttons button:active { background: var(--ft75-surface-2) !important; transform: none !important; }
+.nav-icon { width: 21px !important; height: 21px !important; margin-right: 12px !important; color: var(--ft75-accent) !important; flex: 0 0 auto !important; }
+
+/* ---------- Global cards / panels ---------- */
+.card, .panel, .content-card, .progress-section, .analysis-card, .body-hero-card, .body-comparison-card, .body-history-card, .centered-card, .timer-box {
+  background: var(--ft75-surface) !important;
+  color: var(--ft75-text) !important;
+  border: 1px solid var(--ft75-separator) !important;
+  border-radius: var(--ft75-r-lg) !important;
+  box-shadow: var(--ft75-shadow-1) !important;
+}
+.card:active { transform: none !important; }
+
+/* ---------- Controls ---------- */
+button, .btn, .button, .action-btn {
+  min-height: var(--ft75-control) !important;
+  border-radius: var(--ft75-r-md) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -.005em !important;
+  box-shadow: none !important;
+}
+button { background: var(--ft75-accent) !important; color: #fff !important; }
+button.gray, .gray { background: var(--ft75-surface-3) !important; color: var(--ft75-text) !important; border: 1px solid var(--ft75-separator) !important; }
+button.outline, .outline { background: var(--ft75-surface) !important; color: var(--ft75-accent) !important; border: 1px solid color-mix(in srgb, var(--ft75-accent) 38%, var(--ft75-separator)) !important; }
+button:active, .btn:active { transform: scale(.99) !important; }
+button:disabled, [aria-disabled="true"] { opacity: .45 !important; }
+:where(button,input,select,textarea,[tabindex]):focus-visible { outline: 2px solid var(--ft75-accent) !important; outline-offset: 2px !important; }
+.small-btn { min-height: 36px !important; padding: 0 12px !important; font-size: 13px !important; }
+
+/* ---------- Inputs ---------- */
+input, select, textarea {
+  min-height: var(--ft75-control) !important;
+  padding: 9px 12px !important;
+  border: 1px solid var(--ft75-separator-strong) !important;
+  border-radius: var(--ft75-r-md) !important;
+  background: var(--ft75-surface-2) !important;
+  color: var(--ft75-text) !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+  margin: 4px 0 !important;
+}
+input::placeholder, textarea::placeholder { color: var(--ft75-text-3) !important; opacity: 1 !important; }
+input:focus, select:focus, textarea:focus { border-color: var(--ft75-accent) !important; box-shadow: 0 0 0 2px var(--ft75-accent-soft) !important; outline: 0 !important; }
+
+/* ---------- Segmented controls / tabs ---------- */
+.tabs, .stats-tabs, .directory-tabs, .food-main-tabs, .progress-v2-tabs, .technique-tabs {
+  display: flex !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  margin-bottom: 16px !important;
+  border-radius: var(--ft75-r-lg) !important;
+  background: var(--ft75-surface-2) !important;
+  border: 1px solid var(--ft75-separator) !important;
+}
+.tab, .stats-tab, .directory-tab, .food-main-tabs button, .progress-v2-tabs button, .technique-tabs .tab {
+  flex: 1 1 0 !important;
+  min-height: 38px !important;
+  padding: 0 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: var(--ft75-r-md) !important;
+  background: transparent !important;
+  color: var(--ft75-text-2) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+.tab.active, .stats-tab.active, .directory-tab.active, .food-main-tabs button.active, .progress-v2-tabs button.active, .technique-tabs .tab.active {
+  background: var(--ft75-surface) !important;
+  color: var(--ft75-text) !important;
+  box-shadow: var(--ft75-shadow-1) !important;
+}
+
+/* ---------- Standard screen header ---------- */
+#app > [id$="Screen"] > .screen-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  display: grid !important;
+  grid-template-columns: 76px minmax(0,1fr) 76px !important;
+  align-items: center !important;
+  width: calc(100% + 32px) !important;
+  margin-left: -16px !important;
+  padding: max(8px, env(safe-area-inset-top)) 16px 8px !important;
+  height: calc(var(--ft75-header) + env(safe-area-inset-top)) !important;
+  min-height: calc(var(--ft75-header) + env(safe-area-inset-top)) !important;
+  background: color-mix(in srgb, var(--ft75-bg) 92%, transparent) !important;
+  border-bottom: 1px solid var(--ft75-separator) !important;
+  backdrop-filter: blur(18px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+}
+#app > [id$="Screen"] > .screen-header > .title { grid-column: 2 !important; text-align: center !important; min-width: 0 !important; }
+#app > [id$="Screen"] > .screen-header > button:first-child { grid-column: 1 !important; width: 76px !important; min-width: 76px !important; padding: 0 !important; margin: 0 !important; justify-content: flex-start !important; }
+#app > [id$="Screen"] > .screen-header > .screen-header-spacer,
+#app > [id$="Screen"] > .screen-header > :last-child:not(.title):not(button) { grid-column: 3 !important; }
+
+/* ---------- Workout header: fixed geometry, real back arrow ---------- */
+#workoutScreen .workout-topbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  background: color-mix(in srgb, var(--ft75-bg) 94%, transparent) !important;
+  border-bottom: 1px solid var(--ft75-separator) !important;
+  backdrop-filter: blur(18px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+}
+#workoutScreen .workout-head { min-height: var(--ft75-header) !important; grid-template-columns: 44px minmax(0,1fr) 64px !important; }
+#workoutScreen .workout-close { width: 44px !important; min-width: 44px !important; height: 44px !important; min-height: 44px !important; color: var(--ft75-accent) !important; background: transparent !important; border-radius: var(--ft75-r-md) !important; font-size: 0 !important; }
+#workoutScreen .workout-close::after { content: "←" !important; font-size: 26px !important; font-weight: 400 !important; }
+#workoutScreen .workout-time { min-height: 36px !important; padding: 0 10px !important; border: 1px solid var(--ft75-separator) !important; background: var(--ft75-surface-2) !important; color: var(--ft75-text-2) !important; border-radius: var(--ft75-r-md) !important; }
+#workoutScreen .workout-exercise-card { border-radius: var(--ft75-r-lg) !important; border: 1px solid var(--ft75-separator) !important; background: var(--ft75-surface) !important; box-shadow: var(--ft75-shadow-1) !important; }
+#workoutScreen .workout-set-row { min-height: 52px !important; border-radius: var(--ft75-r-md) !important; background: var(--ft75-surface-2) !important; border: 1px solid var(--ft75-separator) !important; box-shadow: none !important; }
+#workoutScreen .workout-set-row input { min-height: 42px !important; margin: 0 !important; background: var(--ft75-surface) !important; }
+#workoutScreen .workout-last-result { background: var(--ft75-surface-2) !important; border: 1px solid var(--ft75-separator) !important; border-radius: var(--ft75-r-md) !important; }
+#workoutScreen #exerciseStrip { margin-bottom: 12px !important; padding-bottom: 4px !important; }
+#workoutScreen #exerciseStrip .exercise-dot { min-height: 36px !important; padding: 0 12px !important; display: inline-flex !important; align-items: center !important; background: var(--ft75-surface-2) !important; color: var(--ft75-text-2) !important; border: 1px solid var(--ft75-separator) !important; border-radius: var(--ft75-pill) !important; }
+#workoutScreen #exerciseStrip .exercise-dot.active { background: var(--ft75-accent-soft) !important; color: var(--ft75-accent) !important; border-color: color-mix(in srgb, var(--ft75-accent) 35%, var(--ft75-separator)) !important; }
+
+/* ---------- Compact recommendation/rest surfaces ---------- */
+.workout-recommendation, .recommendation, .rest-panel, .workout-rest, .timer-box {
+  border-radius: var(--ft75-r-md) !important;
+  border: 1px solid var(--ft75-separator) !important;
+  background: var(--ft75-surface-2) !important;
+  box-shadow: none !important;
+}
+.recommendation, .workout-recommendation { padding: 10px 12px !important; }
+.rest-panel, .workout-rest { padding: 10px 12px !important; }
+
+/* ---------- Exercise / directory ---------- */
+.directory-tabs { margin-top: 12px !important; }
+.directory-search-wrap { min-height: 44px !important; }
+.directory-item, .directory-row, .catalog-choice, .history-item { border-color: var(--ft75-separator) !important; }
+.directory-item-main, .catalog-choice { background: var(--ft75-surface) !important; color: var(--ft75-text) !important; }
+.exercise-card-unified, .exercise-card-panel, .exercise-card-media-wrap { background: var(--ft75-surface) !important; color: var(--ft75-text) !important; border-color: var(--ft75-separator) !important; }
+.exercise-card-panel { border-radius: var(--ft75-r-lg) !important; box-shadow: var(--ft75-shadow-1) !important; }
+.exercise-card-section-title { font-size: 12px !important; letter-spacing: .03em !important; color: var(--ft75-text-2) !important; }
+.exercise-card-empty { color: var(--ft75-text-2) !important; }
+
+/* ---------- FScore / Index analytics ---------- */
+#fscoreAnalyticsScreen .fscore-widget,
+#fscoreAnalyticsScreen .fscore-panel,
+#fscoreAnalyticsScreen .fscore-goal-panel,
+#fscoreAnalyticsScreen .fscore-score-panel,
+#fscoreAnalyticsScreen .fscore-composition-panel,
+#fscoreAnalyticsScreen .fscore-reasons-panel,
+#fscoreAnalyticsScreen .fscore-method-panel,
+#fscoreAnalyticsScreen .fscore-target-card,
+#fscoreAnalyticsScreen .fscore-custom-section,
+#fscoreAnalyticsScreen .fscore-factor-weight-section,
+#fscoreAnalyticsScreen .fscore-training-weight-editor,
+#fscoreAnalyticsScreen .fscore-confidence-missing,
+#fscoreAnalyticsScreen .fscore-confidence-complete {
+  background: var(--ft75-surface) !important;
+  color: var(--ft75-text) !important;
+  border-color: var(--ft75-separator) !important;
+  border-radius: var(--ft75-r-lg) !important;
+  box-shadow: var(--ft75-shadow-1) !important;
+}
+#fscoreAnalyticsScreen .fscore-goal-tabs,
+#fscoreAnalyticsScreen .fscore-goal-switch,
+#fscoreAnalyticsScreen .fscore-target-tabs { background: var(--ft75-surface-2) !important; }
+#fscoreAnalyticsScreen .fscore-analytics-ring { box-shadow: inset 0 0 0 1px var(--ft75-separator) !important; }
+#fscoreAnalyticsScreen .fscore-analytics-ring::before { background: var(--ft75-surface) !important; box-shadow: inset 0 0 0 1px var(--ft75-separator) !important; }
+#fscoreAnalyticsScreen .fscore-analytics-ring strong { font-size: 32px !important; font-weight: 700 !important; }
+#fscoreAnalyticsScreen .fscore-analytics-ring small { font-size: 12px !important; }
+#fscoreAnalyticsScreen .fscore-analytics-ring-copy > b { font-size: 20px !important; }
+#fscoreAnalyticsScreen .fscore-analytics-ring-copy > span { font-size: 12px !important; color: var(--ft75-text-2) !important; }
+#fscoreAnalyticsScreen .fscore-analytics-ring-copy > em { font-size: 12px !important; background: var(--ft75-accent-soft) !important; color: var(--ft75-accent) !important; }
+
+/* Goal selector: calm segmented buttons instead of competing cards. */
+#fscoreAnalyticsScreen .fscore-goal-tabs button,
+#fscoreAnalyticsScreen .fscore-goal-switch button { min-height: 44px !important; border-radius: var(--ft75-r-md) !important; background: transparent !important; color: var(--ft75-text-2) !important; border: 1px solid var(--ft75-separator) !important; }
+#fscoreAnalyticsScreen .fscore-goal-tabs button.active,
+#fscoreAnalyticsScreen .fscore-goal-switch button.active { background: var(--ft75-accent-soft) !important; color: var(--ft75-accent) !important; border-color: color-mix(in srgb, var(--ft75-accent) 35%, var(--ft75-separator)) !important; }
+
+/* ---------- Modals / sheets ---------- */
+.theme-modal, .exercise-modal, .date-modal, .confirm-modal, .workout-detail-modal, .manual-workout-modal, .achievements-modal, .food-modal, .catalog-modal, .technique-modal {
+  background: var(--ft75-overlay) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+.theme-modal-content, .exercise-modal-content, .date-modal-content, .confirm-modal-content, .workout-detail-content, .manual-workout-content, .achievements-content, .food-modal-content, .catalog-modal-content, .modal-stack-content, .technique-modal-content {
+  background: var(--ft75-surface) !important;
+  color: var(--ft75-text) !important;
+  border: 1px solid var(--ft75-separator) !important;
+  border-radius: var(--ft75-r-xl) !important;
+  box-shadow: var(--ft75-shadow-3) !important;
+}
+.unified-surface-header, .ft-modal-header, .chart-modal-header {
+  background: color-mix(in srgb, var(--ft75-surface) 94%, transparent) !important;
+  color: var(--ft75-text) !important;
+  border-bottom: 1px solid var(--ft75-separator) !important;
+}
+.surface-title, .chart-modal-title, .exercise-name-header-title { color: var(--ft75-text) !important; font-size: 19px !important; font-weight: 700 !important; }
+.surface-back-btn, .ft-modal-header .surface-back-btn, .ft-modal-header .close-btn, .ft-modal-header .modal-close-btn { color: var(--ft75-accent) !important; background: transparent !important; }
+
+/* Compact confirmation dialog */
+.confirm-modal-content { width: min(420px, calc(100vw - 32px)) !important; border-radius: var(--ft75-r-xl) !important; }
+.confirm-modal-content .row { gap: 8px !important; }
+
+/* ---------- Food / history / measurements ---------- */
+.food-item, .history-item, .measurement-item, .progress-item { border-bottom-color: var(--ft75-separator) !important; }
+.food-macro-card { border: 1px solid var(--ft75-separator) !important; border-radius: var(--ft75-r-lg) !important; background: var(--ft75-surface) !important; }
+.measurement-summary { background: var(--ft75-surface-2) !important; border: 1px solid var(--ft75-separator) !important; }
+
+/* ---------- Empty states and feedback ---------- */
+.workout-history-empty, .exercise-card-empty, .fscore-empty { color: var(--ft75-text-2) !important; font-size: 14px !important; line-height: 1.45 !important; }
+.toast { border: 1px solid var(--ft75-separator) !important; border-radius: var(--ft75-r-md) !important; box-shadow: var(--ft75-shadow-2) !important; }
+
+/* ---------- Inline visual leftovers ---------- */
+#homeScreen #draftBanner, #homeScreen #exportReminder { border-radius: var(--ft75-r-lg) !important; box-shadow: var(--ft75-shadow-1) !important; }
+
+/* ---------- Mobile geometry ---------- */
+@media (max-width: 430px) {
+  .container { padding-left: 12px !important; padding-right: 12px !important; }
+  #app > [id$="Screen"] > .screen-header { width: calc(100% + 24px) !important; margin-left: -12px !important; padding-left: 12px !important; padding-right: 12px !important; grid-template-columns: 76px minmax(0,1fr) 76px !important; }
+  .screen-header .title.section-title { font-size: 20px !important; }
+  .home-title-clickable { font-size: 30px !important; }
+}
+
+@media (max-width: 360px) {
+  .screen-header .title.section-title { font-size: 18px !important; }
+  #app > [id$="Screen"] > .screen-header > button:first-child { width: 68px !important; min-width: 68px !important; }
+  #app > [id$="Screen"] > .screen-header { grid-template-columns: 68px minmax(0,1fr) 68px !important; }
+  .tab, .stats-tab, .directory-tab, .food-main-tabs button { font-size: 12px !important; padding-left: 6px !important; padding-right: 6px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
