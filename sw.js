@@ -1,5 +1,5 @@
 /* FTracker service worker — offline-first shell, lazily cached media. */
-const APP_VERSION = '1.8.72';
+const APP_VERSION = '1.8.73';
 const SHELL_CACHE = `ftracker-shell-${APP_VERSION}`;
 const MEDIA_CACHE = 'ftracker-media-v1'; // exercise animations (root-level *-N.webp) never change; survives app updates
 

@@ -1,4 +1,4 @@
-/* FTracker v1.8.72 — Workout replacement/create state fix.
+/* FTracker v1.8.73 — Workout replacement/create state fix.
    Consolidated from the audited inline runtimes without changing their order. */
 
 /* ===== CONSOLIDATED RUNTIME BLOCK 1 ===== */
@@ -944,6 +944,7 @@ function saveFScoreCustomConfig(cfg, existingId=null){
     window.__fscoreCustomDraft=null;
     data.fscoreActiveCustomGoalId=clean.id; data.fscoreGoal='custom'; persistFScoreCustomGoals(list);
     renderFScoreAnalytics(); renderFScoreHomeWidget();
+    return true;
 }
 function selectFScoreCustomGoal(id){
     const list=getFScoreCustomGoals(); const c=list.find(x=>x.id===id); if(!c)return;
@@ -1358,8 +1359,15 @@ function saveFScoreCustomFromUI(){
     const trainingTarget=Math.max(1,Math.min(7,Number(document.getElementById('fscoreCustomTrainingTarget')?.value)||3)),trainingPeriod=Math.max(7,Math.min(365,Number(document.getElementById('fscoreCustomTrainingPeriod')?.value)||30)),trainingWeights={systemity:Math.max(0,Number(document.getElementById('fscoreCustomTrainingSystemityWeight')?.value)||0),strength:Math.max(0,Number(document.getElementById('fscoreCustomTrainingStrengthWeight')?.value)||0)},trainingWeightSum=Object.values(trainingWeights).reduce((a,b)=>a+b,0); if(trainingWeightSum<=0){showToast('Укажите вес хотя бы для одного показателя тренировки');return;} Object.keys(trainingWeights).forEach(k=>trainingWeights[k]=Math.round(trainingWeights[k]/trainingWeightSum*100)); trainingWeights.strength+=(100-Object.values(trainingWeights).reduce((a,b)=>a+b,0)); const evaluationDays=Math.max(7,Math.min(365,Number(document.getElementById('fscoreCustomEvaluationDays')?.value)||90));
     const nutrition={auto:document.getElementById('fscoreCustomNutritionAuto')?.value!=='manual',calories:Math.max(0,Number(document.getElementById('fscoreCustomCalories')?.value)||0),protein:Math.max(0,Number(document.getElementById('fscoreCustomProtein')?.value)||0),fat:Math.max(0,Number(document.getElementById('fscoreCustomFat')?.value)||0),carbs:Math.max(0,Number(document.getElementById('fscoreCustomCarbs')?.value)||0),toleranceCalories:Math.max(0,Number(document.getElementById('fscoreCustomCalTol')?.value)||0),toleranceProtein:Math.max(0,Number(document.getElementById('fscoreCustomProteinTol')?.value)||0),toleranceFat:Math.max(0,Number(document.getElementById('fscoreCustomFatTol')?.value)||0),toleranceCarbs:Math.max(0,Number(document.getElementById('fscoreCustomCarbsTol')?.value)||0)};
     if(!nutrition.auto && !(nutrition.calories||nutrition.protein||nutrition.fat||nutrition.carbs)){showToast('Для ручного режима задайте хотя бы одну цель КБЖУ');return;}
-    if(body+training+nutritionWeight<=0){showToast('Укажите вес хотя бы для одного блока');return;}
-    saveFScoreCustomConfig({id:current?.id,name,mode,evaluationDays,targets,training:{target:trainingTarget,period:trainingPeriod,weights:trainingWeights},nutrition,blockWeights:bw,blockEnabled},current?.__draft?null:current?.id);
+    if(!Object.keys(blockEnabled).some(k=>blockEnabled[k]&&bw[k]>0)){
+        showToast('Укажите вес хотя бы одного включённого фактора');
+        return;
+    }
+    const saved=saveFScoreCustomConfig(
+        {id:current?.id,name,mode,evaluationDays,targets,training:{target:trainingTarget,period:trainingPeriod,weights:trainingWeights},nutrition,blockWeights:bw,blockEnabled},
+        current?.__draft?null:current?.id
+    );
+    if(saved===false) return;
     window.__fscoreEditorOpen=false;
     window.__fscoreCustomDraft=null;
     closeModalElement(document.getElementById('fscoreCustomGoalModal'));
@@ -6570,7 +6578,7 @@ function showToast(msg) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=1.8.72', {updateViaCache:'none'}).catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=1.8.73', {updateViaCache:'none'}).catch(() => {});
     });
 }
 
@@ -11490,7 +11498,7 @@ async function clearTemporaryFiles(){
     if(typeof showToast==='function') showToast('Все данные приложения очищены. Перезапуск…');
     setTimeout(()=>{
       // Force the current clean app shell to initialise data from defaults.
-      location.replace(location.pathname+'?v=1.8.72&reset='+Date.now());
+      location.replace(location.pathname+'?v=1.8.73&reset='+Date.now());
     },250);
   }catch(err){
     console.error('Full application reset failed',err);
