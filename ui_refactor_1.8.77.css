@@ -1,0 +1,522 @@
+/* ========================================================================
+   FTracker 1.8.77 — final visual consistency layer
+   Loaded last. Presentation-only corrections; business logic/storage untouched.
+   ======================================================================== */
+
+/* One semantic palette for both appearances. */
+html { color-scheme: dark; }
+body.light-mode { color-scheme: light; }
+body:not(.light-mode) { color-scheme: dark; }
+
+:root {
+  --ft77-bg: #000000;
+  --ft77-surface: #1c1c1e;
+  --ft77-surface-2: #2c2c2e;
+  --ft77-surface-3: #3a3a3c;
+  --ft77-text: #f5f5f7;
+  --ft77-text-2: #aeaeb2;
+  --ft77-text-3: #8e8e93;
+  --ft77-separator: rgba(255,255,255,.14);
+  --ft77-separator-strong: rgba(255,255,255,.22);
+  --ft77-accent: #30d158;
+  --ft77-accent-strong: #248a3d;
+  --ft77-accent-soft: rgba(48,209,88,.14);
+  --ft77-danger: #ff453a;
+  --ft77-warning: #ff9f0a;
+  --ft77-overlay: rgba(0,0,0,.58);
+  --ft77-control: #2c2c2e;
+  --ft77-control-active: #3a3a3c;
+  --ft77-radius-sm: 9px;
+  --ft77-radius-md: 12px;
+  --ft77-radius-lg: 16px;
+  --ft77-radius-xl: 20px;
+  --ft77-control-h: 44px;
+  --ft77-header-h: 56px;
+  --ft77-font: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,sans-serif;
+}
+
+body.light-mode {
+  --ft77-bg: #f2f2f7;
+  --ft77-surface: #ffffff;
+  --ft77-surface-2: #f2f2f7;
+  --ft77-surface-3: #e5e5ea;
+  --ft77-text: #1c1c1e;
+  --ft77-text-2: #636366;
+  --ft77-text-3: #8e8e93;
+  --ft77-separator: rgba(60,60,67,.18);
+  --ft77-separator-strong: rgba(60,60,67,.28);
+  --ft77-accent: #248a3d;
+  --ft77-accent-strong: #1f6f32;
+  --ft77-accent-soft: rgba(36,138,61,.12);
+  --ft77-danger: #d70015;
+  --ft77-warning: #a95100;
+  --ft77-overlay: rgba(0,0,0,.34);
+  --ft77-control: #e5e5ea;
+  --ft77-control-active: #d1d1d6;
+}
+
+html,
+body,
+#app,
+.safe-area {
+  background: var(--ft77-bg) !important;
+  color: var(--ft77-text) !important;
+}
+
+html,
+body,
+#app,
+button,
+input,
+select,
+textarea,
+optgroup {
+  font-family: var(--ft77-font) !important;
+  font-synthesis: none !important;
+}
+
+body {
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* Keep the legacy variable names synchronized with the same palette. */
+body {
+  --bg: var(--ft77-bg) !important;
+  --card-bg: var(--ft77-surface) !important;
+  --input-bg: var(--ft77-surface-2) !important;
+  --text: var(--ft77-text) !important;
+  --subtext: var(--ft77-text-2) !important;
+  --border: var(--ft77-separator) !important;
+  --button-gray: var(--ft77-control) !important;
+  --button-green: var(--ft77-accent) !important;
+  --positive: var(--ft77-accent) !important;
+  --negative: var(--ft77-danger) !important;
+  --accent-gradient: var(--ft77-accent) !important;
+  --modal-overlay: var(--ft77-overlay) !important;
+}
+
+/* ------------------------------------------------------------------------
+   Global controls: never allow inherited/hard-coded text to disappear.
+   ------------------------------------------------------------------------ */
+button,
+.btn,
+.button,
+.action-btn {
+  color: #fff;
+  -webkit-text-fill-color: currentColor;
+  border-radius: var(--ft77-radius-md) !important;
+}
+
+button.gray,
+button.outline,
+button.secondary,
+button.back,
+.small-btn,
+.body-settings-btn,
+.measurement-manager-row button,
+.cancel-btn {
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+}
+
+button.outline {
+  background: transparent !important;
+  color: var(--ft77-accent) !important;
+  -webkit-text-fill-color: var(--ft77-accent) !important;
+}
+
+button svg,
+button i,
+button .nav-icon,
+button .nav-label,
+button .action-icon,
+button .action-copy,
+button .action-arrow {
+  color: currentColor !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+button svg * { stroke: currentColor; }
+
+/* Light theme: buttons that use dark/light surfaces must use readable labels. */
+body.light-mode .workout-action-grid button,
+body.light-mode .workout-bottom-action.next-action,
+body.light-mode .rest-skip,
+body.light-mode .rest-adjust-circle,
+body.light-mode .replace-exercise-option,
+body.light-mode .exercise-picker-option,
+body.light-mode .directory-item button.gray,
+body.light-mode .history-item button.gray {
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+}
+
+/* ------------------------------------------------------------------------
+   Workout action cards — fixes the dark-theme invisible plus/icon problem.
+   ------------------------------------------------------------------------ */
+#workoutScreen .workout-action-grid button {
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+}
+#workoutScreen .workout-action-grid .action-icon,
+#workoutScreen .workout-action-grid .action-copy {
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+}
+#workoutScreen .workout-action-grid .action-arrow {
+  color: var(--ft77-accent) !important;
+  -webkit-text-fill-color: var(--ft77-accent) !important;
+}
+#workoutScreen .workout-action-grid .analytics {
+  background: var(--ft77-surface-2) !important;
+  border: 1px solid var(--ft77-separator) !important;
+}
+#workoutScreen .workout-action-grid .replace {
+  background: var(--ft77-surface-2) !important;
+  border: 1px solid var(--ft77-separator) !important;
+}
+
+#workoutScreen .workout-bottom-action.add-action {
+  background: var(--ft77-accent) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  border: 1px solid var(--ft77-accent) !important;
+}
+#workoutScreen .workout-bottom-action.add-action .nav-icon,
+#workoutScreen .workout-bottom-action.add-action .nav-label {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+#workoutScreen .workout-bottom-action.next-action {
+  background: var(--ft77-surface) !important;
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+  border: 1px solid var(--ft77-separator-strong) !important;
+}
+#workoutScreen .workout-bottom-action.next-action .nav-icon {
+  color: var(--ft77-accent) !important;
+  -webkit-text-fill-color: var(--ft77-accent) !important;
+}
+#workoutScreen .workout-bottom-action .nav-icon {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  visibility: visible !important;
+}
+#workoutScreen .workout-bottom-action .nav-label {
+  min-width: 0 !important;
+  line-height: 1.12 !important;
+  overflow: visible !important;
+  visibility: visible !important;
+}
+
+/* Recommendation card: never use white text on a light surface. */
+#workoutScreen .workout-recommendation,
+#workoutScreen .workout-recommendation * {
+  color: var(--ft77-text) !important;
+}
+#workoutScreen .workout-recommendation .recommendation-head,
+#workoutScreen .workout-recommendation .recommendation-toggle {
+  color: var(--ft77-accent) !important;
+}
+#workoutScreen .workout-recommendation .recommendation-note,
+#workoutScreen .workout-recommendation .recommendation-main span {
+  color: var(--ft77-text-2) !important;
+}
+
+/* ------------------------------------------------------------------------
+   Consistent text/surfaces across every screen and tab.
+   ------------------------------------------------------------------------ */
+#app > [id$="Screen"],
+#app > [id$="Screen"] .card,
+#app > [id$="Screen"] .panel,
+#app > [id$="Screen"] .content-card,
+#app > [id$="Screen"] .analysis-card,
+#app > [id$="Screen"] .progress-section,
+#app > [id$="Screen"] .body-hero-card,
+#app > [id$="Screen"] .body-comparison-card,
+#app > [id$="Screen"] .body-history-card,
+#app > [id$="Screen"] .centered-card,
+#app > [id$="Screen"] .timer-box {
+  color: var(--ft77-text) !important;
+}
+
+#app > [id$="Screen"] :is(.subtitle,.subtext,.hint,.helper-text,.note,.description,.empty-state,.field-label,.chart-range-caption,.measurement-modal-note),
+#app > [id$="Screen"] :is(.history-meta,.history-date,.food-meta,.directory-archive-meta,.body-empty-sub,.analysis-subtitle) {
+  color: var(--ft77-text-2) !important;
+}
+
+/* Explicit light-theme correction for legacy white/dark hard-coded labels. */
+body.light-mode .workout-last-value,
+body.light-mode .workout-last-copy,
+body.light-mode .workout-exercise-name-large,
+body.light-mode .sets-heading,
+body.light-mode .directory-item-name,
+body.light-mode .history-item,
+body.light-mode .food-item,
+body.light-mode .measurement-item,
+body.light-mode .progress-item,
+body.light-mode .analysis-card,
+body.light-mode .fscore-widget,
+body.light-mode .fscore-panel,
+body.light-mode .fscore-widget * {
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+}
+body.light-mode .workout-last-label,
+body.light-mode .workout-last-meta,
+body.light-mode .fscore-kicker,
+body.light-mode .fscore-goal,
+body.light-mode .fscore-home-hint,
+body.light-mode .workout-subline {
+  color: var(--ft77-text-2) !important;
+  -webkit-text-fill-color: var(--ft77-text-2) !important;
+}
+
+/* Restore semantic accent colors after the broad light-mode text correction. */
+body.light-mode :is(.fscore-status.good,.fscore-score,.big-number,.total-timer,.best-value,.exercise-dot.done) {
+  color: var(--ft77-accent) !important;
+  -webkit-text-fill-color: var(--ft77-accent) !important;
+}
+body.light-mode :is(.positive,.success,.positive-value) {
+  color: var(--ft77-accent) !important;
+  -webkit-text-fill-color: var(--ft77-accent) !important;
+}
+body.light-mode :is(.negative,.error,.danger) {
+  color: var(--ft77-danger) !important;
+  -webkit-text-fill-color: var(--ft77-danger) !important;
+}
+
+/* Inputs/selects are readable in both appearances, including native iOS controls. */
+input,
+select,
+textarea {
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+  background: var(--ft77-surface-2) !important;
+  border-color: var(--ft77-separator) !important;
+  color-scheme: inherit;
+}
+input::placeholder,
+textarea::placeholder { color: var(--ft77-text-3) !important; -webkit-text-fill-color: var(--ft77-text-3) !important; }
+
+/* ------------------------------------------------------------------------
+   Tabs: one component language in both appearances.
+   ------------------------------------------------------------------------ */
+:is(.tabs,.stats-tabs,.directory-tabs,.food-main-tabs,.progress-v2-tabs,.technique-tabs) {
+  background: transparent !important;
+}
+:is(.tabs .tab,.stats-tab,.directory-tab,.food-main-tabs button,.progress-v2-tabs button,.technique-tabs .tab) {
+  background: var(--ft77-surface-2) !important;
+  color: var(--ft77-text-2) !important;
+  -webkit-text-fill-color: var(--ft77-text-2) !important;
+  border: 1px solid var(--ft77-separator) !important;
+  border-radius: var(--ft77-radius-md) !important;
+}
+:is(.tabs .tab.active,.stats-tab.active,.directory-tab.active,.food-main-tabs button.active,.progress-v2-tabs button.active,.technique-tabs .tab.active) {
+  background: var(--ft77-accent-soft) !important;
+  color: var(--ft77-accent) !important;
+  -webkit-text-fill-color: var(--ft77-accent) !important;
+  border-color: color-mix(in srgb, var(--ft77-accent) 42%, var(--ft77-separator)) !important;
+}
+
+/* ------------------------------------------------------------------------
+   Compact confirmation dialogs. The dialog says only what is necessary.
+   ------------------------------------------------------------------------ */
+.confirm-modal,
+.ft-window-root.ft-window-dialog {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box !important;
+  background: var(--ft77-overlay) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  overflow: auto !important;
+}
+.confirm-modal.hidden,
+.ft-window-root.ft-window-dialog.hidden { display: none !important; }
+
+.confirm-modal-content,
+.ft-window-root.ft-window-dialog > .confirm-modal-content {
+  width: min(100%, 360px) !important;
+  max-width: 360px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: min(80dvh, 520px) !important;
+  margin: 0 !important;
+  padding: 18px !important;
+  box-sizing: border-box !important;
+  overflow: auto !important;
+  background: var(--ft77-surface) !important;
+  color: var(--ft77-text) !important;
+  border: 1px solid var(--ft77-separator) !important;
+  border-radius: var(--ft77-radius-xl) !important;
+  box-shadow: 0 18px 55px rgba(0,0,0,.30) !important;
+}
+
+.confirm-modal-content > [style*="font-size:20px"],
+.confirm-modal-content > [style*="font-size:21px"],
+.confirm-modal-content > [style*="font-size:22px"],
+.confirm-modal-content .finish-confirm-title,
+.confirm-modal-content .system-confirm-title,
+.confirm-modal-content .exercise-create-confirm-title {
+  color: var(--ft77-text) !important;
+  font-size: 17px !important;
+  line-height: 1.22 !important;
+  font-weight: 800 !important;
+  margin: 0 0 10px !important;
+  text-align: center !important;
+}
+
+.confirm-modal-content .finish-confirm-text,
+.confirm-modal-content .system-confirm-text,
+.confirm-modal-content .exercise-create-confirm-text,
+.confirm-modal-content .import-confirm-copy,
+.confirm-modal-content .auto-backup-restore-confirm-content .finish-confirm-text,
+.confirm-modal-content > div[style*="color:var(--subtext)"],
+.confirm-modal-content > div[style*="color: var(--subtext)"] {
+  color: var(--ft77-text-2) !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  margin: 0 0 12px !important;
+  text-align: center !important;
+}
+
+.confirm-modal-content > button {
+  width: 100% !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  margin: 6px 0 0 !important;
+  padding: 8px 12px !important;
+  border-radius: 11px !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+}
+
+/* Two-button dialogs: compact side-by-side actions. Three-button dialogs stay stacked. */
+.confirm-modal-content:not(:has(> button:nth-of-type(3))) > button {
+  width: calc(50% - 4px) !important;
+  display: inline-flex !important;
+  vertical-align: top !important;
+}
+.confirm-modal-content:not(:has(> button:nth-of-type(3))) > button:first-of-type { margin-right: 4px !important; }
+.confirm-modal-content:not(:has(> button:nth-of-type(3))) > button:nth-of-type(2) { margin-left: 4px !important; }
+
+.confirm-modal-content .finish-confirm-actions,
+.confirm-modal-content .system-confirm-actions,
+.confirm-modal-content .exercise-create-confirm-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+.confirm-modal-content .finish-confirm-actions button,
+.confirm-modal-content .system-confirm-actions button,
+.confirm-modal-content .exercise-create-confirm-actions button {
+  width: 100% !important;
+  margin: 0 !important;
+  min-height: 42px !important;
+  height: 42px !important;
+}
+.confirm-modal-content .finish-confirm-icon,
+.confirm-modal-content .auto-backup-confirm-icon { display: none !important; }
+
+/* Delete dialog generated at runtime. */
+#deleteConfirmContent {
+  text-align: center !important;
+}
+#deleteConfirmContent > div,
+#deleteConfirmContent > span + div {
+  color: var(--ft77-text) !important;
+}
+#deleteConfirmContent > button {
+  width: calc(50% - 4px) !important;
+  display: inline-flex !important;
+  margin-top: 8px !important;
+}
+#deleteConfirmContent > button:first-of-type { margin-right: 4px !important; }
+#deleteConfirmContent > button:last-of-type { margin-left: 4px !important; }
+
+/* Remove the redundant explanatory sentence from the normal finish dialog. */
+#finishWorkoutConfirmModal .finish-confirm-text { display: none !important; }
+#finishWorkoutConfirmModal .finish-confirm-actions { margin-top: 4px !important; }
+
+/* ------------------------------------------------------------------------
+   Modal/workspace surfaces: same radius, header, border and typography.
+   ------------------------------------------------------------------------ */
+:is(.theme-modal-content,.exercise-modal-content,.date-modal-content,.workout-detail-content,
+.manual-workout-content,.achievements-content,.food-modal-content,.catalog-modal-content,
+.chart-modal-content,.measurement-manager-modal-content,.body-graph-modal-content,
+.body-history-modal-content,.exercise-editor-unified,.exercise-dup-sheet) {
+  background: var(--ft77-surface) !important;
+  color: var(--ft77-text) !important;
+  border-color: var(--ft77-separator) !important;
+}
+:is(.unified-surface-header,.ft-modal-header,.chart-modal-header) {
+  background: var(--ft77-surface) !important;
+  color: var(--ft77-text) !important;
+  border-bottom: 1px solid var(--ft77-separator) !important;
+  box-shadow: none !important;
+}
+:is(.surface-title,.chart-modal-title,.exercise-name-header-title) {
+  color: var(--ft77-text) !important;
+  -webkit-text-fill-color: var(--ft77-text) !important;
+}
+
+/* ------------------------------------------------------------------------
+   Safe-area/header stability for iPhone PWA.
+   ------------------------------------------------------------------------ */
+html, body { min-height: 100%; }
+.safe-area { min-height: 100dvh !important; }
+#app { min-height: 100dvh !important; }
+#app > [id$="Screen"] > .screen-header,
+#workoutScreen > .workout-topbar {
+  padding-top: max(6px, env(safe-area-inset-top)) !important;
+  box-sizing: border-box !important;
+}
+
+/* Do not manufacture a large black bottom band. Native home-indicator space is
+   respected only where the viewport actually reports it. */
+#app > [id$="Screen"],
+.ft-window-root.ft-window-workspace {
+  padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+}
+
+/* ------------------------------------------------------------------------
+   Small-screen geometry: no oversized controls, no clipped labels.
+   ------------------------------------------------------------------------ */
+@media (max-width: 430px) {
+  .container { padding-left: 12px !important; padding-right: 12px !important; }
+  #workoutScreen .workout-bottom-action {
+    min-height: 58px !important;
+    height: 58px !important;
+    padding: 7px 9px !important;
+    gap: 7px !important;
+  }
+  #workoutScreen .workout-bottom-action .nav-icon { font-size: 25px !important; }
+  #workoutScreen .workout-bottom-action .nav-label { font-size: 12px !important; }
+  #workoutScreen .workout-action-grid button { min-height: 58px !important; }
+  .confirm-modal-content,
+  .ft-window-root.ft-window-dialog > .confirm-modal-content { width: min(100%, 340px) !important; padding: 16px !important; }
+}
+
+@media (max-width: 360px) {
+  .confirm-modal-content,
+  .ft-window-root.ft-window-dialog > .confirm-modal-content { width: min(100%, 320px) !important; }
+  #workoutScreen .workout-bottom-action .nav-label { font-size: 11.5px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
