@@ -1,14 +1,17 @@
 body{--accent:var(--button-green);--surface-2:var(--card-bg);color:var(--text);touch-action:manipulation}
-*{box-sizing:border-box;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,sans-serif}
 .container{max-width:600px;position:relative;box-sizing:border-box}
-.card{background:var(--card-bg);padding:20px;border-radius:20px;box-shadow:0 8px 20px rgba(0,0,0,0.2);transition:transform 0.2s, box-shadow 0.2s}
+.card{background:var(--ft-surface);padding:16px;border-radius:var(--ft-radius-lg);border:1px solid var(--ft-border);box-shadow:var(--ft-shadow-md);transition:transform .2s,box-shadow .2s}
 .card:active{transform:scale(0.98)}
-button{border:0;border-radius:14px;padding:14px;background:var(--accent-gradient);color:#fff;font-size:17px;font-weight:600;cursor:pointer;width:100%;margin-top:6px;transition:0.2s}
+button{border:0;border-radius:var(--ft-radius-md);padding:0 16px;min-height:var(--ui-btn-height);background:var(--accent-gradient);color:#fff;font-size:var(--ft-text-control);font-weight:var(--ft-weight-semibold);cursor:pointer;width:100%;margin-top:6px;transition:background-color .16s ease,transform .12s ease,box-shadow .16s ease,opacity .16s ease}
 .hidden{display:none}
+:where(button,input,select,textarea,[tabindex]):focus-visible{outline:2px solid var(--ft-accent);outline-offset:2px}
+:where(button,input,select,textarea):disabled,[aria-disabled="true"]{cursor:not-allowed;opacity:.5}
+button:active{transform:scale(.985)}
 .title{font-size:36px;font-weight:800;text-align:center;margin-bottom:8px;background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .subtitle{color:var(--subtext);text-align:center;margin-bottom:24px}
 .big-number{font-size:42px;font-weight:700;color:var(--button-green);text-align:center;margin:10px 0}
-input,select{width:100%;padding:10px;border-radius:10px;font-size:16px;text-align:left;margin:4px 0}
+input,select{width:100%;min-height:44px;padding:10px 14px;border-radius:var(--ft-radius-md);font-size:var(--ft-text-control);text-align:left;margin:4px 0}
 .row{display:flex;gap:8px}
 .row>*{flex:1}
 .exercise-strip{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:8px;scroll-behavior:smooth}
@@ -847,8 +850,27 @@ body.light-mode #workoutScreen #exerciseStrip .exercise-dot.active{background:rg
 #workoutScreen .workout-recommendation .recommendation-head{color:#62d26d!important}
 #workoutScreen .workout-recommendation .recommendation-toggle{background:rgba(52,199,89,.16)!important;color:#62d26d!important}
 #workoutScreen .workout-recommendation .recommendation-main b{color:#fff!important}
-body{--bg:#0b0b0f;--card-bg:#15151b;--text:#f7f7fb;--subtext:#a8a7b2;--input-bg:#20202a;--button-gray:#272731;--border:#2c2b36;--negative:#ff5f67;--toast-text:#fff;--modal-overlay:rgba(5,5,9,.78)}
-body.light-mode{--bg:#f5f3f9;--card-bg:#fff;--text:#19161f;--subtext:#77717f;--input-bg:#ece9f2;--button-gray:#e3e0e9;--border:#ddd8e5;--negative:#d83b49;--toast-text:#fff;--modal-overlay:rgba(25,20,35,.35)}
+body{
+--bg:#0b0b0f;--card-bg:#15151b;--text:#f7f7fb;--subtext:#a8a7b2;--input-bg:#20202a;--button-gray:#272731;--border:#2c2b36;--negative:#ff5f67;--toast-text:#fff;--modal-overlay:rgba(5,5,9,.78);
+--ft-bg:var(--bg);--ft-surface:var(--card-bg);--ft-surface-secondary:var(--input-bg);
+--ft-text:var(--text);--ft-text-secondary:var(--subtext);--ft-text-tertiary:color-mix(in srgb,var(--subtext) 72%,transparent);
+--ft-border:var(--border);--ft-border-subtle:color-mix(in srgb,var(--border) 58%,transparent);
+--ft-accent:var(--button-green);--ft-accent-pressed:color-mix(in srgb,var(--button-green) 78%,#000);
+--ft-success:var(--positive);--ft-warning:#ff9f0a;--ft-error:var(--negative);--ft-overlay:var(--modal-overlay);
+--ft-space-1:4px;--ft-space-2:8px;--ft-space-3:12px;--ft-space-4:16px;--ft-space-5:20px;--ft-space-6:24px;--ft-space-7:32px;
+--ft-radius-sm:10px;--ft-radius-md:14px;--ft-radius-lg:20px;--ft-radius-pill:999px;
+--ft-shadow-sm:0 1px 3px rgba(0,0,0,.08);--ft-shadow-md:0 4px 14px rgba(0,0,0,.10);--ft-shadow-lg:0 12px 32px rgba(0,0,0,.16);
+--ft-text-xs:11px;--ft-text-sm:13px;--ft-text-md:15px;--ft-text-control:16px;--ft-text-lg:17px;--ft-text-title:20px;--ft-text-screen:22px;--ft-text-display:28px;--ft-text-hero:42px;
+--ft-weight-regular:400;--ft-weight-medium:500;--ft-weight-semibold:600;--ft-weight-bold:700;--ft-weight-heavy:800;
+--ft-leading-tight:1.15;--ft-leading-normal:1.35;--ft-leading-relaxed:1.5;
+--ft-screen-side:16px;--ft-header-height:56px;--ft-header-control:44px;--ft-header-gap:8px;
+--ft-safe-top:env(safe-area-inset-top,0px);--ft-safe-right:env(safe-area-inset-right,0px);--ft-safe-bottom:env(safe-area-inset-bottom,0px);--ft-safe-left:env(safe-area-inset-left,0px);
+--ft-z-base:1;--ft-z-sticky:100;--ft-z-header:200;--ft-z-overlay:1000;--ft-z-modal:1100;--ft-z-dialog:1200;--ft-z-toast:1300;
+}
+body.light-mode{
+--bg:#f5f3f9;--card-bg:#fff;--text:#19161f;--subtext:#77717f;--input-bg:#ece9f2;--button-gray:#e3e0e9;--border:#ddd8e5;--negative:#d83b49;--toast-text:#fff;--modal-overlay:rgba(25,20,35,.35);
+--ft-bg:var(--bg);--ft-surface:var(--card-bg);--ft-surface-secondary:var(--input-bg);--ft-text:var(--text);--ft-text-secondary:var(--subtext);--ft-text-tertiary:color-mix(in srgb,var(--subtext) 72%,transparent);--ft-border:var(--border);--ft-border-subtle:color-mix(in srgb,var(--border) 58%,transparent);--ft-accent:var(--button-green);--ft-accent-pressed:color-mix(in srgb,var(--button-green) 78%,#000);--ft-success:var(--positive);--ft-warning:#ff9f0a;--ft-error:var(--negative);--ft-overlay:var(--modal-overlay);
+}
 .container{width:min(100%,680px);padding:18px 14px 30px;margin:0 auto}
 .card,.progress-section,.analysis-card,.body-hero-card,.body-comparison-card,.body-history-card,.timer-box,.centered-card{background:var(--card-bg)!important;border:1px solid var(--border)!important;border-radius:20px!important;box-shadow:0 8px 24px rgba(0,0,0,.14)!important;overflow:hidden}
 button{min-width:0;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}
@@ -2108,7 +2130,7 @@ body{background:var(--bg)}
 .modal-content,.window-content,.sheet-content{height:100%;max-height:none!important;overflow:auto}
 .screen-header .title,.page-title,.section-title{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:center}
 .back-button,.screen-header button:first-child{min-height:40px;border-radius:12px}
-:root{--ui-btn-height:44px;--ui-radius:12px;--ui-card-radius:16px;--ui-gap:12px}
+:root{--ui-btn-height:48px;--ui-radius:14px;--ui-card-radius:16px;--ui-gap:12px}
 button,.btn,.button,.action-btn{min-height:var(--ui-btn-height);border-radius:var(--ui-radius)}
 .header-title,.screen-title,.page-title,h1,h2{overflow-wrap:anywhere;white-space:normal}
 .card,.panel,.content-card{border-radius:var(--ui-card-radius)}
@@ -2142,7 +2164,7 @@ button,.btn,.button,.action-btn{min-height:var(--ui-btn-height);border-radius:va
 @media(max-width:360px){:root{--ft-header-side:68px}
 .screen-header>.title,.unified-surface-header>.surface-title{font-size:19px!important}
 #workoutScreen .workout-title-wrap .title{font-size:18px!important}
-}:root{--ft-header-side:76px;--ft-header-control:44px}
+}:root{--ft-header-side:76px;--ft-header-control:var(--ft-header-control)}
 #app>[id$="Screen"]>.screen-header,.ft-window-root.ft-window-workspace>.date-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.exercise-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.catalog-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.food-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.workout-detail-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.measurement-manager-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.body-graph-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.body-history-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.exercise-editor-unified>.unified-surface-header,.ft-window-root.ft-window-workspace>.ft-window-content>.unified-surface-header,.technique-modal>.technique-modal-content>.exercise-card-header,.technique-modal>.technique-modal-content>.unified-surface-header{position:sticky!important;top:0!important;z-index:1000!important;width:100%!important;height:var(--ft-header-h)!important;min-height:var(--ft-header-h)!important;max-height:var(--ft-header-h)!important;margin:0 0 12px!important;padding:0!important;box-sizing:border-box!important;display:grid!important;grid-template-columns:var(--ft-header-side) minmax(0,1fr) var(--ft-header-side)!important;grid-template-rows:1fr!important;align-items:center!important;gap:8px!important;background:var(--bg)!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;transform:none!important}
 .ft-window-root.ft-window-workspace>.date-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.exercise-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.catalog-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.food-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.workout-detail-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.measurement-manager-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.body-graph-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.body-history-modal-content>.unified-surface-header,.ft-window-root.ft-window-workspace>.exercise-editor-unified>.unified-surface-header,.ft-window-root.ft-window-workspace>.ft-window-content>.unified-surface-header,.technique-modal>.technique-modal-content>.exercise-card-header,.technique-modal>.technique-modal-content>.unified-surface-header{top:0!important}
 #app>[id$="Screen"]>.screen-header>button:first-child,.unified-surface-header>.surface-back-btn{grid-column:1!important;grid-row:1!important;justify-self:start!important;position:static!important;inset:auto!important;transform:none!important;width:var(--ft-header-side)!important;min-width:var(--ft-header-side)!important;max-width:var(--ft-header-side)!important;height:var(--ft-header-control)!important;min-height:var(--ft-header-control)!important;max-height:var(--ft-header-control)!important;margin:0!important;padding:0 8px!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;z-index:1001!important}
@@ -2187,7 +2209,7 @@ button,.btn,.button,.action-btn{min-height:var(--ui-btn-height);border-radius:va
 body>button[title="Export Full Black Box"]{display:flex!important;align-items:center!important;justify-content:center!important}
 @media(max-width:430px){:root{--ft-ui-header-side:76px}
 #app>[id$="Screen"]>.screen-header>button:first-child,.ft-window-root.ft-window-workspace .unified-surface-header>.surface-back-btn,.ft-window-root.ft-window-workspace .unified-surface-header-close>.surface-close-btn,.ft-window-root.ft-window-workspace .unified-surface-header-close>.close-btn,.ft-window-root.ft-window-workspace .unified-surface-header-close>.modal-close-btn{font-size:15px!important}
-}:root{--ft-window-side:76px;--ft-window-header:56px}
+}:root{--ft-window-side:76px;--ft-window-header:var(--ft-header-height)}
 #app>#progressScreen,#app>#fscoreAnalyticsScreen,#app>#bodyScreen,#app>#settingsScreen,#app>#exerciseDirectoryScreen,#app>#historyScreen,#app>#foodScreen{padding:0!important;margin:0!important}
 #app>#progressScreen>.screen-header,#app>#fscoreAnalyticsScreen>.screen-header,#app>#bodyScreen>.screen-header,#app>#settingsScreen>.screen-header,#app>#exerciseDirectoryScreen>.screen-header,#app>#historyScreen>.screen-header,#app>#foodScreen>.screen-header{position:sticky!important;top:0!important;z-index:1000!important;width:100%!important;min-height:var(--ft-window-header)!important;height:auto!important;margin:0 0 12px!important;padding:4px 0!important;box-sizing:border-box!important;display:grid!important;grid-template-columns:var(--ft-window-side) minmax(0,1fr) var(--ft-window-side)!important;align-items:center!important;gap:8px!important;background:var(--bg)!important;box-shadow:none!important;overflow:visible!important}
 #app>#progressScreen>.screen-header>button:first-child,#app>#fscoreAnalyticsScreen>.screen-header>button:first-child,#app>#bodyScreen>.screen-header>button:first-child,#app>#settingsScreen>.screen-header>button:first-child,#app>#exerciseDirectoryScreen>.screen-header>button:first-child,#app>#historyScreen>.screen-header>button:first-child,#app>#foodScreen>.screen-header>button:first-child{grid-column:1!important;justify-self:start!important;width:var(--ft-window-side)!important;min-width:var(--ft-window-side)!important;max-width:var(--ft-window-side)!important;height:44px!important;min-height:44px!important;margin:0!important;padding:0 8px!important;border-radius:14px!important;box-sizing:border-box!important}

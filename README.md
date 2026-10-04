@@ -1,4 +1,4 @@
-# FTracker v1.8.73 — iOS PWA optimization
+# FTracker v1.8.74 — iOS PWA optimization
 
 Дата релиза: 04.10.2026
 
