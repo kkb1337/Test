@@ -1,4 +1,4 @@
-/* FTracker v1.8.72 logic regression tests; run with: node audit-tests.js */
+/* FTracker v1.8.75 logic regression tests; run with: node audit-tests.js */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const app=fs.readFileSync('app.js','utf8');
@@ -52,9 +52,9 @@ assert.doesNotMatch(app,/insertAdjacentHTML\('beforeend', `.*program-picker-add-
 assert.match(index,/exercisePickerSearch/);
 
 // Release metadata must be synchronized.
-for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.72'),'stale release version');
-assert.ok(index.includes('от 03.10.26'),'release date missing');
-assert.ok(sw.includes("const APP_VERSION = '1.8.72'"),'SW cache version missing');
+for(const s of [app,index,manifest,sw,readme]) assert.ok(s.includes('1.8.75'),'stale release version');
+assert.ok(index.includes('от 04.10.26'),'release date missing');
+assert.ok(sw.includes("const APP_VERSION = '1.8.75'"),'SW cache version missing');
 
 
 assert.ok(app.includes("weights:{systemity:40,strength:60}"),'training index default weights must be 40/60');
@@ -73,7 +73,7 @@ assert.match(app,/delete data\.exerciseNotes\[key\]/,'exercise note clear path m
 assert.match(app,/data\.exerciseNotes && Object\.prototype\.hasOwnProperty\.call\(data\.exerciseNotes,key\)/,'exercise note read path missing');
 assert.match(css,/#workoutScreen \.workout-completion-head\{[^}]*justify-content:center!important/,'workout completion should be centered');
 assert.match(css,/#workoutScreen \.workout-action-grid\{[^}]*grid-template-columns:1fr 1fr!important/,'workout action buttons should have equal width');
-console.log('FTracker v1.8.72 logic regression tests: OK');
+console.log('FTracker v1.8.75 logic regression tests: OK');
 
 // v1.8.57: replacement creation must replace the frozen slot, not append.
 assert(fs.readFileSync('app.js','utf8').includes("workoutNewExerciseContext={mode:'replace',slot,programIndex:Number(currentProgram),oldRef:slots[slot]}"), 'replace creation context must freeze slot before closing replace modal');
